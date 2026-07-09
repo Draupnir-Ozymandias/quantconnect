@@ -1,5 +1,6 @@
 # region imports
 from AlgorithmImports import *
+from datetime import datetime
 # endregion
 
 # Your New Python File
@@ -31,8 +32,23 @@ class ResearchReport:
             risk.loss_streak_histogram
         )
 
+        generated_at = datetime.utcnow().isoformat() + "Z"
+
         return {
             "configuration": {
+                "lab_version": algo.lab_version,
+                "generated_at": generated_at,
+
+                "experiment_id": algo.experiment_id,
+                "experiment_group": algo.experiment_group,
+                "experiment_name": algo.experiment_name,
+                "experiment_notes": algo.experiment_notes,
+                "experiment_tags": algo.experiment_tags,
+                "experiment_year": algo.experiment_year,
+                "experiment_asset": algo.experiment_asset,
+                "experiment_timeframe": algo.experiment_timeframe,
+                "experiment_family": algo.experiment_family,
+
                 "coin": algo.coin,
                 "timeframe": algo.timeframe,
                 "entry_model": algo.entry_model_name,
@@ -169,3 +185,5 @@ class ResearchReport:
                 "tail_risk_score": s["tail_risk_score"]
             })
         )
+
+

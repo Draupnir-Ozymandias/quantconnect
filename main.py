@@ -67,6 +67,7 @@ class QuantConnectResearchLab(QCAlgorithm):
         self.set_end_date(self.end_year, self.end_month, self.end_day)
         self.set_cash(self.initial_bankroll)
 
+
         self.set_brokerage_model(BrokerageName.COINBASE, AccountType.CASH)
 
         crypto = self.add_crypto(
@@ -75,7 +76,7 @@ class QuantConnectResearchLab(QCAlgorithm):
             Market.COINBASE
         )
 
-        self.symbol = crypto.Symbol
+        self.crypto_symbol = crypto.Symbol
 
         # ----------------------------
         # MODELS
@@ -115,7 +116,7 @@ class QuantConnectResearchLab(QCAlgorithm):
         consolidator.DataConsolidated += self.OnPolymarketBar
 
         self.SubscriptionManager.AddConsolidator(
-            self.symbol,
+            self.crypto_symbol,
             consolidator
         )
 
@@ -128,6 +129,20 @@ class QuantConnectResearchLab(QCAlgorithm):
             f"Stake={self.stake_mode}, "
             f"Base={self.base_wager}"
         )
+
+        self.lab_version = self.Param("lab_version", LabConfig.LAB_VERSION)
+
+        self.experiment_id = self.Param("experiment_id", LabConfig.EXPERIMENT_ID)
+        self.experiment_group = self.Param("experiment_group", LabConfig.EXPERIMENT_GROUP)
+        self.experiment_name = self.Param("experiment_name", LabConfig.EXPERIMENT_NAME)
+        self.experiment_notes = self.Param("experiment_notes", LabConfig.EXPERIMENT_NOTES)
+        self.experiment_tags = self.Param("experiment_tags", LabConfig.EXPERIMENT_TAGS)
+
+        self.experiment_year = int(self.Param("experiment_year", LabConfig.EXPERIMENT_YEAR))
+        self.experiment_asset = self.Param("experiment_asset", LabConfig.EXPERIMENT_ASSET)
+        self.experiment_timeframe = self.Param("experiment_timeframe", LabConfig.EXPERIMENT_TIMEFRAME)
+        self.experiment_family = self.Param("experiment_family", LabConfig.EXPERIMENT_FAMILY)
+
 
     def GetTimeframeDelta(self, tf):
         tf = tf.lower()
