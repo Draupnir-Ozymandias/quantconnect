@@ -70,3 +70,45 @@ discovery/stability_engine.py
 
 against a clean ExperimentStore abstraction only.
 ------------------------------------------------------------
+
+QCRL_SYNC — 2026-07-10
+
+Architecture / Results Database thread completed first ExperimentStore v1 implementation.
+
+New file:
+- experiment_store.py
+
+Implemented API:
+class ExperimentStore:
+    def load_all(self, include_legacy=True)
+    def select(self, **filters)
+    def get(self, run_id)
+    def load_report(self, run_id)
+    def save_report_and_record(self, report)
+    def top(self, records=None, sort_by="risk_adjusted_score", n=10, reverse=True)
+
+ObjectStore layout now targeted:
+- qcrl/v2/experiments/{coin}/{timeframe}/{year}/{run_id}.json
+- qcrl/v2/records/{run_id}.json
+
+report_models.py now generates:
+- schema_version
+- record_schema_version
+- run_id
+- generated_at_utc
+- completed_at_algorithm_time
+- experiment_group
+- experiment_name
+- experiment_tags
+- normalized experiment record
+
+main.py now saves:
+- full nested ResearchReport
+- normalized flat experiment record
+- Run ID in Debug output
+
+Discovery Layer can now safely begin against:
+records = store.load_all()
+cohort = store.select(coin="BTCUSD", timeframe="1h")
+
+Discovery should not depend on ObjectStore internals.
