@@ -112,3 +112,62 @@ records = store.load_all()
 cohort = store.select(coin="BTCUSD", timeframe="1h")
 
 Discovery should not depend on ObjectStore internals.
+
+-----------------------------------------------------------------------------
+QCRL_SYNC — 2026-07-10
+
+Results Database / ResearchTools thread status:
+
+Confirmed working end-to-end:
+- main.py saves full ResearchReport to qcrl/v2/experiments/...
+- main.py saves normalized experiment record to qcrl/v2/records/...
+- run_id generation working
+- generated_at_utc metadata working
+- completed_at_algorithm_time metadata working
+- record_source separation working
+
+Current ObjectStore state:
+- Total records: 309
+- v2 records: 1
+- legacy records: 308
+
+Confirmed v2 record:
+BTCUSD_1d_candle_streak_martingale_20260710T190732Z_07a7a0eb0afd
+
+Normalized record fields verified:
+- coin
+- timeframe
+- entry_model
+- filter_model
+- stake_mode
+- net_profit
+- win_rate
+- trades
+- ruined
+- max_drawdown
+- max_loss_streak
+- max_recovery_depth
+- risk_adjusted_score
+- tail_risk_score
+- record_source
+
+ResearchTools v2 smoke test passed:
+- load()
+- select(record_source="v2")
+- select(record_source="legacy")
+- show()
+- top()
+- cohort summaries
+
+Discovery Layer can now consume:
+records = tools.select(record_source="v2")
+or
+records = store.load_all()
+
+Next proposed Results Database / ResearchTools enhancements:
+- tools.v2()
+- tools.legacy()
+- tools.latest()
+- tools.dedupe()
+- tools.export_csv()
+- tools.experiment_dashboard()
