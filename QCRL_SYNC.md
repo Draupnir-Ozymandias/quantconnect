@@ -171,3 +171,46 @@ Next proposed Results Database / ResearchTools enhancements:
 - tools.dedupe()
 - tools.export_csv()
 - tools.experiment_dashboard()
+
+----------------------------------------------------------------------------------------------------
+QCRL_SYNC — 2026-07-10
+
+ResearchTools v2 enhancement pass completed.
+
+Confirmed working:
+- tools.v2()
+- tools.legacy()
+- tools.latest()
+- tools.latest_v2()
+- tools.dedupe()
+- tools.duplicates()
+- tools.dashboard_text()
+
+Record source separation:
+- Total records: 309
+- v2 records: 1
+- legacy records: 308
+
+Deduplication:
+- Original records: 309
+- Deduped records: 308
+- Duplicate config groups: 1
+
+Duplicate identified:
+- legacy_BTCUSD_1d_b3bc3082e98d
+- BTCUSD_1d_candle_streak_martingale_20260710T190732Z_07a7a0eb0afd
+
+Root cause:
+- Legacy date format used 2026-1-1 / 2026-7-7
+- v2 date format used 2026-01-01 / 2026-07-07
+
+Patch applied:
+- config_signature() now normalizes date strings
+- start/end date formats no longer break duplicate detection
+
+Next proposed target:
+- ResearchTools.experiment_dashboard()
+- Research audit output
+- suspicious record flags
+- best-by-timeframe summaries
+- worst tail-risk summaries
