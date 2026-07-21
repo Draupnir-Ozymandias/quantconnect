@@ -1,14 +1,3 @@
-# region imports
-from AlgorithmImports import *
-# endregion
-# Research Tools v2
-# =================
-# Researcher-facing query and inspection layer for QCRL experiment records.
-#
-# This file intentionally depends on ExperimentStore, not directly on the
-# QuantConnect ObjectStore layout. Discovery Layer code can also build on the
-# same normalized records returned here.
-
 # Research Tools v2
 # =================
 # Researcher-facing query and inspection layer for QCRL experiment records.
@@ -235,71 +224,11 @@ class ResearchTools:
     # ------------------------------------------------------------------
     # De-duplication
     # ------------------------------------------------------------------
-    
     def config_signature(self, record):
         """
-        Return a normalized tuple that identifies the experimental configuration.
-
-        This intentionally normalizes values so legacy records and v2 records
-        with the same experiment settings produce the same signature.
+        Return a tuple that identifies the experimental configuration.
         """
-        values = []
-
-        for field in self.CONFIG_SIGNATURE_FIELDS:
-            value = record.get(field)
-            values.append(self._normalize_signature_value(field, value))
-
-        return tuple(values)
-
-
-    def _normalize_signature_value(self, field, value):
-        """
-        Normalize values used in config signatures.
-        """
-        if value is None:
-            return None
-
-        if field in ["coin", "timeframe", "entry_model", "filter_model",
-                 "stake_mode", "streak_mode"]:
-            return str(value).strip().lower()
-
-        if field in ["streak_length", "ema_fast", "ema_slow", "max_steps"]:
-            try:
-                return int(value)
-            except Exception:
-                return value
-
-        if field in ["base_wager", "bankroll", "multiplier"]:
-            try:
-                return float(value)
-            except Exception:
-                return value
-
-        if field in ["start", "end"]:
-            return self._normalize_date_string(value)
-
-        return value
-
-
-    def _normalize_date_string(self, value):
-        """
-        Normalize simple date strings like:
-        2026-1-1   -> 2026-01-01
-        2026-01-01 -> 2026-01-01
-        """
-        text = str(value).strip()
-
-        parts = text.split("-")
-        if len(parts) != 3:
-            return text
-
-        try:
-            year = int(parts[0])
-            month = int(parts[1])
-            day = int(parts[2])
-            return f"{year:04d}-{month:02d}-{day:02d}"
-        except Exception:
-            return text
+        return tuple(record.get(field) for field in self.CONFIG_SIGNATURE_FIELDS)
 
     def dedupe(self, records=None, prefer_source="v2"):
         """

@@ -64,19 +64,18 @@ class ResearchReport:
         return "_".join(parts)
 
     @staticmethod
-    def parse_tags(value):
-        if value is None:
+    def parse_tags(tags):
+        if tags is None:
             return []
 
-        if isinstance(value, list):
-            return [str(v).strip() for v in value if str(v).strip() != ""]
+        if isinstance(tags, list):
+            return tags
 
-        text = str(value).strip()
-
-        if text == "":
-            return []
-
-        return [part.strip() for part in text.split(",") if part.strip() != ""]
+            return [
+                tag.strip()
+                for tag in str(tags).split(",")
+                if tag.strip() != ""
+        ]
 
     @staticmethod
     def build(algo):
@@ -311,6 +310,7 @@ class ResearchReport:
 
         record = {
             "schema_version": ResearchReport.RECORD_SCHEMA_VERSION,
+            "record_source": "v2",
 
             "run_id": metadata.get("run_id"),
             "generated_at_utc": metadata.get("generated_at_utc"),

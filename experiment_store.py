@@ -1,3 +1,6 @@
+# region imports
+from AlgorithmImports import *
+# endregion
 # Experiment Store
 # ================
 # Persistent experiment retrieval abstraction for QCRL.
@@ -137,9 +140,11 @@ class ExperimentStore:
             except Exception:
                 continue
 
+            record.setdefault("record_source", "v2")
+
             run_id = record.get("run_id")
-            if run_id:
-                records_by_run_id[run_id] = record
+        if run_id:
+            records_by_run_id[run_id] = record
 
         # 2. Backfill from v2 full reports if a record is missing.
         for key in self.list_keys(self.report_prefix):
@@ -148,6 +153,8 @@ class ExperimentStore:
                 record = ResearchReport.normalized_record(report)
             except Exception:
                 continue
+
+            record["record_source"] = "v2"
 
             run_id = record.get("run_id")
             if run_id and run_id not in records_by_run_id:
@@ -161,6 +168,8 @@ class ExperimentStore:
                     record = ResearchReport.normalized_record(report)
                 except Exception:
                     continue
+
+                record["record_source"] = "legacy"
 
                 run_id = record.get("run_id")
                 if run_id and run_id not in records_by_run_id:

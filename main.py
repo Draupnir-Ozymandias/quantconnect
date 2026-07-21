@@ -1,4 +1,3 @@
-
 from AlgorithmImports import *
 from datetime import timedelta
 
@@ -12,6 +11,7 @@ from stats_models import StatsTracker
 
 from report_models import ResearchReport
 
+from experiment_store import ExperimentStore
 
 class QuantConnectResearchLab(QCAlgorithm):
 
@@ -292,13 +292,12 @@ class QuantConnectResearchLab(QCAlgorithm):
 
         self.Debug(ResearchReport.summary_line(report))
 
-        key = ResearchReport.object_store_key(report)
-        self.ObjectStore.Save(
-            key,
-            ResearchReport.pretty_json(report)
-        )
+        store = ExperimentStore(self.ObjectStore)
+        record = store.save_report_and_record(report)
 
-        self.Debug(f"Saved report: {key}")
+        self.Debug(f"Saved report: {record['objectstore_report_key']}")
+        self.Debug(f"Saved record: {record['objectstore_record_key']}")
+        self.Debug(f"Run ID: {record['run_id']}")
 
         if self.risk.ruined:
             self.Debug(f"Ruin reason: {self.risk.ruin_reason}")
