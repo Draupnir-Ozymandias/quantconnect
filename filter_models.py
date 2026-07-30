@@ -2,7 +2,10 @@
 from AlgorithmImports import *
 # endregion
 
-# Your New Python File
+# Filter Models
+# =============
+# Logic for deciding whether a previously generated signal may trade.
+
 
 class NoFilterModel:
     def is_ready(self):
@@ -20,12 +23,20 @@ class NoFilterModel:
     def regime(self):
         return "none"
 
-    def regime(self):
-        return "none"
-
 
 class EmaTrendFilterModel:
     def __init__(self, fast_period, slow_period):
+        if fast_period < 1:
+            raise ValueError("fast_period must be >= 1")
+
+        if slow_period < 1:
+            raise ValueError("slow_period must be >= 1")
+
+        if fast_period >= slow_period:
+            raise ValueError(
+                "EMA fast period must be less than EMA slow period"
+            )
+
         self.fast_period = fast_period
         self.slow_period = slow_period
 
@@ -75,18 +86,6 @@ class EmaTrendFilterModel:
 
     def name(self):
         return f"ema_trend_{self.fast_period}_{self.slow_period}"
-
-    def regime(self):
-        if not self.is_ready():
-            return "not_ready"
-
-        if self.fast_value > self.slow_value:
-            return "bullish"
-
-        if self.fast_value < self.slow_value:
-            return "bearish"
-
-        return "neutral"
 
     def regime(self):
         if not self.is_ready():

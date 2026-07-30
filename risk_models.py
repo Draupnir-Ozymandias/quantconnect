@@ -56,7 +56,7 @@ class RiskTracker:
         if streak_length > 0:
             histogram[streak_length] = histogram.get(streak_length, 0) + 1
 
-    def record_trade(self, won, wager, timestamp=None):
+    def record_trade(self, won, wager, timestamp=None, is_martingale=False):
         self.trades += 1
         self.max_single_wager = max(self.max_single_wager, wager)
 
@@ -64,52 +64,35 @@ class RiskTracker:
             self.wins += 1
             self.bankroll += wager
 
-            # A loss streak just ended
             if self.current_loss_streak > 0:
-                self._record_histogram(
-                    self.loss_streak_histogram,
-                    self.current_loss_streak
-                )
+                self._record_histogram(self.loss_streak_histogram, self.current_loss_streak)
                 self.recovery_depths.append(self.current_loss_streak)
 
             self.current_win_streak += 1
             self.current_loss_streak = 0
-
-            self.max_win_streak = max(
-                self.max_win_streak,
-                self.current_win_streak
-            )
-
+            self.max_win_streak = max(self.max_win_streak, self.current_win_streak)
             self.loss_step = 0
 
         else:
             self.losses += 1
             self.bankroll -= wager
 
-            # A win streak just ended
             if self.current_win_streak > 0:
-                self._record_histogram(
-                    self.win_streak_histogram,
-                    self.current_win_streak
-                )
+                self._record_histogram(self.win_streak_histogram, self.current_win_streak)
 
             self.current_loss_streak += 1
             self.current_win_streak = 0
-
-            self.max_loss_streak = max(
-                self.max_loss_streak,
-                self.current_loss_streak
-            )
+            self.max_loss_streak = max(self.max_loss_streak, self.current_loss_streak)
 
             self.loss_step += 1
 
-            if self.loss_step > self.max_steps:
+            # Only apply max-step ruin when actually using martingale
+            if is_martingale and self.loss_step > self.max_steps:
                 self.ruined = True
                 self.ruin_time = timestamp
                 self.ruin_reason = (
                     f"Max martingale step exceeded. "
-                    f"LossStep={self.loss_step}, "
-                    f"MaxSteps={self.max_steps}"
+                    f"LossStep={self.loss_step}, MaxSteps={self.max_steps}"
                 )
 
         self.peak_bankroll = max(self.peak_bankroll, self.bankroll)

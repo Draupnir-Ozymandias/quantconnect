@@ -9,14 +9,6 @@ from AlgorithmImports import *
 # QuantConnect ObjectStore layout. Discovery Layer code can also build on the
 # same normalized records returned here.
 
-# Research Tools v2
-# =================
-# Researcher-facing query and inspection layer for QCRL experiment records.
-#
-# This file intentionally depends on ExperimentStore, not directly on the
-# QuantConnect ObjectStore layout. Discovery Layer code can also build on the
-# same normalized records returned here.
-
 import csv
 import json
 
@@ -31,6 +23,7 @@ class ResearchTools:
         "coin",
         "timeframe",
         "entry_model",
+        "bias",
         "filter_model",
         "stake_mode",
         "net_profit",
@@ -238,16 +231,110 @@ class ResearchTools:
     
     def config_signature(self, record):
         """
-        Return a normalized tuple that identifies the experimental configuration.
+        Return a normalized, behavior-aware configuration signature.
 
-        This intentionally normalizes values so legacy records and v2 records
-        with the same experiment settings produce the same signature.
+        Only parameters that affect the active model are included. This
+        avoids treating unused EMA or martingale settings as meaningful
+        differences.
         """
-        values = []
+        entry_model = str(
+            record.get("entry_model") or ""
+        ).strip().lower()
+        filter_model_type = str(
+            record.get("filter_model_type")
+            or record.get("filter_model")
+            or ""
+        ).strip().lower()
+        stake_mode = str(
+            record.get("stake_mode") or ""
+        ).strip().lower()
 
-        for field in self.CONFIG_SIGNATURE_FIELDS:
-            value = record.get(field)
-            values.append(self._normalize_signature_value(field, value))
+        values = [
+            self._normalize_signature_value(
+                "lab_version",
+                record.get("lab_version")
+            ),
+            self._normalize_signature_value(
+                "coin",
+                record.get("coin")
+            ),
+            self._normalize_signature_value(
+                "timeframe",
+                record.get("timeframe")
+            ),
+            self._normalize_signature_value(
+                "entry_model",
+                entry_model
+            ),
+            self._normalize_signature_value(
+                "filter_model",
+                record.get("filter_model")
+            ),
+            self._normalize_signature_value(
+                "stake_mode",
+                stake_mode
+            ),
+            self._normalize_signature_value(
+                "base_wager",
+                record.get("base_wager")
+            ),
+            self._normalize_signature_value(
+                "bankroll",
+                record.get("bankroll")
+            ),
+            self._normalize_signature_value(
+                "start",
+                record.get("start")
+            ),
+            self._normalize_signature_value(
+                "end",
+                record.get("end")
+            )
+        ]
+
+        if entry_model == "fixed_bias":
+            values.append(
+                self._normalize_signature_value(
+                    "bias",
+                    record.get("bias")
+                )
+            )
+
+        if entry_model == "candle_streak":
+            values.extend([
+                self._normalize_signature_value(
+                    "streak_length",
+                    record.get("streak_length")
+                ),
+                self._normalize_signature_value(
+                    "streak_mode",
+                    record.get("streak_mode")
+                )
+            ])
+
+        if filter_model_type.startswith("ema_trend"):
+            values.extend([
+                self._normalize_signature_value(
+                    "ema_fast",
+                    record.get("ema_fast")
+                ),
+                self._normalize_signature_value(
+                    "ema_slow",
+                    record.get("ema_slow")
+                )
+            ])
+
+        if stake_mode == "martingale":
+            values.extend([
+                self._normalize_signature_value(
+                    "multiplier",
+                    record.get("multiplier")
+                ),
+                self._normalize_signature_value(
+                    "max_steps",
+                    record.get("max_steps")
+                )
+            ])
 
         return tuple(values)
 
@@ -259,8 +346,16 @@ class ResearchTools:
         if value is None:
             return None
 
-        if field in ["coin", "timeframe", "entry_model", "filter_model",
-                 "stake_mode", "streak_mode"]:
+        if field in [
+            "lab_version",
+            "coin",
+            "timeframe",
+            "entry_model",
+            "bias",
+            "filter_model",
+            "stake_mode",
+            "streak_mode"
+        ]:
             return str(value).strip().lower()
 
         if field in ["streak_length", "ema_fast", "ema_slow", "max_steps"]:
