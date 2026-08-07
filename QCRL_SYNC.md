@@ -66,8 +66,31 @@ The first campaign-runner layer is now implemented locally:
 - `campaigns/btcusd_1d_baseline_2022_2025.json` defines the first eight-run
   clean control campaign.
 
-This implementation must pass one pushed cloud integration case before the
-remaining seven control cases are submitted.
+The cloud integration gate passed on 2026-08-07:
+
+```text
+case_id: 2022-flat-a2347e32
+backtest_id: 959c6f2af8eb4844493cef66b907f56f
+trades: 71
+wins: 33
+losses: 38
+win_rate: 46.478873%
+net_profit: -50
+max_drawdown: 150
+max_loss_streak: 6
+risk_adjusted_score: -0.04730368968779565
+tail_risk_score: 178
+```
+
+Cloud compilation, deterministic naming, provenance parameters, canonical
+ObjectStore persistence, QCRL custom summary statistics, backtest-ID capture,
+and resumable state all passed. QuantConnect's terminal table wraps long custom
+statistics, so CLI parsing is treated only as a preview. The case remains
+`completed` until the API collector receives the full required metric set.
+
+The remaining seven control cases should not be submitted until
+`QC_USER_ID`/`QC_API_TOKEN` are configured and this first result is collected
+successfully through `/backtests/read`.
 
 ---
 

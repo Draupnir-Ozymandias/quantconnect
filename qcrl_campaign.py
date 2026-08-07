@@ -242,6 +242,7 @@ def load_state(manifest, cases):
             "status": "pending",
             "attempts": 0
         })
+    normalize_collection_status(manifest, state)
     return state
 
 
@@ -352,6 +353,32 @@ def parse_cli_metrics(output):
             if remainder:
                 metrics[field] = parse_scalar(remainder)
     return metrics
+
+
+def required_metric_fields(manifest):
+    fields = {"run_id"}
+    objective = manifest.get("objective")
+    if objective:
+        fields.add(objective["field"])
+    pair = manifest.get("pair_validation")
+    if pair:
+        fields.update(pair.get("invariants", []))
+    return fields
+
+
+def missing_metric_fields(manifest, metrics):
+    return sorted(required_metric_fields(manifest) - set(metrics or {}))
+
+
+def normalize_collection_status(manifest, state):
+    for run in state.get("runs", {}).values():
+        if run.get("status") == "collected":
+            missing = missing_metric_fields(manifest, run.get("metrics", {}))
+            if missing:
+                run["status"] = "completed"
+                run["collection_error"] = (
+                    "Missing required QCRL metrics: " + ", ".join(missing)
+                )
 
 
 def api_headers():
@@ -479,7 +506,15 @@ def run_campaign(manifest, cases, execute=False, limit=None, retry_failed=False)
         if cli_metrics:
             run["metrics"] = cli_metrics
         if return_code == 0 and backtest_id:
-            run["status"] = "collected" if cli_metrics else "completed"
+            missing = missing_metric_fields(manifest, cli_metrics)
+            if missing:
+                run["status"] = "completed"
+                run["collection_error"] = (
+                    "Awaiting API collection; terminal table omitted: "
+                    + ", ".join(missing)
+                )
+            else:
+                run["status"] = "collected"
         else:
             run["status"] = "failed"
             run["error"] = (
@@ -508,10 +543,16 @@ def collect_campaign(manifest, cases):
             run["collection_error"] = "No QCRL summary statistics found"
             continue
         run["metrics"] = metrics
-        run["status"] = "collected"
+        missing = missing_metric_fields(manifest, metrics)
+        run["status"] = "completed" if missing else "collected"
         run["collected_at_utc"] = utc_now()
-        run.pop("collection_error", None)
-        collected += 1
+        if missing:
+            run["collection_error"] = (
+                "API result lacks required QCRL metrics: " + ", ".join(missing)
+            )
+        else:
+            run.pop("collection_error", None)
+            collected += 1
         save_state(manifest, state)
         print(f"Collected {case['case_id']}: {len(metrics)} QCRL metrics")
     save_state(manifest, state)
@@ -535,7 +576,7 @@ def validate_campaign(manifest, cases):
     ]
     uncollected = [
         run["case_id"] for run in runs
-        if run["status"] == "completed" and not run.get("metrics")
+        if run["status"] == "completed"
     ]
     violations = []
     pair = manifest.get("pair_validation")

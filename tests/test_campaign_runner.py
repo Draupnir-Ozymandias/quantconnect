@@ -55,6 +55,24 @@ class CampaignRunnerTests(unittest.TestCase):
         self.assertFalse(metrics["ruined"])
         self.assertEqual(58, metrics["trades"])
 
+    def test_partial_terminal_metrics_are_not_collected(self):
+        state = {
+            "runs": {
+                "case": {
+                    "status": "collected",
+                    "metrics": {"run_id": "run-1", "trades": 58}
+                }
+            }
+        }
+
+        qcrl_campaign.normalize_collection_status(self.manifest, state)
+
+        self.assertEqual("completed", state["runs"]["case"]["status"])
+        self.assertIn(
+            "risk_adjusted_score",
+            state["runs"]["case"]["collection_error"]
+        )
+
     def test_parses_backtest_url(self):
         output = (
             "https://www.quantconnect.com/project/33239307/"
@@ -69,6 +87,7 @@ class CampaignRunnerTests(unittest.TestCase):
         invariant_fields = self.manifest["pair_validation"]["invariants"]
         metrics = {field: index for index, field in enumerate(invariant_fields)}
         metrics["risk_adjusted_score"] = 1.0
+        metrics["run_id"] = "test-run"
 
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "state.json"
