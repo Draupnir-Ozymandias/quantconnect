@@ -548,6 +548,10 @@ class ResearchReport:
             "average_wager": analytics.get(
                 "average_wager"
             ),
+            "up_signals": analytics.get("up_signals"),
+            "down_signals": analytics.get("down_signals"),
+            "up_executed": analytics.get("up_executed"),
+            "down_executed": analytics.get("down_executed"),
 
             "survival_score": scores.get("survival_score"),
             "risk_adjusted_score": scores.get(
@@ -610,3 +614,36 @@ class ResearchReport:
                 ]
             })
         )
+
+    @staticmethod
+    def summary_statistics(record):
+        """Return QCRL-native metrics for LEAN's backtest result API."""
+        fields = {
+            "QCRL Run Id": "run_id",
+            "QCRL Experiment Id": "experiment_id",
+            "QCRL Report Key": "objectstore_report_key",
+            "QCRL Net Profit": "net_profit",
+            "QCRL Win Rate": "win_rate",
+            "QCRL Trades": "trades",
+            "QCRL Wins": "wins",
+            "QCRL Losses": "losses",
+            "QCRL Ruined": "ruined",
+            "QCRL Max Drawdown": "max_drawdown",
+            "QCRL Max Wager": "max_single_wager",
+            "QCRL Max Win Streak": "max_win_streak",
+            "QCRL Max Loss Streak": "max_loss_streak",
+            "QCRL Max Recovery Depth": "max_recovery_depth",
+            "QCRL Risk Adjusted Score": "risk_adjusted_score",
+            "QCRL Tail Risk Score": "tail_risk_score",
+            "QCRL Signals Generated": "signals_generated",
+            "QCRL Signals Executed": "signals_executed",
+            "QCRL Up Signals": "up_signals",
+            "QCRL Down Signals": "down_signals",
+            "QCRL Up Executed": "up_executed",
+            "QCRL Down Executed": "down_executed"
+        }
+
+        return {
+            label: record.get(field)
+            for label, field in fields.items()
+        }

@@ -106,7 +106,11 @@ def sample_report(run_id="run-2025-flat"):
             "filter_rate": 0.42,
             "executed_win_rate": 35 / 58,
             "total_wagered": 580,
-            "average_wager": 10
+            "average_wager": 10,
+            "up_signals": 52,
+            "down_signals": 48,
+            "up_executed": 30,
+            "down_executed": 28
         },
         "scores": {
             "survival_score": 1,
@@ -136,6 +140,15 @@ class StorageContractTests(unittest.TestCase):
             loaded_records[0]["methodology_version"]
         )
         self.assertEqual(report, store.load_report("run-2025-flat"))
+
+    def test_qcrl_summary_statistics_expose_native_objectives(self):
+        record = ResearchReport.normalized_record(sample_report())
+        statistics = ResearchReport.summary_statistics(record)
+
+        self.assertEqual(120, statistics["QCRL Net Profit"])
+        self.assertEqual(0.39, statistics["QCRL Risk Adjusted Score"])
+        self.assertEqual(52, statistics["QCRL Up Signals"])
+        self.assertEqual("run-2025-flat", statistics["QCRL Run Id"])
 
     def test_explicit_save_failure_is_truthful(self):
         store = ExperimentStore(MemoryObjectStore(save_result=False))

@@ -16,6 +16,7 @@ Commands:
   pull                Pull the linked QuantConnect project after a clean-tree check.
   push                Push committed local files to QuantConnect after confirmation.
   backtest [args...]  Run a cloud backtest without implicitly pushing local changes.
+  campaign [args...]  Plan, run, collect, or validate a QCRL campaign.
 
 The local Git checkout is the source of truth. Pull and push intentionally
 refuse to run while the working tree contains uncommitted changes.
@@ -118,6 +119,11 @@ run_cloud_backtest() {
     )
 }
 
+run_campaign() {
+    require_command python3
+    python3 "$PROJECT_DIR/qcrl_campaign.py" "$@"
+}
+
 command_name="${1:-status}"
 
 case "$command_name" in
@@ -137,6 +143,10 @@ case "$command_name" in
     backtest)
         shift
         run_cloud_backtest "$@"
+        ;;
+    campaign)
+        shift
+        run_campaign "$@"
         ;;
     help|-h|--help)
         usage

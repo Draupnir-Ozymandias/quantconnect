@@ -50,3 +50,38 @@ no portfolio orders. LEAN's standard portfolio statistics are therefore not
 valid optimization objectives for this project. The next development layer is
 a QCRL-aware campaign runner that evaluates canonical report metrics across an
 arbitrary parameter search space.
+
+## QCRL campaigns
+
+Campaign manifests are version-controlled JSON files under `campaigns/`. The
+first manifest defines the eight-run BTCUSD 2022–2025 flat/martingale control
+matrix.
+
+```bash
+./synch.sh campaign plan campaigns/btcusd_1d_baseline_2022_2025.json
+./synch.sh campaign run campaigns/btcusd_1d_baseline_2022_2025.json
+./synch.sh campaign run campaigns/btcusd_1d_baseline_2022_2025.json --execute
+./synch.sh campaign status campaigns/btcusd_1d_baseline_2022_2025.json
+```
+
+`run` is a dry run unless `--execute` is present. Executed campaigns require a
+clean Git tree, run sequentially, stop on the first failure, and resume without
+repeating completed cases. Use `--limit 1` for an integration check and
+`--retry-failed` to retry failed cases. Local state and logs live under the
+ignored `.qcrl/` directory.
+
+The algorithm publishes QCRL-native metrics as custom backtest summary
+statistics. To retrieve them through the QuantConnect API, copy `.env.example`
+to `.env`, enter the API credentials issued by QuantConnect, load them into the
+shell, and collect the results:
+
+```bash
+set -a
+source .env
+set +a
+./synch.sh campaign collect campaigns/btcusd_1d_baseline_2022_2025.json
+./synch.sh campaign validate campaigns/btcusd_1d_baseline_2022_2025.json
+```
+
+Validation checks run completeness, native-objective availability, and the
+flat/martingale signal-sequence invariants before producing a ranking.

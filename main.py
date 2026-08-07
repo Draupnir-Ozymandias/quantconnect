@@ -608,6 +608,12 @@ class QuantConnectResearchLab(QCAlgorithm):
             report
         )
 
+        for name, value in ResearchReport.summary_statistics(
+            record
+        ).items():
+            if value is not None:
+                self.set_summary_statistic(name, str(value))
+
         persistence = record.get(
             "_persistence",
             {}

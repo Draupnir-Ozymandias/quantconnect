@@ -22,6 +22,7 @@ venv/
 
 # LEAN-generated data and results
 .lean/
+.qcrl/
 data/
 backtest/
 backtests/

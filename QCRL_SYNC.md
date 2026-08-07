@@ -41,10 +41,33 @@ The architectural boundary remains:
   QuantConnect license. Retrieval remains available inside QuantConnect through
   `ExperimentStore` and `ResearchTools`.
 
-The next architecture target is a QCRL campaign runner that submits parameter
+The resulting architecture target was a QCRL campaign runner that submits parameter
 sets through the CLI/API, reads QCRL-native report metrics, validates expected
 runs and pairs, and ranks multi-parameter campaigns without relying on LEAN's
 standard portfolio statistics.
+
+### Campaign runner implementation
+
+The first campaign-runner layer is now implemented locally:
+
+- `qcrl_campaign.py` expands version-controlled manifests into deterministic
+  cases and submits them sequentially through `lean cloud backtest`.
+- Campaign execution requires a clean Git tree and injects the commit, branch,
+  and campaign ID into every run.
+- `.qcrl/campaigns/{campaign_id}/state.json` provides resumable status; per-run
+  CLI output is retained locally under the same ignored campaign directory.
+- QCRL metrics are published as LEAN custom summary statistics, providing an
+  API-readable result channel independent of ObjectStore downloads.
+- The collector authenticates with `QC_USER_ID` and `QC_API_TOKEN`, reads each
+  backtest through `/backtests/read`, and stores only parsed QCRL metrics in
+  local campaign state.
+- Validation checks expected cases, failures, missing metrics, flat/martingale
+  pair completeness, signal-sequence invariants, and the declared objective.
+- `campaigns/btcusd_1d_baseline_2022_2025.json` defines the first eight-run
+  clean control campaign.
+
+This implementation must pass one pushed cloud integration case before the
+remaining seven control cases are submitted.
 
 ---
 

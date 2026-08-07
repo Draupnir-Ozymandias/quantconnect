@@ -1,0 +1,91 @@
+{
+  "schema_version": "qcrl.campaign.v1",
+  "campaign_id": "btcusd-1d-baseline-2022-2025-v1",
+  "project_id": 33239307,
+  "description": "Clean QCRL 2.2.0 flat/martingale control matrix.",
+  "backtest_name_prefix": "QCRL-2.2.0-BTCUSD-1D-Control",
+  "case_name_fields": [
+    "start_year",
+    "stake_mode"
+  ],
+  "base_parameters": {
+    "start_month": 1,
+    "start_day": 1,
+    "end_month": 12,
+    "end_day": 31,
+    "coin": "BTCUSD",
+    "timeframe": "1d",
+    "entry_model": "candle_streak",
+    "streak_length": 2,
+    "streak_mode": "reverse",
+    "filter_model": "ema_trend",
+    "ema_fast": 5,
+    "ema_slow": 10,
+    "base_wager": 10,
+    "bankroll": 100000,
+    "multiplier": 2,
+    "max_steps": 10,
+    "enable_plots": false,
+    "lab_version": "QCRL-2.2.0"
+  },
+  "variants": [
+    {
+      "start_year": 2022,
+      "end_year": 2022
+    },
+    {
+      "start_year": 2023,
+      "end_year": 2023
+    },
+    {
+      "start_year": 2024,
+      "end_year": 2024
+    },
+    {
+      "start_year": 2025,
+      "end_year": 2025
+    }
+  ],
+  "matrix": {
+    "stake_mode": [
+      "flat",
+      "martingale"
+    ]
+  },
+  "objective": {
+    "field": "risk_adjusted_score",
+    "direction": "max"
+  },
+  "pair_validation": {
+    "dimension": "stake_mode",
+    "expected_values": [
+      "flat",
+      "martingale"
+    ],
+    "group_by": [
+      "coin",
+      "timeframe",
+      "start_year",
+      "entry_model",
+      "streak_length",
+      "streak_mode",
+      "filter_model",
+      "ema_fast",
+      "ema_slow"
+    ],
+    "invariants": [
+      "trades",
+      "wins",
+      "losses",
+      "win_rate",
+      "signals_generated",
+      "signals_executed",
+      "up_signals",
+      "down_signals",
+      "up_executed",
+      "down_executed",
+      "max_win_streak",
+      "max_loss_streak"
+    ]
+  }
+}
