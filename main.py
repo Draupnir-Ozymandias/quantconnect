@@ -167,6 +167,25 @@ class QuantConnectResearchLab(QCAlgorithm):
             LabConfig.RUN_NOTES
         )
 
+        self.git_commit = self.Param(
+            "git_commit",
+            LabConfig.GIT_COMMIT
+        )
+        self.git_branch = self.Param(
+            "git_branch",
+            LabConfig.GIT_BRANCH
+        )
+        self.campaign_id = self.Param(
+            "campaign_id",
+            LabConfig.CAMPAIGN_ID
+        )
+
+        self.methodology_version = (
+            "qcrl.methodology.lookahead_free.v1"
+        )
+        self.lookahead_status = "lookahead_free"
+        self.record_status = "unvalidated"
+
         self.engine_version = "LEAN"
 
         # ----------------------------

@@ -41,6 +41,12 @@ class AlgorithmConfiguration:
     multiplier = 2.0
     max_steps = 10
     lab_version = "QCRL-2.2.0"
+    git_commit = "abc123"
+    git_branch = "main"
+    campaign_id = "baseline"
+    methodology_version = "qcrl.methodology.lookahead_free.v1"
+    lookahead_status = "lookahead_free"
+    record_status = "unvalidated"
     run_notes = ""
 
 
@@ -119,6 +125,25 @@ class ModelTests(unittest.TestCase):
         self.assertNotEqual(
             ExperimentMetadataBuilder.build(first)["experiment_id"],
             ExperimentMetadataBuilder.build(second)["experiment_id"]
+        )
+
+    def test_provenance_does_not_change_experiment_identity(self):
+        first = AlgorithmConfiguration()
+        second = AlgorithmConfiguration()
+        second.git_commit = "different-commit"
+        second.git_branch = "feature/research"
+        second.campaign_id = "another-campaign"
+
+        first_metadata = ExperimentMetadataBuilder.build(first)
+        second_metadata = ExperimentMetadataBuilder.build(second)
+
+        self.assertEqual(
+            first_metadata["experiment_id"],
+            second_metadata["experiment_id"]
+        )
+        self.assertNotEqual(
+            first_metadata["git_commit"],
+            second_metadata["git_commit"]
         )
 
 

@@ -99,9 +99,22 @@ run_cloud_backtest() {
     require_command lean
     require_clean_tree
 
+    local git_commit
+    local git_branch
+    local campaign_id
+
+    git_commit="$(git -C "$PROJECT_DIR" rev-parse HEAD)"
+    git_branch="$(git -C "$PROJECT_DIR" branch --show-current)"
+    campaign_id="${QCRL_CAMPAIGN_ID:-manual}"
+
     (
         cd "$WORKSPACE_DIR"
-        lean cloud backtest "$(cloud_project_id)" "$@"
+        lean cloud backtest \
+            "$(cloud_project_id)" \
+            --parameter git_commit "$git_commit" \
+            --parameter git_branch "$git_branch" \
+            --parameter campaign_id "$campaign_id" \
+            "$@"
     )
 }
 

@@ -1,7 +1,11 @@
 {
     "cloud-id": 33239307,
     "algorithm-language": "Python",
-    "parameters": {},
+    "parameters": {
+        "git_commit": "unknown",
+        "git_branch": "unknown",
+        "campaign_id": "manual"
+    },
     "description": "",
     "organization-id": "02c40ce21cb505938f36d49847efa537",
     "python-venv": 1,

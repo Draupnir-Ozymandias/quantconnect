@@ -30,6 +30,8 @@ Use the guarded synchronization script from the project directory:
 - `pull` requires a clean tree and creates a recovery branch before contacting QuantConnect.
 - `push` requires a clean tree and interactive confirmation because local files replace their cloud counterparts.
 - `backtest` does not implicitly push local changes.
+- `backtest` injects the current Git commit, branch, and optional
+  `QCRL_CAMPAIGN_ID` into the experiment record.
 
 Run `./synch.sh help` for the complete command summary.
 
@@ -42,3 +44,9 @@ The platform-independent model and persistence tests do not require QuantConnect
 ```
 
 Cloud compilation and the clean BTCUSD control matrix remain the integration-validation layer.
+
+QCRL tracks performance in its own simulated bankroll and intentionally submits
+no portfolio orders. LEAN's standard portfolio statistics are therefore not
+valid optimization objectives for this project. The next development layer is
+a QCRL-aware campaign runner that evaluates canonical report metrics across an
+arbitrary parameter search space.

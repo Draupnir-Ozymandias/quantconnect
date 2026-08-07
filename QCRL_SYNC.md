@@ -1,7 +1,7 @@
 # QCRL Sync Log
 
-**Updated:** 2026-07-30  
-**Sync version:** 2026-07-30 Discovery Handoff  
+**Updated:** 2026-08-07
+**Sync version:** 2026-08-07 Git and LEAN CLI Foundation
 **QCRL baseline:** 2.2.0  
 **Status:** Active research
 
@@ -18,6 +18,33 @@ The architectural boundary remains:
 
 > **Architecture determines where trustworthy experiments live.  
 > Discovery determines what trustworthy experiments mean.**
+
+## 2026-08-07 integration checkpoint
+
+- The local project is now a real checkout of
+  `Draupnir-Ozymandias/quantconnect`, with QuantConnect project `33239307`
+  configured as the execution environment.
+- Commit `564fc93` establishes the guarded `synch.sh` workflow, local test
+  suite, `.gitignore`, and removal of obsolete duplicate source artifacts.
+- The first named LEAN CLI cloud backtest compiled and completed successfully:
+  `QCRL-2.2.0-CLI-Baseline-2024-Flat`, backtest
+  `1c52783e44f28744737a541ecbe6829b`.
+- The run created the canonical ObjectStore report
+  `BTCUSD_1d_candle_streak_flat_20260807T170817Z_0300ddfb718e.json`.
+- LEAN reported zero orders and zero standard portfolio performance because
+  QCRL simulates its bankroll internally. Therefore LEAN's built-in portfolio
+  optimization objectives are not valid QCRL objectives.
+- CLI backtests now receive the Git commit, Git branch, and campaign ID as
+  runtime provenance. Methodology, look-ahead, and validation status are also
+  normalized into each new record.
+- Direct cloud ObjectStore download is unavailable under the current
+  QuantConnect license. Retrieval remains available inside QuantConnect through
+  `ExperimentStore` and `ResearchTools`.
+
+The next architecture target is a QCRL campaign runner that submits parameter
+sets through the CLI/API, reads QCRL-native report metrics, validates expected
+runs and pairs, and ranks multi-parameter campaigns without relying on LEAN's
+standard portfolio statistics.
 
 ---
 
@@ -179,6 +206,12 @@ generated_at_utc
 completed_at_algorithm_time
 lab_version
 engine_version
+git_commit
+git_branch
+campaign_id
+methodology_version
+lookahead_status
+record_status
 schema_version
 record_source
 experiment_group
@@ -278,9 +311,6 @@ open_loss_exposure
 next_required_wager
 completed_recovery_cycles
 
-methodology_version
-lookahead_status
-record_status
 validation_flags
 configuration_warnings
 configuration_adjustments

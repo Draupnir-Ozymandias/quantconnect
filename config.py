@@ -39,5 +39,10 @@ class LabConfig:
     # Metadata facts are generated from runtime values.
     LAB_VERSION = "QCRL-2.2.0"
 
+    # The synchronization script overrides these for CLI backtests.
+    GIT_COMMIT = "unknown"
+    GIT_BRANCH = "unknown"
+    CAMPAIGN_ID = "manual"
+
     # Optional analyst note only. Do not repeat factual configuration here.
     RUN_NOTES = ""

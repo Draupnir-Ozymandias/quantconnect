@@ -420,6 +420,16 @@ class ResearchReport:
             ),
             "engine_version": metadata.get("engine_version"),
             "lab_version": metadata.get("lab_version"),
+            "git_commit": metadata.get("git_commit"),
+            "git_branch": metadata.get("git_branch"),
+            "campaign_id": metadata.get("campaign_id"),
+            "methodology_version": metadata.get(
+                "methodology_version"
+            ),
+            "lookahead_status": metadata.get(
+                "lookahead_status"
+            ),
+            "record_status": metadata.get("record_status"),
 
             "metadata_version": metadata.get(
                 "metadata_version"

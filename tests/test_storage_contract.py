@@ -41,6 +41,12 @@ def sample_report(run_id="run-2025-flat"):
             "completed_at_algorithm_time": "2026-01-01 00:00:00",
             "engine_version": "LEAN-test",
             "lab_version": "QCRL-2.2.0",
+            "git_commit": "abc123",
+            "git_branch": "main",
+            "campaign_id": "baseline",
+            "methodology_version": "qcrl.methodology.lookahead_free.v1",
+            "lookahead_status": "lookahead_free",
+            "record_status": "unvalidated",
             "metadata_version": "qcrl.metadata.v1",
             "metadata_source": "runtime_generated",
             "configuration_hash": "abc123",
@@ -123,6 +129,12 @@ class StorageContractTests(unittest.TestCase):
         self.assertEqual(1, len(object_store.values))
         self.assertEqual(1, len(loaded_records))
         self.assertEqual("run-2025-flat", loaded_records[0]["run_id"])
+        self.assertEqual("abc123", loaded_records[0]["git_commit"])
+        self.assertEqual("baseline", loaded_records[0]["campaign_id"])
+        self.assertEqual(
+            "qcrl.methodology.lookahead_free.v1",
+            loaded_records[0]["methodology_version"]
+        )
         self.assertEqual(report, store.load_report("run-2025-flat"))
 
     def test_explicit_save_failure_is_truthful(self):

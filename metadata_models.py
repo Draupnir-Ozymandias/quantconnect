@@ -81,6 +81,28 @@ class ExperimentMetadataBuilder:
         return {
             "metadata_version": ExperimentMetadataBuilder.METADATA_VERSION,
             "metadata_source": "runtime_generated",
+            "git_commit": str(
+                getattr(algo, "git_commit", "unknown")
+            ),
+            "git_branch": str(
+                getattr(algo, "git_branch", "unknown")
+            ),
+            "campaign_id": str(
+                getattr(algo, "campaign_id", "manual")
+            ),
+            "methodology_version": str(
+                getattr(
+                    algo,
+                    "methodology_version",
+                    "qcrl.methodology.unknown"
+                )
+            ),
+            "lookahead_status": str(
+                getattr(algo, "lookahead_status", "unknown")
+            ),
+            "record_status": str(
+                getattr(algo, "record_status", "unvalidated")
+            ),
             "configuration_hash": configuration_hash,
             "experiment_id": f"exp_{configuration_hash[:16]}",
             "experiment_group": experiment_group,
