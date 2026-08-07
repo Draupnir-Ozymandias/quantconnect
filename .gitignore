@@ -1,0 +1,34 @@
+# macOS and editor noise
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Python caches and environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Local secrets
+.env
+.env.*
+!.env.example
+
+# LEAN-generated data and results
+.lean/
+data/
+backtest/
+backtests/
+optimizations/
+qc-logs
+*.log
+
+# Historical installation artifacts retained outside version control
+QCRL_clean_baseline_2.2.0/
+QCRL_clean_baseline_2.2.0.zip
