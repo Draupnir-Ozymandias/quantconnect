@@ -2,7 +2,7 @@
 
 # QuantConnect Research Laboratory (QCRL)
 
-**Version:** 2.1
+**Version:** 2.3
 
 **Author:** Eric Bucher
 
@@ -98,6 +98,9 @@ Current:
 
 * Candle Streak (Follow)
 * Candle Streak (Reverse)
+* EMA Trend
+* MACD Trend
+* RSI Mean Reversion
 
 Future:
 
@@ -114,14 +117,15 @@ Future:
 
 Current:
 
+* None
 * EMA Trend
+* ADX Strength
+* ATR Volatility
 
 Planned:
 
 * SMA
 * VWAP
-* ATR
-* ADX
 * RSI
 * MACD
 * Volume Filters
@@ -421,4 +425,3 @@ The laboratory should eventually answer questions such as:
 * What characteristics define a truly robust trading strategy?
 
 The final objective is not merely to optimize strategies, but to discover repeatable market structure through disciplined experimentation.
-

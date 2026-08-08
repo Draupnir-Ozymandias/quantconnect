@@ -1139,9 +1139,56 @@ Discovery engines should accept `flat`, `martingale`, or another explicit record
 
 # Current Handoff State
 
+## 2026-08-08 directional signal campaign sync
+
+QCRL 2.3.0 introduces three lookahead-free directional generators while
+preserving the existing candle-streak implementation:
+
+```text
+ema_trend          5 / 10
+macd_trend         12 / 26 / 9
+rsi_mean_reversion 14, oversold 30, overbought 70
+```
+
+Each generator returns `up`, `down`, or `None` from prior-bar indicator state,
+then ingests the current bar. This is the same decision/update ordering as the
+validated candle-streak and EMA-filter baseline.
+
+Two direction-independent eligibility gates are implemented for later use:
+
+```text
+adx_strength   period 14, threshold 25
+atr_volatility period 14, eligible range [1%, 10%)
+```
+
+Stage 1 manifest:
+
+```text
+campaigns/btcusd_1d_directional_stage1_2022_2025.json
+4 signal generators x 4 yearly cohorts = 16 cases
+stake_mode = flat
+filter_model = none
+```
+
+ADX and ATR are intentionally excluded from Stage 1. Stage 2 may apply one
+gate at a time only to generators that survive cross-year signal analysis.
+Composite filters and recovery sizing remain gated.
+
+Canonical storage contracts are extended to preserve every active directional
+and gate parameter:
+
+```text
+qcrl.research_report.v4
+qcrl.experiment_record.v3
+```
+
+The existing QCRL 2.2.0 baseline campaign remains reproducible because its
+manifest pins `lab_version=QCRL-2.2.0` and the legacy model path is unchanged.
+
 ## Workstream A exports
 
-- QCRL 2.2.0 clean canonical reports
+- QCRL 2.2.0 validated baseline reports
+- QCRL 2.3.0 directional signal engine
 - normalized record dictionaries
 - deterministic experiment identity
 - unique run identity
@@ -1158,7 +1205,8 @@ Discovery engines should accept `flat`, `martingale`, or another explicit record
 Stability Engine v1 implemented
 Comparative interpretation v1 implemented
 Current signal+sizing pair rejected
-Next: redesign and validate directional hypotheses under flat sizing
+Directional Stage 1 campaign ready for QuantConnect execution
+Next: run, collect, and compare four flat-sized signal generators
 ```
 
 ## Synchronization rule
@@ -1180,4 +1228,4 @@ next coding target
 
 # One-Sentence State
 
-> QCRL 2.2.0 now produces clean paired evidence, separate stability scores, and a versioned comparative gate; the first complete cohort rejects the current signal+sizing pair and directs the next campaign toward flat-sized signal redesign before any further recovery-policy optimization.
+> QCRL 2.3.0 now provides a factor-isolated, flat-only directional campaign across candle-streak, EMA, MACD, and RSI generators, while ADX/ATR gates and recovery sizing remain withheld until the Stage 1 evidence is collected and compared.

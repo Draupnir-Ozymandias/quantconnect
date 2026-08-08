@@ -69,6 +69,17 @@ def sample_report(run_id="run-2025-flat"):
             "streak_mode": "reverse",
             "ema_fast": 5,
             "ema_slow": 10,
+            "macd_fast": 12,
+            "macd_slow": 26,
+            "macd_signal": 9,
+            "rsi_period": 14,
+            "rsi_oversold": 30,
+            "rsi_overbought": 70,
+            "adx_period": 14,
+            "adx_threshold": 25,
+            "atr_period": 14,
+            "atr_min_pct": 1,
+            "atr_max_pct": 10,
             "base_wager": 10,
             "bankroll": 100000,
             "multiplier": 2,
@@ -135,6 +146,8 @@ class StorageContractTests(unittest.TestCase):
         self.assertEqual("run-2025-flat", loaded_records[0]["run_id"])
         self.assertEqual("abc123", loaded_records[0]["git_commit"])
         self.assertEqual("baseline", loaded_records[0]["campaign_id"])
+        self.assertEqual(9, loaded_records[0]["macd_signal"])
+        self.assertEqual(25, loaded_records[0]["adx_threshold"])
         self.assertEqual(
             "qcrl.methodology.lookahead_free.v1",
             loaded_records[0]["methodology_version"]
@@ -172,6 +185,20 @@ class StorageContractTests(unittest.TestCase):
 
         self.assertEqual(1, len(deduplicated))
         self.assertEqual("newer-run", deduplicated[0]["run_id"])
+
+    def test_research_tools_distinguishes_active_macd_parameters(self):
+        tools = ResearchTools(store=ExperimentStore(MemoryObjectStore()))
+        first = ResearchReport.normalized_record(sample_report())
+        first["entry_model"] = "macd_trend"
+        first["filter_model"] = "none"
+        first["filter_model_type"] = "none"
+        second = dict(first)
+        second["macd_signal"] = 5
+
+        self.assertNotEqual(
+            tools.config_signature(first),
+            tools.config_signature(second)
+        )
 
 
 if __name__ == "__main__":

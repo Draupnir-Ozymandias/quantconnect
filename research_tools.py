@@ -62,6 +62,17 @@ class ResearchTools:
         "streak_mode",
         "ema_fast",
         "ema_slow",
+        "macd_fast",
+        "macd_slow",
+        "macd_signal",
+        "rsi_period",
+        "rsi_oversold",
+        "rsi_overbought",
+        "adx_period",
+        "adx_threshold",
+        "atr_period",
+        "atr_min_pct",
+        "atr_max_pct",
         "base_wager",
         "bankroll",
         "multiplier",
@@ -312,6 +323,42 @@ class ResearchTools:
                 )
             ])
 
+        if entry_model == "ema_trend":
+            values.extend([
+                self._normalize_signature_value(
+                    "ema_fast", record.get("ema_fast")
+                ),
+                self._normalize_signature_value(
+                    "ema_slow", record.get("ema_slow")
+                )
+            ])
+
+        if entry_model == "macd_trend":
+            values.extend([
+                self._normalize_signature_value(
+                    "macd_fast", record.get("macd_fast")
+                ),
+                self._normalize_signature_value(
+                    "macd_slow", record.get("macd_slow")
+                ),
+                self._normalize_signature_value(
+                    "macd_signal", record.get("macd_signal")
+                )
+            ])
+
+        if entry_model == "rsi_mean_reversion":
+            values.extend([
+                self._normalize_signature_value(
+                    "rsi_period", record.get("rsi_period")
+                ),
+                self._normalize_signature_value(
+                    "rsi_oversold", record.get("rsi_oversold")
+                ),
+                self._normalize_signature_value(
+                    "rsi_overbought", record.get("rsi_overbought")
+                )
+            ])
+
         if filter_model_type.startswith("ema_trend"):
             values.extend([
                 self._normalize_signature_value(
@@ -321,6 +368,29 @@ class ResearchTools:
                 self._normalize_signature_value(
                     "ema_slow",
                     record.get("ema_slow")
+                )
+            ])
+
+        if filter_model_type.startswith("adx_strength"):
+            values.extend([
+                self._normalize_signature_value(
+                    "adx_period", record.get("adx_period")
+                ),
+                self._normalize_signature_value(
+                    "adx_threshold", record.get("adx_threshold")
+                )
+            ])
+
+        if filter_model_type.startswith("atr_volatility"):
+            values.extend([
+                self._normalize_signature_value(
+                    "atr_period", record.get("atr_period")
+                ),
+                self._normalize_signature_value(
+                    "atr_min_pct", record.get("atr_min_pct")
+                ),
+                self._normalize_signature_value(
+                    "atr_max_pct", record.get("atr_max_pct")
                 )
             ])
 
@@ -358,13 +428,21 @@ class ResearchTools:
         ]:
             return str(value).strip().lower()
 
-        if field in ["streak_length", "ema_fast", "ema_slow", "max_steps"]:
+        if field in [
+            "streak_length", "ema_fast", "ema_slow",
+            "macd_fast", "macd_slow", "macd_signal", "rsi_period",
+            "adx_period", "atr_period", "max_steps"
+        ]:
             try:
                 return int(value)
             except Exception:
                 return value
 
-        if field in ["base_wager", "bankroll", "multiplier"]:
+        if field in [
+            "base_wager", "bankroll", "multiplier",
+            "rsi_oversold", "rsi_overbought", "adx_threshold",
+            "atr_min_pct", "atr_max_pct"
+        ]:
             try:
                 return float(value)
             except Exception:

@@ -15,16 +15,29 @@ class LabConfig:
     COIN = "BTCUSD"
     TIMEFRAME = "1d"  # 5m, 15m, 1h, 1d
 
-    FILTER_MODEL = "ema_trend"  # none, ema_trend
+    # none, ema_trend, adx_strength, atr_volatility
+    FILTER_MODEL = "ema_trend"
     EMA_FAST = 5
     EMA_SLOW = 10
+    ADX_PERIOD = 14
+    ADX_THRESHOLD = 25
+    ATR_PERIOD = 14
+    ATR_MIN_PCT = 1
+    ATR_MAX_PCT = 10
 
-    # fixed_bias, previous_candle, previous_candle_reverse, candle_streak
+    # fixed_bias, previous_candle, previous_candle_reverse, candle_streak,
+    # ema_trend, macd_trend, rsi_mean_reversion
     ENTRY_MODEL = "candle_streak"
     BIAS = "up"  # up, down
 
     STREAK_LENGTH = 2
     STREAK_MODE = "reverse"  # follow, reverse
+    MACD_FAST = 12
+    MACD_SLOW = 26
+    MACD_SIGNAL = 9
+    RSI_PERIOD = 14
+    RSI_OVERSOLD = 30
+    RSI_OVERBOUGHT = 70
 
     STAKE_MODE = "flat"  # flat, martingale
     BASE_WAGER = 10
@@ -37,7 +50,7 @@ class LabConfig:
     PLOT_EVERY_N_BARS = 100
 
     # Metadata facts are generated from runtime values.
-    LAB_VERSION = "QCRL-2.2.0"
+    LAB_VERSION = "QCRL-2.3.0"
 
     # The synchronization script overrides these for CLI backtests.
     GIT_COMMIT = "unknown"

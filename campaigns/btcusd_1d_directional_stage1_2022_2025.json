@@ -1,0 +1,85 @@
+{
+  "schema_version": "qcrl.campaign.v1",
+  "campaign_id": "btcusd-1d-directional-stage1-2022-2025-v1",
+  "project_id": 33239307,
+  "description": "Flat-only directional generator screen with no eligibility filters.",
+  "backtest_name_prefix": "QCRL-2.3.0-BTCUSD-1D-Directional-S1",
+  "case_name_fields": [
+    "start_year",
+    "entry_model"
+  ],
+  "base_parameters": {
+    "start_month": 1,
+    "start_day": 1,
+    "end_month": 12,
+    "end_day": 31,
+    "coin": "BTCUSD",
+    "timeframe": "1d",
+    "streak_length": 2,
+    "streak_mode": "reverse",
+    "filter_model": "none",
+    "ema_fast": 5,
+    "ema_slow": 10,
+    "macd_fast": 12,
+    "macd_slow": 26,
+    "macd_signal": 9,
+    "rsi_period": 14,
+    "rsi_oversold": 30,
+    "rsi_overbought": 70,
+    "adx_period": 14,
+    "adx_threshold": 25,
+    "atr_period": 14,
+    "atr_min_pct": 1,
+    "atr_max_pct": 10,
+    "stake_mode": "flat",
+    "base_wager": 10,
+    "bankroll": 100000,
+    "multiplier": 2,
+    "max_steps": 10,
+    "enable_plots": false,
+    "lab_version": "QCRL-2.3.0"
+  },
+  "variants": [
+    {
+      "start_year": 2022,
+      "end_year": 2022
+    },
+    {
+      "start_year": 2023,
+      "end_year": 2023
+    },
+    {
+      "start_year": 2024,
+      "end_year": 2024
+    },
+    {
+      "start_year": 2025,
+      "end_year": 2025
+    }
+  ],
+  "matrix": {
+    "entry_model": [
+      "candle_streak",
+      "ema_trend",
+      "macd_trend",
+      "rsi_mean_reversion"
+    ]
+  },
+  "cohort_rankings": [
+    {
+      "name": "Flat directional generator ranking",
+      "filters": {
+        "stake_mode": "flat"
+      },
+      "score_model": "flat_profit_drawdown",
+      "direction": "max",
+      "display_fields": [
+        "net_profit",
+        "win_rate",
+        "trades",
+        "max_drawdown",
+        "max_loss_streak"
+      ]
+    }
+  ]
+}

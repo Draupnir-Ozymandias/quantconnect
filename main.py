@@ -136,6 +136,39 @@ class QuantConnectResearchLab(QCAlgorithm):
                 LabConfig.EMA_SLOW
             )
         )
+        self.macd_fast = int(
+            self.Param("macd_fast", LabConfig.MACD_FAST)
+        )
+        self.macd_slow = int(
+            self.Param("macd_slow", LabConfig.MACD_SLOW)
+        )
+        self.macd_signal = int(
+            self.Param("macd_signal", LabConfig.MACD_SIGNAL)
+        )
+        self.rsi_period = int(
+            self.Param("rsi_period", LabConfig.RSI_PERIOD)
+        )
+        self.rsi_oversold = float(
+            self.Param("rsi_oversold", LabConfig.RSI_OVERSOLD)
+        )
+        self.rsi_overbought = float(
+            self.Param("rsi_overbought", LabConfig.RSI_OVERBOUGHT)
+        )
+        self.adx_period = int(
+            self.Param("adx_period", LabConfig.ADX_PERIOD)
+        )
+        self.adx_threshold = float(
+            self.Param("adx_threshold", LabConfig.ADX_THRESHOLD)
+        )
+        self.atr_period = int(
+            self.Param("atr_period", LabConfig.ATR_PERIOD)
+        )
+        self.atr_min_pct = float(
+            self.Param("atr_min_pct", LabConfig.ATR_MIN_PCT)
+        )
+        self.atr_max_pct = float(
+            self.Param("atr_max_pct", LabConfig.ATR_MAX_PCT)
+        )
 
         self.enable_plots = (
             str(
@@ -223,7 +256,15 @@ class QuantConnectResearchLab(QCAlgorithm):
             self.entry_model_name,
             self.bias,
             self.streak_length,
-            self.streak_mode
+            self.streak_mode,
+            self.ema_fast,
+            self.ema_slow,
+            self.macd_fast,
+            self.macd_slow,
+            self.macd_signal,
+            self.rsi_period,
+            self.rsi_oversold,
+            self.rsi_overbought
         )
 
         self.stake_model = StakeModelFactory.create(
@@ -240,7 +281,12 @@ class QuantConnectResearchLab(QCAlgorithm):
         self.filter_model = FilterModelFactory.create(
             self.filter_model_name,
             self.ema_fast,
-            self.ema_slow
+            self.ema_slow,
+            self.adx_period,
+            self.adx_threshold,
+            self.atr_period,
+            self.atr_min_pct,
+            self.atr_max_pct
         )
 
         self.stats = StatsTracker()

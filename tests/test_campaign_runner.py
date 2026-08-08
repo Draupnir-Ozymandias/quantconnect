@@ -21,6 +21,33 @@ class CampaignRunnerTests(unittest.TestCase):
         self.manifest = qcrl_campaign.load_manifest(MANIFEST_PATH)
         self.cases = qcrl_campaign.expand_cases(self.manifest)
 
+    def test_directional_stage1_manifest_is_flat_and_factor_isolated(self):
+        manifest = qcrl_campaign.load_manifest(
+            Path(__file__).parents[1]
+            / "campaigns"
+            / "btcusd_1d_directional_stage1_2022_2025.json"
+        )
+        cases = qcrl_campaign.expand_cases(manifest)
+
+        self.assertEqual(16, len(cases))
+        self.assertEqual(
+            {"flat"},
+            {case["parameters"]["stake_mode"] for case in cases}
+        )
+        self.assertEqual(
+            {"none"},
+            {case["parameters"]["filter_model"] for case in cases}
+        )
+        self.assertEqual(
+            {
+                "candle_streak",
+                "ema_trend",
+                "macd_trend",
+                "rsi_mean_reversion"
+            },
+            {case["parameters"]["entry_model"] for case in cases}
+        )
+
     def test_baseline_manifest_expands_to_four_pairs(self):
         self.assertEqual(8, len(self.cases))
         years = {case["parameters"]["start_year"] for case in self.cases}

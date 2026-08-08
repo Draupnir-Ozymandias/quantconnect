@@ -2,7 +2,9 @@
 
 QCRL is a research platform for testing whether signal, filter, and capital-management behavior remains stable across experiments. It is not a live trading bot.
 
-The current clean methodological baseline is **QCRL 2.2.0**. See [QCRL_SYNC.md](QCRL_SYNC.md) for the current engine/discovery boundary and research roadmap.
+The validated methodological baseline is **QCRL 2.2.0**. The active directional
+research engine is **QCRL 2.3.0**. See [QCRL_SYNC.md](QCRL_SYNC.md) for the
+current engine/discovery boundary and research roadmap.
 
 ## Source-of-truth workflow
 
@@ -116,6 +118,28 @@ Changing ranking, display, or submission configuration is accepted as an
 analysis-only manifest revision when the deterministic case set is unchanged.
 Changing any expanded parameter set requires a new `campaign_id`; existing run
 state cannot silently migrate to different experiments.
+
+### Directional signal Stage 1
+
+The first QCRL 2.3.0 signal campaign is a factor-isolated screen:
+
+```bash
+./synch.sh campaign plan campaigns/btcusd_1d_directional_stage1_2022_2025.json
+./synch.sh campaign run campaigns/btcusd_1d_directional_stage1_2022_2025.json --execute --limit 1
+./synch.sh campaign run campaigns/btcusd_1d_directional_stage1_2022_2025.json --execute
+./synch.sh campaign collect campaigns/btcusd_1d_directional_stage1_2022_2025.json
+./synch.sh campaign validate campaigns/btcusd_1d_directional_stage1_2022_2025.json
+```
+
+It contains 16 cases: four yearly cohorts for each of `candle_streak`,
+`ema_trend`, `macd_trend`, and `rsi_mean_reversion`. Every case uses flat
+sizing and `filter_model=none`, so this stage measures the directional
+generator without recovery sizing or eligibility-filter assistance.
+
+The new ADX-strength and ATR-volatility filters are available in the engine,
+but they are reserved for Stage 2. Only Stage 1 generators with credible
+cross-year evidence should receive one gate at a time. Composite filters and
+recovery sizing remain out of scope.
 
 When `pair_comparison` is present, validation also writes a structured artifact
 to `.qcrl/campaigns/{campaign_id}/paired_comparison.json`. Each pair contains:

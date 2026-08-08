@@ -177,12 +177,47 @@ class ExperimentMetadataBuilder:
                 getattr(algo, "streak_mode", "follow")
             ).lower()
 
+        if entry_model == "ema_trend":
+            identity["ema_fast"] = int(getattr(algo, "ema_fast", 0))
+            identity["ema_slow"] = int(getattr(algo, "ema_slow", 0))
+
+        if entry_model == "macd_trend":
+            identity["macd_fast"] = int(getattr(algo, "macd_fast", 0))
+            identity["macd_slow"] = int(getattr(algo, "macd_slow", 0))
+            identity["macd_signal"] = int(
+                getattr(algo, "macd_signal", 0)
+            )
+
+        if entry_model == "rsi_mean_reversion":
+            identity["rsi_period"] = int(getattr(algo, "rsi_period", 0))
+            identity["rsi_oversold"] = float(
+                getattr(algo, "rsi_oversold", 0)
+            )
+            identity["rsi_overbought"] = float(
+                getattr(algo, "rsi_overbought", 0)
+            )
+
         if filter_model == "ema_trend":
             identity["ema_fast"] = int(
                 getattr(algo, "ema_fast", 0)
             )
             identity["ema_slow"] = int(
                 getattr(algo, "ema_slow", 0)
+            )
+
+        if filter_model == "adx_strength":
+            identity["adx_period"] = int(getattr(algo, "adx_period", 0))
+            identity["adx_threshold"] = float(
+                getattr(algo, "adx_threshold", 0)
+            )
+
+        if filter_model == "atr_volatility":
+            identity["atr_period"] = int(getattr(algo, "atr_period", 0))
+            identity["atr_min_pct"] = float(
+                getattr(algo, "atr_min_pct", 0)
+            )
+            identity["atr_max_pct"] = float(
+                getattr(algo, "atr_max_pct", 0)
             )
 
         if stake_mode == "martingale":
@@ -267,6 +302,27 @@ class ExperimentMetadataBuilder:
             ).title()
             return f"{length}-Bar Candle Streak {mode}"
 
+        if entry_model == "ema_trend":
+            fast = int(getattr(algo, "ema_fast", 0))
+            slow = int(getattr(algo, "ema_slow", 0))
+            return f"EMA Trend {fast}/{slow}"
+
+        if entry_model == "macd_trend":
+            fast = int(getattr(algo, "macd_fast", 0))
+            slow = int(getattr(algo, "macd_slow", 0))
+            signal = int(getattr(algo, "macd_signal", 0))
+            return f"MACD Trend {fast}/{slow}/{signal}"
+
+        if entry_model == "rsi_mean_reversion":
+            period = int(getattr(algo, "rsi_period", 0))
+            oversold = ExperimentMetadataBuilder._number_text(
+                getattr(algo, "rsi_oversold", 0)
+            )
+            overbought = ExperimentMetadataBuilder._number_text(
+                getattr(algo, "rsi_overbought", 0)
+            )
+            return f"RSI Mean Reversion {period} ({oversold}/{overbought})"
+
         return entry_model.replace("_", " ").title()
 
     @staticmethod
@@ -282,6 +338,23 @@ class ExperimentMetadataBuilder:
             fast = int(getattr(algo, "ema_fast", 0))
             slow = int(getattr(algo, "ema_slow", 0))
             return f"EMA Trend {fast}/{slow}"
+
+        if filter_model == "adx_strength":
+            period = int(getattr(algo, "adx_period", 0))
+            threshold = ExperimentMetadataBuilder._number_text(
+                getattr(algo, "adx_threshold", 0)
+            )
+            return f"ADX Strength {period} >= {threshold}"
+
+        if filter_model == "atr_volatility":
+            period = int(getattr(algo, "atr_period", 0))
+            minimum = ExperimentMetadataBuilder._number_text(
+                getattr(algo, "atr_min_pct", 0)
+            )
+            maximum = ExperimentMetadataBuilder._number_text(
+                getattr(algo, "atr_max_pct", 0)
+            )
+            return f"ATR Volatility {period} [{minimum}%, {maximum}%)"
 
         return filter_model.replace("_", " ").title()
 
@@ -348,9 +421,57 @@ class ExperimentMetadataBuilder:
             add(f"streak_{int(getattr(algo, 'streak_length', 2))}")
             add(str(getattr(algo, "streak_mode", "follow")).lower())
 
+        if entry_model == "ema_trend":
+            add(f"ema_fast_{int(getattr(algo, 'ema_fast', 0))}")
+            add(f"ema_slow_{int(getattr(algo, 'ema_slow', 0))}")
+
+        if entry_model == "macd_trend":
+            add(f"macd_fast_{int(getattr(algo, 'macd_fast', 0))}")
+            add(f"macd_slow_{int(getattr(algo, 'macd_slow', 0))}")
+            add(f"macd_signal_{int(getattr(algo, 'macd_signal', 0))}")
+
+        if entry_model == "rsi_mean_reversion":
+            add(f"rsi_period_{int(getattr(algo, 'rsi_period', 0))}")
+            add(
+                "rsi_oversold_"
+                + ExperimentMetadataBuilder._number_text(
+                    getattr(algo, "rsi_oversold", 0)
+                )
+            )
+            add(
+                "rsi_overbought_"
+                + ExperimentMetadataBuilder._number_text(
+                    getattr(algo, "rsi_overbought", 0)
+                )
+            )
+
         if filter_model == "ema_trend":
             add(f"ema_fast_{int(getattr(algo, 'ema_fast', 0))}")
             add(f"ema_slow_{int(getattr(algo, 'ema_slow', 0))}")
+
+        if filter_model == "adx_strength":
+            add(f"adx_period_{int(getattr(algo, 'adx_period', 0))}")
+            add(
+                "adx_threshold_"
+                + ExperimentMetadataBuilder._number_text(
+                    getattr(algo, "adx_threshold", 0)
+                )
+            )
+
+        if filter_model == "atr_volatility":
+            add(f"atr_period_{int(getattr(algo, 'atr_period', 0))}")
+            add(
+                "atr_min_pct_"
+                + ExperimentMetadataBuilder._number_text(
+                    getattr(algo, "atr_min_pct", 0)
+                )
+            )
+            add(
+                "atr_max_pct_"
+                + ExperimentMetadataBuilder._number_text(
+                    getattr(algo, "atr_max_pct", 0)
+                )
+            )
 
         if stake_mode == "martingale":
             add(

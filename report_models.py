@@ -15,8 +15,8 @@ from metadata_models import ExperimentMetadataBuilder
 
 
 class ResearchReport:
-    REPORT_SCHEMA_VERSION = "qcrl.research_report.v3"
-    RECORD_SCHEMA_VERSION = "qcrl.experiment_record.v2"
+    REPORT_SCHEMA_VERSION = "qcrl.research_report.v4"
+    RECORD_SCHEMA_VERSION = "qcrl.experiment_record.v3"
 
     # Storage layout remains v2 for backward compatibility.
     REPORT_PREFIX = "qcrl/v2/experiments"
@@ -184,6 +184,17 @@ class ResearchReport:
                 "streak_mode": algo.streak_mode,
                 "ema_fast": algo.ema_fast,
                 "ema_slow": algo.ema_slow,
+                "macd_fast": algo.macd_fast,
+                "macd_slow": algo.macd_slow,
+                "macd_signal": algo.macd_signal,
+                "rsi_period": algo.rsi_period,
+                "rsi_oversold": algo.rsi_oversold,
+                "rsi_overbought": algo.rsi_overbought,
+                "adx_period": algo.adx_period,
+                "adx_threshold": algo.adx_threshold,
+                "atr_period": algo.atr_period,
+                "atr_min_pct": algo.atr_min_pct,
+                "atr_max_pct": algo.atr_max_pct,
                 "base_wager": algo.base_wager,
                 "bankroll": algo.initial_bankroll,
                 "multiplier": algo.multiplier,
@@ -493,6 +504,17 @@ class ResearchReport:
             "streak_mode": configuration.get("streak_mode"),
             "ema_fast": configuration.get("ema_fast"),
             "ema_slow": configuration.get("ema_slow"),
+            "macd_fast": configuration.get("macd_fast"),
+            "macd_slow": configuration.get("macd_slow"),
+            "macd_signal": configuration.get("macd_signal"),
+            "rsi_period": configuration.get("rsi_period"),
+            "rsi_oversold": configuration.get("rsi_oversold"),
+            "rsi_overbought": configuration.get("rsi_overbought"),
+            "adx_period": configuration.get("adx_period"),
+            "adx_threshold": configuration.get("adx_threshold"),
+            "atr_period": configuration.get("atr_period"),
+            "atr_min_pct": configuration.get("atr_min_pct"),
+            "atr_max_pct": configuration.get("atr_max_pct"),
             "base_wager": configuration.get("base_wager"),
             "bankroll": configuration.get("bankroll"),
             "multiplier": configuration.get("multiplier"),
@@ -592,6 +614,17 @@ class ResearchReport:
                 "streak_mode": record["streak_mode"],
                 "ema_fast": record["ema_fast"],
                 "ema_slow": record["ema_slow"],
+                "macd_fast": record["macd_fast"],
+                "macd_slow": record["macd_slow"],
+                "macd_signal": record["macd_signal"],
+                "rsi_period": record["rsi_period"],
+                "rsi_oversold": record["rsi_oversold"],
+                "rsi_overbought": record["rsi_overbought"],
+                "adx_period": record["adx_period"],
+                "adx_threshold": record["adx_threshold"],
+                "atr_period": record["atr_period"],
+                "atr_min_pct": record["atr_min_pct"],
+                "atr_max_pct": record["atr_max_pct"],
                 "net_profit": record["net_profit"],
                 "win_rate": record["win_rate"],
                 "trades": record["trades"],

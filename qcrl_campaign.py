@@ -38,6 +38,12 @@ PAIR_COMPARISON_FIELDS = {
     "risk_adjusted_score", "ruined"
 }
 RESERVED_PARAMETERS = {"git_commit", "git_branch", "campaign_id"}
+ENTRY_MODELS = {
+    "fixed_bias", "previous_candle", "previous_candle_reverse",
+    "candle_streak", "ema_trend", "macd_trend", "rsi_mean_reversion"
+}
+FILTER_MODELS = {"none", "ema_trend", "adx_strength", "atr_volatility"}
+STAKE_MODES = {"flat", "martingale"}
 ALLOWED_PARAMETERS = {
     "start_year", "start_month", "start_day",
     "end_year", "end_month", "end_day",
@@ -45,6 +51,10 @@ ALLOWED_PARAMETERS = {
     "streak_length", "streak_mode", "stake_mode",
     "base_wager", "bankroll", "multiplier", "max_steps",
     "filter_model", "ema_fast", "ema_slow",
+    "macd_fast", "macd_slow", "macd_signal",
+    "rsi_period", "rsi_oversold", "rsi_overbought",
+    "adx_period", "adx_threshold",
+    "atr_period", "atr_min_pct", "atr_max_pct",
     "enable_plots", "plot_every_n_bars", "lab_version", "run_notes"
 }
 QCRL_STATISTICS = {
@@ -221,19 +231,81 @@ def validate_parameters(parameters):
         raise CampaignError(
             "Unknown algorithm parameters: " + ", ".join(sorted(unknown))
         )
+    entry_model = str(parameters.get("entry_model", "")).lower()
+    filter_model = str(parameters.get("filter_model", "none")).lower()
+    if entry_model not in ENTRY_MODELS:
+        raise CampaignError(f"Unknown entry_model: {entry_model}")
+    if filter_model not in FILTER_MODELS:
+        raise CampaignError(f"Unknown filter_model: {filter_model}")
+    stake_mode = str(parameters.get("stake_mode", "")).lower()
+    if stake_mode not in STAKE_MODES:
+        raise CampaignError(f"Unknown stake_mode: {stake_mode}")
+    if entry_model == "fixed_bias" and str(
+        parameters.get("bias", "")
+    ).lower() not in {"up", "down"}:
+        raise CampaignError("bias must be up or down")
+    if entry_model == "candle_streak":
+        if int(parameters.get("streak_length", 0)) < 1:
+            raise CampaignError("streak_length must be positive")
+        if str(parameters.get("streak_mode", "")).lower() not in {
+            "follow", "reverse"
+        }:
+            raise CampaignError("streak_mode must be follow or reverse")
     if int(parameters.get("start_year", 0)) > int(
         parameters.get("end_year", 9999)
     ):
         raise CampaignError("start_year cannot be later than end_year")
     if parameters.get("filter_model") == "ema_trend":
-        if int(parameters.get("ema_fast", 0)) >= int(
-            parameters.get("ema_slow", 0)
-        ):
+        ema_fast = int(parameters.get("ema_fast", 0))
+        ema_slow = int(parameters.get("ema_slow", 0))
+        if min(ema_fast, ema_slow) < 1 or ema_fast >= ema_slow:
             raise CampaignError("ema_fast must be less than ema_slow")
+    if parameters.get("entry_model") == "ema_trend":
+        ema_fast = int(parameters.get("ema_fast", 0))
+        ema_slow = int(parameters.get("ema_slow", 0))
+        if min(ema_fast, ema_slow) < 1 or ema_fast >= ema_slow:
+            raise CampaignError("ema_fast must be less than ema_slow")
+    if parameters.get("entry_model") == "macd_trend":
+        macd_fast = int(parameters.get("macd_fast", 0))
+        macd_slow = int(parameters.get("macd_slow", 0))
+        if min(macd_fast, macd_slow) < 1 or macd_fast >= macd_slow:
+            raise CampaignError("macd_fast must be less than macd_slow")
+        if int(parameters.get("macd_signal", 0)) < 1:
+            raise CampaignError("macd_signal must be positive")
+    if parameters.get("entry_model") == "rsi_mean_reversion":
+        if int(parameters.get("rsi_period", 0)) < 1:
+            raise CampaignError("rsi_period must be positive")
+        oversold = float(parameters.get("rsi_oversold", -1))
+        overbought = float(parameters.get("rsi_overbought", 101))
+        if not 0 <= oversold < overbought <= 100:
+            raise CampaignError(
+                "RSI thresholds must satisfy "
+                "0 <= rsi_oversold < rsi_overbought <= 100"
+            )
+    if parameters.get("filter_model") == "adx_strength":
+        if int(parameters.get("adx_period", 0)) < 2:
+            raise CampaignError("adx_period must be at least 2")
+        if not 0 <= float(parameters.get("adx_threshold", -1)) <= 100:
+            raise CampaignError("adx_threshold must be between 0 and 100")
+    if parameters.get("filter_model") == "atr_volatility":
+        minimum = float(parameters.get("atr_min_pct", -1))
+        maximum = float(parameters.get("atr_max_pct", -1))
+        if int(parameters.get("atr_period", 0)) < 1:
+            raise CampaignError("atr_period must be positive")
+        if minimum < 0 or maximum <= minimum:
+            raise CampaignError(
+                "ATR thresholds must satisfy "
+                "0 <= atr_min_pct < atr_max_pct"
+            )
     if float(parameters.get("base_wager", 1)) <= 0:
         raise CampaignError("base_wager must be positive")
     if float(parameters.get("bankroll", 1)) <= 0:
         raise CampaignError("bankroll must be positive")
+    if stake_mode == "martingale":
+        if float(parameters.get("multiplier", 0)) <= 1:
+            raise CampaignError("martingale multiplier must be greater than 1")
+        if int(parameters.get("max_steps", 0)) < 1:
+            raise CampaignError("martingale max_steps must be positive")
 
 
 def expand_cases(manifest):
