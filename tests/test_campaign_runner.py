@@ -1,3 +1,5 @@
+from contextlib import redirect_stderr, redirect_stdout
+import io
 import json
 from pathlib import Path
 import tempfile
@@ -73,6 +75,142 @@ class CampaignRunnerTests(unittest.TestCase):
             state["runs"]["case"]["collection_error"]
         )
 
+    def test_rate_limit_detection_is_specific_to_throttle_output(self):
+        self.assertTrue(qcrl_campaign.rate_limit_detected(
+            "Error: Too many backtest requests; please slow down."
+        ))
+        self.assertTrue(qcrl_campaign.rate_limit_detected(
+            "HTTP Error 429: Too Many Requests"
+        ))
+        self.assertFalse(qcrl_campaign.rate_limit_detected(
+            "Successfully compiled project"
+        ))
+
+    def test_rate_backoff_doubles_and_caps(self):
+        policy = qcrl_campaign.submission_policy(self.manifest)
+
+        self.assertEqual(30, qcrl_campaign.rate_backoff_seconds(policy, 0))
+        self.assertEqual(60, qcrl_campaign.rate_backoff_seconds(policy, 1))
+        self.assertEqual(120, qcrl_campaign.rate_backoff_seconds(policy, 2))
+        self.assertEqual(240, qcrl_campaign.rate_backoff_seconds(policy, 3))
+        self.assertEqual(300, qcrl_campaign.rate_backoff_seconds(policy, 4))
+        self.assertEqual(300, qcrl_campaign.rate_backoff_seconds(policy, 8))
+
+    def test_submission_wait_respects_minimum_start_interval(self):
+        self.assertEqual(
+            20,
+            qcrl_campaign.submission_wait_seconds(100, 110, 30)
+        )
+        self.assertEqual(
+            0,
+            qcrl_campaign.submission_wait_seconds(100, 135, 30)
+        )
+        self.assertEqual(
+            0,
+            qcrl_campaign.submission_wait_seconds(None, 110, 30)
+        )
+
+    def test_policy_supports_safe_manifest_and_cli_overrides(self):
+        manifest = dict(self.manifest)
+        manifest["submission_policy"] = {
+            "min_interval_seconds": 45,
+            "max_rate_retries": 5,
+            "initial_backoff_seconds": 20,
+            "max_backoff_seconds": 180
+        }
+
+        policy = qcrl_campaign.submission_policy(
+            manifest,
+            min_interval_seconds=60,
+            max_rate_retries=2
+        )
+
+        self.assertEqual(60, policy["min_interval_seconds"])
+        self.assertEqual(2, policy["max_rate_retries"])
+        self.assertEqual(20, policy["initial_backoff_seconds"])
+        self.assertEqual(180, policy["max_backoff_seconds"])
+
+    def test_campaign_retries_rate_limit_then_records_success(self):
+        rate_limit = "Error: Too many backtest requests; please slow down."
+        success = (
+            "Backtest url: https://www.quantconnect.com/project/33239307/"
+            "959c6f2af8eb4844493cef66b907f56f"
+        )
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            path = root / ".qcrl" / "state.json"
+            with (
+                patch("qcrl_campaign.project_root", return_value=root),
+                patch("qcrl_campaign.state_path", return_value=path),
+                patch("qcrl_campaign.require_clean_tree"),
+                patch("qcrl_campaign.git_value", side_effect=["abc", "main"]),
+                patch("qcrl_campaign.wait_before_submission"),
+                patch(
+                    "qcrl_campaign.execute_backtest",
+                    side_effect=[(1, rate_limit), (0, success)]
+                ) as execute,
+                patch("qcrl_campaign.time.sleep") as sleep
+            ):
+                with (
+                    redirect_stdout(io.StringIO()),
+                    redirect_stderr(io.StringIO())
+                ):
+                    result = qcrl_campaign.run_campaign(
+                        self.manifest,
+                        self.cases[:1],
+                        execute=True
+                    )
+
+            state = json.loads(path.read_text(encoding="utf-8"))
+            run = state["runs"][self.cases[0]["case_id"]]
+
+        self.assertEqual(0, result)
+        self.assertEqual(2, execute.call_count)
+        sleep.assert_called_once_with(30)
+        self.assertEqual(2, run["attempts"])
+        self.assertEqual(1, run["rate_limit_retries"])
+        self.assertEqual("completed", run["status"])
+        self.assertEqual(
+            "959c6f2af8eb4844493cef66b907f56f",
+            run["backtest_id"]
+        )
+
+    def test_campaign_does_not_retry_ordinary_failure(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            path = root / ".qcrl" / "state.json"
+            with (
+                patch("qcrl_campaign.project_root", return_value=root),
+                patch("qcrl_campaign.state_path", return_value=path),
+                patch("qcrl_campaign.require_clean_tree"),
+                patch("qcrl_campaign.git_value", side_effect=["abc", "main"]),
+                patch("qcrl_campaign.wait_before_submission"),
+                patch(
+                    "qcrl_campaign.execute_backtest",
+                    return_value=(1, "Compilation failed")
+                ) as execute,
+                patch("qcrl_campaign.time.sleep") as sleep
+            ):
+                with (
+                    redirect_stdout(io.StringIO()),
+                    redirect_stderr(io.StringIO())
+                ):
+                    result = qcrl_campaign.run_campaign(
+                        self.manifest,
+                        self.cases[:1],
+                        execute=True
+                    )
+
+            state = json.loads(path.read_text(encoding="utf-8"))
+            run = state["runs"][self.cases[0]["case_id"]]
+
+        self.assertEqual(1, result)
+        self.assertEqual(1, execute.call_count)
+        sleep.assert_not_called()
+        self.assertEqual("failed", run["status"])
+        self.assertEqual("lean_failure", run["error_type"])
+
     def test_parses_backtest_url(self):
         output = (
             "https://www.quantconnect.com/project/33239307/"
@@ -98,9 +236,10 @@ class CampaignRunnerTests(unittest.TestCase):
             path.write_text(json.dumps(state), encoding="utf-8")
 
             with patch("qcrl_campaign.state_path", return_value=path):
-                result = qcrl_campaign.validate_campaign(
-                    self.manifest, self.cases
-                )
+                with redirect_stdout(io.StringIO()):
+                    result = qcrl_campaign.validate_campaign(
+                        self.manifest, self.cases
+                    )
 
         self.assertEqual(0, result)
 

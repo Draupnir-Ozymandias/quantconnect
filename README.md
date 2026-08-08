@@ -65,10 +65,28 @@ matrix.
 ```
 
 `run` is a dry run unless `--execute` is present. Executed campaigns require a
-clean Git tree, run sequentially, stop on the first failure, and resume without
-repeating completed cases. Use `--limit 1` for an integration check and
-`--retry-failed` to retry failed cases. Local state and logs live under the
-ignored `.qcrl/` directory.
+clean Git tree, run sequentially, and resume without repeating completed cases.
+By default, submission start times are separated by at least 30 seconds. A
+recognized QuantConnect rate limit is retried automatically after 30, 60, 120,
+and 240 seconds; other compilation or runtime failures stop immediately. Use
+`--limit 1` for an integration check and `--retry-failed` only after retries are
+exhausted or an ordinary failure is corrected. Local state and logs live under
+the ignored `.qcrl/` directory.
+
+Campaigns can override the defaults without changing runner code:
+
+```json
+"submission_policy": {
+  "min_interval_seconds": 30,
+  "max_rate_retries": 4,
+  "initial_backoff_seconds": 30,
+  "max_backoff_seconds": 300
+}
+```
+
+For a one-time override, use `--min-interval-seconds` or
+`--max-rate-retries`. Rate-limit events, retry counts, and the policy used are
+recorded in campaign state and per-attempt output is appended to the case log.
 
 The algorithm publishes QCRL-native metrics as custom backtest summary
 statistics. To retrieve them through the QuantConnect API, copy `.env.example`

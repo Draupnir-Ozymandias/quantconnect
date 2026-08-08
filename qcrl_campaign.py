@@ -18,6 +18,12 @@ from urllib import error, request
 SCHEMA_VERSION = "qcrl.campaign.v1"
 STATE_VERSION = "qcrl.campaign_state.v1"
 API_BASE_URL = "https://www.quantconnect.com/api/v2"
+DEFAULT_SUBMISSION_POLICY = {
+    "min_interval_seconds": 30.0,
+    "max_rate_retries": 4,
+    "initial_backoff_seconds": 30.0,
+    "max_backoff_seconds": 300.0
+}
 RESERVED_PARAMETERS = {"git_commit", "git_branch", "campaign_id"}
 ALLOWED_PARAMETERS = {
     "start_year", "start_month", "start_day",
@@ -104,6 +110,7 @@ def load_manifest(path):
         raise CampaignError("variants must be an array")
     if not isinstance(manifest.get("matrix", {}), dict):
         raise CampaignError("matrix must be an object")
+    submission_policy(manifest)
     return manifest
 
 
@@ -355,6 +362,112 @@ def parse_cli_metrics(output):
     return metrics
 
 
+def submission_policy(
+    manifest,
+    min_interval_seconds=None,
+    max_rate_retries=None
+):
+    configured = manifest.get("submission_policy", {})
+    if not isinstance(configured, dict):
+        raise CampaignError("submission_policy must be an object")
+    unknown = set(configured) - set(DEFAULT_SUBMISSION_POLICY)
+    if unknown:
+        raise CampaignError(
+            "Unknown submission_policy fields: " + ", ".join(sorted(unknown))
+        )
+    policy = dict(DEFAULT_SUBMISSION_POLICY)
+    policy.update(configured)
+    if min_interval_seconds is not None:
+        policy["min_interval_seconds"] = min_interval_seconds
+    if max_rate_retries is not None:
+        policy["max_rate_retries"] = max_rate_retries
+
+    numeric_fields = [
+        "min_interval_seconds",
+        "initial_backoff_seconds",
+        "max_backoff_seconds"
+    ]
+    for field in numeric_fields:
+        try:
+            policy[field] = float(policy[field])
+        except (TypeError, ValueError) as exc:
+            raise CampaignError(f"submission_policy.{field} must be numeric") from exc
+        if policy[field] < 0:
+            raise CampaignError(
+                f"submission_policy.{field} cannot be negative"
+            )
+    try:
+        policy["max_rate_retries"] = int(policy["max_rate_retries"])
+    except (TypeError, ValueError) as exc:
+        raise CampaignError(
+            "submission_policy.max_rate_retries must be an integer"
+        ) from exc
+    if policy["max_rate_retries"] < 0:
+        raise CampaignError(
+            "submission_policy.max_rate_retries cannot be negative"
+        )
+    if policy["max_backoff_seconds"] < policy["initial_backoff_seconds"]:
+        raise CampaignError(
+            "submission_policy.max_backoff_seconds cannot be less than "
+            "initial_backoff_seconds"
+        )
+    return policy
+
+
+def rate_limit_detected(output):
+    normalized = str(output).lower()
+    signals = [
+        "too many backtest requests",
+        "please slow down",
+        "too many requests",
+        "rate limit",
+        "http error 429"
+    ]
+    return any(signal in normalized for signal in signals)
+
+
+def rate_backoff_seconds(policy, retry_number):
+    delay = policy["initial_backoff_seconds"] * (2 ** retry_number)
+    return min(delay, policy["max_backoff_seconds"])
+
+
+def submission_wait_seconds(last_started, now, minimum_interval):
+    if last_started is None:
+        return 0.0
+    return max(0.0, float(minimum_interval) - (float(now) - last_started))
+
+
+def wait_before_submission(last_started, policy):
+    wait_seconds = submission_wait_seconds(
+        last_started,
+        time.monotonic(),
+        policy["min_interval_seconds"]
+    )
+    if wait_seconds > 0:
+        print(
+            f"Submission throttle: waiting {wait_seconds:.1f}s before "
+            "the next QuantConnect request.",
+            flush=True
+        )
+        time.sleep(wait_seconds)
+
+
+def execute_backtest(command):
+    process = subprocess.Popen(
+        command,
+        cwd=str(project_root().parent),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1
+    )
+    output_lines = []
+    for line in process.stdout:
+        print(line, end="", flush=True)
+        output_lines.append(line)
+    return process.wait(), "".join(output_lines)
+
+
 def required_metric_fields(manifest):
     fields = {"run_id"}
     objective = manifest.get("objective")
@@ -437,7 +550,15 @@ def print_plan(manifest, cases):
         print(f"  {case['case_id']}: {parameters}")
 
 
-def run_campaign(manifest, cases, execute=False, limit=None, retry_failed=False):
+def run_campaign(
+    manifest,
+    cases,
+    execute=False,
+    limit=None,
+    retry_failed=False,
+    min_interval_seconds=None,
+    max_rate_retries=None
+):
     if not execute:
         print_plan(manifest, cases)
         print("\nDry run only. Add --execute to submit cloud backtests.")
@@ -446,6 +567,11 @@ def run_campaign(manifest, cases, execute=False, limit=None, retry_failed=False)
     require_clean_tree()
     git_commit = git_value("rev-parse", "HEAD")
     git_branch = git_value("branch", "--show-current") or "detached"
+    policy = submission_policy(
+        manifest,
+        min_interval_seconds=min_interval_seconds,
+        max_rate_retries=max_rate_retries
+    )
     state = load_state(manifest, cases)
     selected = []
     for case in cases:
@@ -463,38 +589,77 @@ def run_campaign(manifest, cases, execute=False, limit=None, retry_failed=False)
 
     logs_dir = state_path(manifest).parent / "logs"
     logs_dir.mkdir(parents=True, exist_ok=True)
+    last_submission_started = None
     for index, case in enumerate(selected, 1):
         run = state["runs"][case["case_id"]]
         run.update({
             "status": "running",
-            "attempts": int(run.get("attempts", 0)) + 1,
             "started_at_utc": utc_now(),
             "git_commit": git_commit,
             "git_branch": git_branch,
-            "backtest_name": backtest_name(manifest, case)
+            "backtest_name": backtest_name(manifest, case),
+            "submission_policy": policy
         })
+        run.pop("error", None)
+        run.pop("error_type", None)
         save_state(manifest, state)
         command = build_backtest_command(
             manifest, case, git_commit, git_branch
         )
-        print(f"\n[{index}/{len(selected)}] {case['case_id']}", flush=True)
-        process = subprocess.Popen(
-            command,
-            cwd=str(project_root().parent),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1
-        )
-        output_lines = []
-        for line in process.stdout:
-            print(line, end="", flush=True)
-            output_lines.append(line)
-        return_code = process.wait()
-        output = "".join(output_lines)
         log_path = logs_dir / f"{case['case_id']}.log"
-        log_path.write_text(output, encoding="utf-8")
-        backtest_id, backtest_url = parse_backtest_reference(output)
+        rate_retry = 0
+
+        while True:
+            wait_before_submission(last_submission_started, policy)
+            run["attempts"] = int(run.get("attempts", 0)) + 1
+            attempt_number = run["attempts"]
+            run["status"] = "running"
+            run["attempt_started_at_utc"] = utc_now()
+            save_state(manifest, state)
+            print(
+                f"\n[{index}/{len(selected)}] {case['case_id']} "
+                f"(attempt {attempt_number})",
+                flush=True
+            )
+            last_submission_started = time.monotonic()
+            return_code, output = execute_backtest(command)
+            with log_path.open("a", encoding="utf-8") as handle:
+                handle.write(
+                    f"\n===== attempt {attempt_number} | {utc_now()} =====\n"
+                )
+                handle.write(output)
+            backtest_id, backtest_url = parse_backtest_reference(output)
+
+            if (
+                not backtest_id
+                and rate_limit_detected(output)
+                and rate_retry < policy["max_rate_retries"]
+            ):
+                backoff = rate_backoff_seconds(policy, rate_retry)
+                rate_retry += 1
+                event = {
+                    "detected_at_utc": utc_now(),
+                    "attempt": attempt_number,
+                    "retry_number": rate_retry,
+                    "backoff_seconds": backoff
+                }
+                run.setdefault("rate_limit_events", []).append(event)
+                run["rate_limit_retries"] = int(
+                    run.get("rate_limit_retries", 0)
+                ) + 1
+                run["status"] = "rate_limited"
+                run["last_rate_limit_at_utc"] = event["detected_at_utc"]
+                save_state(manifest, state)
+                print(
+                    "QuantConnect rate limit detected. "
+                    f"Retry {rate_retry}/{policy['max_rate_retries']} in "
+                    f"{backoff:.1f}s.",
+                    flush=True
+                )
+                time.sleep(backoff)
+                continue
+            break
+
         run.update({
             "finished_at_utc": utc_now(),
             "return_code": return_code,
@@ -517,10 +682,18 @@ def run_campaign(manifest, cases, execute=False, limit=None, retry_failed=False)
                 run["status"] = "collected"
         else:
             run["status"] = "failed"
-            run["error"] = (
-                f"LEAN exited with {return_code}"
-                if return_code else "Backtest ID was not found in LEAN output"
-            )
+            if rate_limit_detected(output):
+                run["error_type"] = "rate_limit_exhausted"
+                run["error"] = (
+                    "QuantConnect rate limit persisted after "
+                    f"{policy['max_rate_retries']} automatic retries"
+                )
+            else:
+                run["error_type"] = "lean_failure"
+                run["error"] = (
+                    f"LEAN exited with {return_code}"
+                    if return_code else "Backtest ID was not found in LEAN output"
+                )
         save_state(manifest, state)
         if run["status"] == "failed":
             print(f"Campaign stopped: {run['error']}", file=sys.stderr)
@@ -658,6 +831,16 @@ def build_parser():
     )
     run_parser.add_argument("--limit", type=int)
     run_parser.add_argument("--retry-failed", action="store_true")
+    run_parser.add_argument(
+        "--min-interval-seconds",
+        type=float,
+        help="Override the manifest delay between submission start times"
+    )
+    run_parser.add_argument(
+        "--max-rate-retries",
+        type=int,
+        help="Override automatic QuantConnect rate-limit retries per case"
+    )
     return parser
 
 
@@ -675,7 +858,9 @@ def main(arguments=None):
                 cases,
                 execute=args.execute,
                 limit=args.limit,
-                retry_failed=args.retry_failed
+                retry_failed=args.retry_failed,
+                min_interval_seconds=args.min_interval_seconds,
+                max_rate_retries=args.max_rate_retries
             )
         if args.command == "collect":
             return collect_campaign(manifest, cases)

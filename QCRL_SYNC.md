@@ -1,7 +1,7 @@
 # QCRL Sync Log
 
-**Updated:** 2026-08-07
-**Sync version:** 2026-08-07 Git and LEAN CLI Foundation
+**Updated:** 2026-08-08
+**Sync version:** 2026-08-08 Campaign Throttling Foundation
 **QCRL baseline:** 2.2.0  
 **Status:** Active research
 
@@ -88,9 +88,26 @@ and resumable state all passed. QuantConnect's terminal table wraps long custom
 statistics, so CLI parsing is treated only as a preview. The case remains
 `completed` until the API collector receives the full required metric set.
 
-The remaining seven control cases should not be submitted until
-`QC_USER_ID`/`QC_API_TOKEN` are configured and this first result is collected
-successfully through `/backtests/read`.
+The complete eight-run control campaign subsequently passed collection and
+validation:
+
+```text
+expected cases: 8
+failed: 0
+incomplete: 0
+uncollected: 0
+pair issues: 0
+QCRL metrics per case: 22
+```
+
+One submission encountered QuantConnect's `Too many backtest requests` API
+throttle. Manual retry completed the campaign without duplicate successful
+runs. As of 2026-08-08, the runner enforces a 30-second minimum interval between
+submission start times and automatically retries recognized rate limits with
+exponential delays of 30, 60, 120, and 240 seconds, capped at 300 seconds.
+Throttle events and policy values are persisted in campaign state; each retry
+is appended to the case log. Non-rate-limit failures continue to stop the
+campaign immediately.
 
 ---
 
