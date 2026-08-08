@@ -197,6 +197,16 @@ def validate_pair_comparison(manifest):
             raise CampaignError(
                 f"pair_comparison {field} is not a known score model"
             )
+    expected_labels = comparison.get("expected_labels")
+    if expected_labels is not None:
+        if not isinstance(expected_labels, list) or not expected_labels:
+            raise CampaignError(
+                "pair_comparison expected_labels must be a non-empty array"
+            )
+        if len(expected_labels) != len(set(expected_labels)):
+            raise CampaignError(
+                "pair_comparison expected_labels cannot contain duplicates"
+            )
 
 
 def validate_parameters(parameters):
@@ -1031,6 +1041,8 @@ def build_pair_comparisons(manifest, runs):
             "comparison_value": comparison_value,
             "baseline_case_id": baseline["case_id"],
             "comparison_case_id": comparison["case_id"],
+            "baseline_run_id": baseline_metrics.get("run_id"),
+            "comparison_run_id": comparison_metrics.get("run_id"),
             "signal_invariants_match": invariants_match,
             "signal": {
                 "trades": baseline_metrics["trades"],
@@ -1044,6 +1056,11 @@ def build_pair_comparisons(manifest, runs):
                 "net_profit": baseline_profit,
                 "max_drawdown": baseline_metrics["max_drawdown"],
                 "max_single_wager": baseline_metrics["max_single_wager"],
+                "base_wager": baseline["parameters"].get("base_wager"),
+                "drawdown_in_base_wagers": safe_ratio(
+                    baseline_metrics["max_drawdown"],
+                    baseline["parameters"].get("base_wager")
+                ),
                 "score": cohort_score(
                     config["baseline_score_model"], baseline
                 )
@@ -1126,6 +1143,10 @@ def write_pair_comparison_artifact(manifest, state, comparisons, violations):
         "campaign_id": manifest["campaign_id"],
         "case_set_hash": state["case_set_hash"],
         "generated_at_utc": utc_now(),
+        "expected_labels": manifest["pair_comparison"].get(
+            "expected_labels",
+            [comparison["label"] for comparison in comparisons]
+        ),
         "validation": {
             "pair_issue_count": len(violations),
             "valid": len(violations) == 0
@@ -1225,10 +1246,65 @@ def show_status(manifest, cases):
     return 0
 
 
+def run_stability(manifest, cases):
+    from discovery.stability_engine import StabilityEngine, StabilityError
+
+    state = load_state(manifest, cases)
+    paired_path = state_path(manifest).parent / "paired_comparison.json"
+    if not paired_path.exists():
+        raise CampaignError(
+            "Paired comparison artifact is missing. Run campaign validate first."
+        )
+    paired_artifact = read_json(paired_path)
+    if paired_artifact.get("case_set_hash") != state["case_set_hash"]:
+        raise CampaignError(
+            "Paired comparison case set does not match current campaign state. "
+            "Run campaign validate again."
+        )
+    if not paired_artifact.get("validation", {}).get("valid"):
+        raise CampaignError(
+            "Paired comparison contains validation issues; stability aborted."
+        )
+    try:
+        report = StabilityEngine().analyze(paired_artifact)
+    except StabilityError as exc:
+        raise CampaignError(f"Stability analysis failed: {exc}") from exc
+
+    path = state_path(manifest).parent / "stability_report.json"
+    write_json(path, report)
+    coverage = report["coverage"]
+    flat = report["flat_signal"]
+    martingale = report["martingale_capital"]
+    print(f"Evidence status: {report['evidence_status']}")
+    print(
+        f"Coverage: {coverage['present_count']}/{coverage['expected_count']} "
+        f"({coverage['coverage_ratio']:.0%})"
+    )
+    print(
+        "Flat signal: "
+        f"score={flat['final_score']:.2f} "
+        f"classification={flat['classification']} "
+        f"profitable={flat['profitable_years']}/{flat['run_count']} "
+        f"mean_win_rate={flat['mean_win_rate']:.2%}"
+    )
+    print(
+        "Martingale capital: "
+        f"score={martingale['final_score']:.2f} "
+        f"classification={martingale['classification']} "
+        f"survival={martingale['survival_ratio']:.0%} "
+        f"recovery_dependence={martingale['recovery_dependence_ratio']:.0%}"
+    )
+    print("Warnings:")
+    for warning in report["warnings"]:
+        print(f"  - {warning}")
+    print(f"Stability artifact: {path}")
+    return 0
+
+
 def build_parser():
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    for command in ["plan", "status", "collect", "validate"]:
+    for command in ["plan", "status", "collect", "validate", "stability"]:
         child = subparsers.add_parser(command)
         child.add_argument("manifest", type=Path)
     run_parser = subparsers.add_parser("run")
@@ -1274,6 +1350,8 @@ def main(arguments=None):
             return collect_campaign(manifest, cases)
         if args.command == "validate":
             return validate_campaign(manifest, cases)
+        if args.command == "stability":
+            return run_stability(manifest, cases)
         return show_status(manifest, cases)
     except CampaignError as exc:
         print(f"Campaign error: {exc}", file=sys.stderr)

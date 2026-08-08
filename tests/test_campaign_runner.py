@@ -251,6 +251,16 @@ class CampaignRunnerTests(unittest.TestCase):
                         encoding="utf-8"
                     )
                 )
+                stability_output = io.StringIO()
+                with redirect_stdout(stability_output):
+                    stability_result = qcrl_campaign.run_stability(
+                        self.manifest, self.cases
+                    )
+                stability = json.loads(
+                    (path.parent / "stability_report.json").read_text(
+                        encoding="utf-8"
+                    )
+                )
 
         self.assertEqual(0, result)
         self.assertIn("Flat signal ranking", output.getvalue())
@@ -260,6 +270,9 @@ class CampaignRunnerTests(unittest.TestCase):
         self.assertEqual("qcrl.paired_comparison.v1", artifact["schema_version"])
         self.assertEqual(4, len(artifact["pairs"]))
         self.assertTrue(artifact["validation"]["valid"])
+        self.assertEqual(0, stability_result)
+        self.assertIn("Evidence status", stability_output.getvalue())
+        self.assertEqual("qcrl.stability_report.v1", stability["schema_version"])
 
     def test_cohort_scores_use_distinct_risk_models(self):
         flat = {

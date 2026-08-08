@@ -525,7 +525,7 @@ This validates the intended separation:
 
 # Baseline Validation Campaign
 
-In progress:
+Completed on 2026-08-08:
 
 ```text
 BTCUSD 1d
@@ -538,9 +538,8 @@ EMA trend 5/10
 2025 flat / martingale
 ```
 
-The 2025 pair passed the stake-isolation invariants.
-
-The remaining pairs should be validated before the first formal cross-year Stability Engine conclusion.
+All four yearly pairs passed the stake-isolation invariants and were collected
+through the QuantConnect API before Stability Engine analysis began.
 
 ## Pair validation requirements
 
@@ -619,7 +618,7 @@ date/year structure
 
 Measure whether a strategy behavior remains consistent across independent samples rather than merely producing one attractive result.
 
-## First coding target
+## Implemented interface
 
 ```text
 discovery/stability_engine.py
@@ -629,11 +628,8 @@ Suggested interface:
 
 ```python
 class StabilityEngine:
-    def analyze(self, records, group_by=None):
-        pass
-
-    def score_group(self, records):
-        pass
+    def analyze(self, paired_artifact):
+        ...
 ```
 
 ## First clean analysis
@@ -697,6 +693,82 @@ final_score
 
 warnings
 supporting_run_ids
+```
+
+## Stability Engine v1 result
+
+Implemented in:
+
+```text
+discovery/stability_engine.py
+```
+
+Command:
+
+```bash
+./synch.sh campaign stability campaigns/btcusd_1d_baseline_2022_2025.json
+```
+
+Artifact:
+
+```text
+.qcrl/campaigns/btcusd-1d-baseline-2022-2025-v1/stability_report.json
+schema_version = qcrl.stability_report.v1
+score_version = qcrl.stability_score.v1
+```
+
+Clean control result:
+
+```text
+evidence_status: validation_cohort_complete
+coverage: 4 / 4 (100%)
+
+flat_signal.stability_score: 59.3411
+flat_signal.risk_penalty: 41.7188
+flat_signal.final_score: 34.5847
+flat_signal.classification: fragile
+
+martingale_capital.stability_score: 75.5977
+martingale_capital.risk_penalty: 73.2000
+martingale_capital.final_score: 20.2602
+martingale_capital.classification: fragile
+```
+
+Flat component weights:
+
+```text
+30% profitable-year ratio
+20% non-negative-year ratio
+25% win-rate consistency
+15% years at or above 50% win rate
+10% profit-balance score
+```
+
+Martingale component weights:
+
+```text
+25% survival ratio
+20% profitable-year ratio
+20% drawdown-amplification consistency
+20% wager-escalation consistency
+15% recovery-depth consistency
+```
+
+The final score applies explicit coverage and risk penalties. Every threshold,
+supporting run ID, supporting case ID, warning, and intermediate statistic is
+retained in the JSON report. The v1 classifications are research-fragility
+labels, not predictions or deployment approvals.
+
+Current warnings:
+
+```text
+flat_profit_not_consistent_across_samples
+flat_win_rate_regime_variation
+martingale_profit_depends_on_recovery_sizing
+martingale_extreme_wager_escalation
+martingale_substantial_drawdown_amplification
+terminal_loss_exposure_metrics_unavailable
+validation_cohort_not_universal_evidence
 ```
 
 ---
@@ -889,7 +961,7 @@ A modest-profit but repeatedly stable experiment may receive high confidence.
 
 # Immediate Discovery Work Plan
 
-## Phase B1 — Stability Engine scaffold
+## Phase B1 — Stability Engine scaffold — completed
 
 Create:
 
@@ -903,7 +975,7 @@ Build against a plain list of normalized records.
 
 No direct ObjectStore access.
 
-## Phase B2 — Cohort builder
+## Phase B2 — Cohort builder — completed
 
 Define a repeatable selection for:
 
@@ -926,7 +998,7 @@ martingale cohort
 paired cohort
 ```
 
-## Phase B3 — Validation report
+## Phase B3 — Validation report — completed
 
 Before scoring stability, report:
 
@@ -941,15 +1013,15 @@ methodology mismatches
 record warnings
 ```
 
-## Phase B4 — Flat stability score
+## Phase B4 — Flat stability score — implemented in v1
 
 Score directional evidence without recovery sizing.
 
-## Phase B5 — Martingale stability score
+## Phase B5 — Martingale stability score — implemented in v1
 
 Score capital transformation, survival, recovery depth, drawdown, and wager escalation.
 
-## Phase B6 — Comparative interpretation
+## Phase B6 — Comparative interpretation — next
 
 Produce a paired conclusion such as:
 
@@ -1029,15 +1101,16 @@ Discovery engines should accept `flat`, `martingale`, or another explicit record
 - dynamic metadata
 - deduplicated retrieval
 - flat/martingale control records
-- ongoing 2022–2025 validation matrix
+- completed 2022–2025 validation matrix
+- paired comparison artifact
+- Stability Engine v1 report
 
-## Workstream B begins with
+## Workstream B current state
 
 ```text
-discovery/stability_engine.py
+Stability Engine v1 implemented
+Phase B6 comparative interpretation is next
 ```
-
-against the clean BTCUSD 1d yearly matrix.
 
 ## Synchronization rule
 
@@ -1058,4 +1131,4 @@ next coding target
 
 # One-Sentence State
 
-> QCRL 2.2.0 now produces clean, runtime-identified, retrievable experiment evidence; the Discovery workstream should begin by measuring cross-year flat-signal stability and then separately measuring the martingale capital-recovery transformation applied to the same paired outcome sequences.
+> QCRL 2.2.0 now produces clean paired evidence and a versioned Stability Engine report; the first complete validation cohort classifies both the flat signal and martingale capital transformation as fragile for distinct, explicitly measured reasons.

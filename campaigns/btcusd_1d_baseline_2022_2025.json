@@ -88,7 +88,13 @@
     "comparison_value": "martingale",
     "label_field": "start_year",
     "baseline_score_model": "flat_profit_drawdown",
-    "comparison_score_model": "martingale_recovery_risk"
+    "comparison_score_model": "martingale_recovery_risk",
+    "expected_labels": [
+      2022,
+      2023,
+      2024,
+      2025
+    ]
   },
   "pair_validation": {
     "dimension": "stake_mode",

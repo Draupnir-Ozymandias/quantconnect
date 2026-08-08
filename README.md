@@ -134,3 +134,41 @@ The labels are descriptive rather than recommendations. In particular,
 `recovery-dependent-profit` means martingale produced a profit while the paired
 flat signal was neutral or negative. This artifact is the input boundary for
 the Stability Engine; it does not require another backtest or ObjectStore read.
+
+## Stability Engine
+
+Run stability analysis after campaign validation:
+
+```bash
+./synch.sh campaign stability campaigns/btcusd_1d_baseline_2022_2025.json
+```
+
+The pure-Python engine in `discovery/stability_engine.py` reads only the paired
+artifact and writes:
+
+```text
+.qcrl/campaigns/{campaign_id}/stability_report.json
+```
+
+The versioned `qcrl.stability_report.v1` contract reports coverage, descriptive
+statistics, cross-sample consistency, risk penalties, warnings, and all
+supporting run and case IDs. Flat-signal and martingale-capital evidence are
+scored independently.
+
+Flat stability combines profitable-year consistency, non-negative years,
+win-rate consistency, years at or above 50%, and profit balance. Its risk
+penalty uses worst drawdown measured in base wagers and worst loss streak.
+Martingale stability combines survival, profit consistency, and consistency of
+drawdown amplification, wager escalation, and recovery depth. Its risk penalty
+uses worst drawdown amplification, worst wager multiple, recovery depth, and
+the share of recovery-dependent years.
+
+The final score is:
+
+```text
+stability_score × coverage_ratio × (1 - risk_penalty)
+```
+
+Thresholds and score versions are embedded in every report. These scores rank
+research fragility; they are not estimates of future returns or universal
+confidence claims.
