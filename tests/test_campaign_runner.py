@@ -272,7 +272,9 @@ class CampaignRunnerTests(unittest.TestCase):
         self.assertTrue(artifact["validation"]["valid"])
         self.assertEqual(0, stability_result)
         self.assertIn("Evidence status", stability_output.getvalue())
+        self.assertIn("Comparative verdict", stability_output.getvalue())
         self.assertEqual("qcrl.stability_report.v1", stability["schema_version"])
+        self.assertIn("comparative_interpretation", stability)
 
     def test_cohort_scores_use_distinct_risk_models(self):
         flat = {

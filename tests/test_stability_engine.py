@@ -66,6 +66,35 @@ def paired_artifact(expected_labels=None):
     }
 
 
+def promotable_artifact():
+    artifact = paired_artifact()
+    for pair in artifact["pairs"]:
+        pair["signal"].update({
+            "win_rate": 0.60,
+            "max_loss_streak": 1
+        })
+        pair["baseline"].update({
+            "net_profit": 100,
+            "max_drawdown": 10,
+            "drawdown_in_base_wagers": 1
+        })
+        pair["comparison"].update({
+            "net_profit": 120,
+            "max_drawdown": 12,
+            "max_recovery_depth": 1,
+            "ruined": False
+        })
+        pair["deltas"].update({
+            "net_profit": 20,
+            "drawdown_amplification": 1.2,
+            "max_wager_multiple_of_base": 2
+        })
+        pair["interpretation"]["capital_transform"] = (
+            "signal-supported-profit-amplification"
+        )
+    return artifact
+
+
 class StabilityEngineTests(unittest.TestCase):
     def test_clean_control_produces_separate_stability_results(self):
         report = StabilityEngine().analyze(paired_artifact())
@@ -96,6 +125,24 @@ class StabilityEngineTests(unittest.TestCase):
             report["paired_evidence"]["all_signal_invariants_match"]
         )
         self.assertEqual(8, len(report["supporting_run_ids"]))
+        interpretation = report["comparative_interpretation"]
+        self.assertEqual(
+            "qcrl.comparative_interpretation.v1",
+            interpretation["interpretation_version"]
+        )
+        self.assertEqual(
+            "reject", interpretation["advancement_gate"]["decision"]
+        )
+        self.assertEqual(
+            "redesign_signal_and_reject_current_recovery_sizing",
+            interpretation["advancement_gate"]["next_action"]
+        )
+        self.assertEqual(
+            "high", interpretation["recovery_dependence"]["level"]
+        )
+        self.assertEqual(
+            "extreme", interpretation["risk_amplification"]["level"]
+        )
 
     def test_incomplete_expected_coverage_is_penalized(self):
         report = StabilityEngine().analyze(
@@ -107,6 +154,34 @@ class StabilityEngineTests(unittest.TestCase):
         self.assertEqual(0.8, report["coverage"]["coverage_ratio"])
         self.assertIn(
             "incomplete_expected_label_coverage", report["warnings"]
+        )
+        self.assertEqual(
+            "hold",
+            report["comparative_interpretation"]["advancement_gate"][
+                "decision"
+            ]
+        )
+
+    def test_strong_complete_pair_advances_to_neighborhood_validation(self):
+        report = StabilityEngine().analyze(promotable_artifact())
+        interpretation = report["comparative_interpretation"]
+
+        self.assertEqual(
+            "advance", interpretation["signal_stability"]["disposition"]
+        )
+        self.assertEqual(
+            "advance",
+            interpretation["capital_recovery_stability"]["disposition"]
+        )
+        self.assertEqual(
+            "advance", interpretation["advancement_gate"]["decision"]
+        )
+        self.assertEqual(
+            "advance_to_parameter_neighborhood_validation",
+            interpretation["advancement_gate"]["next_action"]
+        )
+        self.assertEqual(
+            "contained", interpretation["risk_amplification"]["level"]
         )
 
     def test_recovery_and_regime_warnings_are_explicit(self):

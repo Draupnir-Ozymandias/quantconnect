@@ -771,6 +771,53 @@ terminal_loss_exposure_metrics_unavailable
 validation_cohort_not_universal_evidence
 ```
 
+## Comparative interpretation v1 result
+
+Phase B6 is implemented inside the Stability Engine as:
+
+```text
+interpretation_version = qcrl.comparative_interpretation.v1
+scope = research_progression_not_live_trading_authorization
+```
+
+The interpretation reports separate signal and capital-recovery dispositions,
+recovery dependence, risk amplification, evidence confidence, and a single
+advancement gate. The gate has three possible decisions:
+
+```text
+advance -> advance_to_parameter_neighborhood_validation
+hold    -> expand validation before advancement
+reject  -> reject the current signal+sizing pair
+```
+
+Baseline verdict:
+
+```text
+advancement_gate.decision: reject
+signal_stability.disposition: reject
+capital_recovery_stability.disposition: reject
+evidence_confidence: moderate (75.0)
+recovery_dependence: high (50%)
+risk_amplification: extreme
+next_action: redesign_signal_and_reject_current_recovery_sizing
+```
+
+Blockers:
+
+```text
+flat_signal_fragile
+flat_profit_inconsistent
+martingale_capital_fragile
+profit_recovery_dependent
+extreme_wager_escalation
+substantial_drawdown_amplification
+```
+
+This rejects the tested configuration, not the QCRL research program. The next
+campaign should test redesigned directional hypotheses under flat sizing first.
+Recovery sizing must not be optimized until a signal passes the flat-signal
+advancement gate.
+
 ---
 
 # Consensus Engine
@@ -1021,7 +1068,7 @@ Score directional evidence without recovery sizing.
 
 Score capital transformation, survival, recovery depth, drawdown, and wager escalation.
 
-## Phase B6 — Comparative interpretation — next
+## Phase B6 — Comparative interpretation — completed
 
 Produce a paired conclusion such as:
 
@@ -1109,7 +1156,9 @@ Discovery engines should accept `flat`, `martingale`, or another explicit record
 
 ```text
 Stability Engine v1 implemented
-Phase B6 comparative interpretation is next
+Comparative interpretation v1 implemented
+Current signal+sizing pair rejected
+Next: redesign and validate directional hypotheses under flat sizing
 ```
 
 ## Synchronization rule
@@ -1131,4 +1180,4 @@ next coding target
 
 # One-Sentence State
 
-> QCRL 2.2.0 now produces clean paired evidence and a versioned Stability Engine report; the first complete validation cohort classifies both the flat signal and martingale capital transformation as fragile for distinct, explicitly measured reasons.
+> QCRL 2.2.0 now produces clean paired evidence, separate stability scores, and a versioned comparative gate; the first complete cohort rejects the current signal+sizing pair and directs the next campaign toward flat-sized signal redesign before any further recovery-policy optimization.

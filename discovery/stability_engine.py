@@ -14,6 +14,7 @@ class StabilityEngine:
 
     SCHEMA_VERSION = "qcrl.stability_report.v1"
     SCORE_VERSION = "qcrl.stability_score.v1"
+    INTERPRETATION_VERSION = "qcrl.comparative_interpretation.v1"
     DEFAULT_THRESHOLDS = {
         "minimum_samples": 4,
         "win_rate_std_tolerance": 0.10,
@@ -49,6 +50,14 @@ class StabilityEngine:
         flat = self._flat_stability(pairs, coverage)
         martingale = self._martingale_stability(pairs, coverage)
         warnings = self._warnings(pairs, coverage, flat, martingale)
+        paired_evidence = self._paired_evidence(pairs)
+        interpretation = self._comparative_interpretation(
+            coverage,
+            flat,
+            martingale,
+            paired_evidence,
+            warnings
+        )
         run_ids = self._unique(
             pair.get(field)
             for pair in pairs
@@ -72,11 +81,200 @@ class StabilityEngine:
             "coverage": coverage,
             "flat_signal": flat,
             "martingale_capital": martingale,
-            "paired_evidence": self._paired_evidence(pairs),
+            "paired_evidence": paired_evidence,
+            "comparative_interpretation": interpretation,
             "thresholds": dict(self.thresholds),
             "warnings": warnings,
             "supporting_run_ids": run_ids,
             "supporting_case_ids": case_ids
+        }
+
+    def _comparative_interpretation(
+        self,
+        coverage,
+        flat,
+        martingale,
+        paired_evidence,
+        warnings
+    ):
+        signal_reasons = []
+        if flat["classification"] == "fragile":
+            signal_reasons.append("flat_signal_fragile")
+        if flat["profit_consistency_ratio"] < 0.75:
+            signal_reasons.append("flat_profit_inconsistent")
+        if flat["mean_win_rate"] < 0.5:
+            signal_reasons.append("mean_win_rate_below_half")
+        signal_disposition = self._component_disposition(
+            flat["classification"], coverage
+        )
+
+        capital_reasons = []
+        if martingale["classification"] == "fragile":
+            capital_reasons.append("martingale_capital_fragile")
+        if martingale["recovery_dependence_ratio"] > 0:
+            capital_reasons.append("profit_recovery_dependent")
+        if martingale["worst_max_wager_multiple"] >= 32:
+            capital_reasons.append("extreme_wager_escalation")
+        if martingale["worst_drawdown_amplification"] >= 5:
+            capital_reasons.append("substantial_drawdown_amplification")
+        capital_disposition = self._component_disposition(
+            martingale["classification"], coverage
+        )
+        if any(reason in capital_reasons for reason in [
+            "extreme_wager_escalation",
+            "substantial_drawdown_amplification"
+        ]):
+            capital_disposition = "reject"
+
+        confidence = self._evidence_confidence(
+            coverage, paired_evidence, warnings
+        )
+        gate = self._advancement_gate(
+            signal_disposition,
+            capital_disposition,
+            confidence,
+            signal_reasons,
+            capital_reasons
+        )
+        return {
+            "interpretation_version": self.INTERPRETATION_VERSION,
+            "scope": "research_progression_not_live_trading_authorization",
+            "signal_stability": {
+                "score": flat["final_score"],
+                "classification": flat["classification"],
+                "disposition": signal_disposition,
+                "reason_codes": signal_reasons
+            },
+            "capital_recovery_stability": {
+                "score": martingale["final_score"],
+                "classification": martingale["classification"],
+                "disposition": capital_disposition,
+                "reason_codes": capital_reasons
+            },
+            "recovery_dependence": {
+                "ratio": martingale["recovery_dependence_ratio"],
+                "level": self._recovery_dependence_level(
+                    martingale["recovery_dependence_ratio"]
+                )
+            },
+            "risk_amplification": {
+                "level": self._risk_amplification_level(martingale),
+                "worst_drawdown_multiple": (
+                    martingale["worst_drawdown_amplification"]
+                ),
+                "worst_wager_multiple": (
+                    martingale["worst_max_wager_multiple"]
+                )
+            },
+            "evidence_confidence": confidence,
+            "advancement_gate": gate
+        }
+
+    @staticmethod
+    def _component_disposition(classification, coverage):
+        if coverage["coverage_ratio"] < 1:
+            return "hold"
+        return {
+            "stable": "advance",
+            "mixed": "hold",
+            "fragile": "reject"
+        }[classification]
+
+    def _evidence_confidence(self, coverage, paired_evidence, warnings):
+        sample_factor = min(
+            1.0,
+            paired_evidence["pair_count"]
+            / float(self.thresholds["minimum_samples"])
+        )
+        invariant_factor = (
+            paired_evidence["invariant_pair_count"]
+            / paired_evidence["pair_count"]
+        )
+        score = 100 * coverage["coverage_ratio"] * sample_factor
+        score *= invariant_factor
+        limitations = []
+        if "terminal_loss_exposure_metrics_unavailable" in warnings:
+            score -= 15
+            limitations.append("terminal_loss_exposure_metrics_unavailable")
+        if "validation_cohort_not_universal_evidence" in warnings:
+            score -= 10
+            limitations.append("validation_cohort_only")
+        score = max(0.0, score)
+        if score >= 80:
+            level = "high"
+        elif score >= 60:
+            level = "moderate"
+        else:
+            level = "low"
+        return {
+            "score": score,
+            "level": level,
+            "limitations": limitations
+        }
+
+    @staticmethod
+    def _recovery_dependence_level(ratio):
+        if ratio >= 0.5:
+            return "high"
+        if ratio > 0:
+            return "present"
+        return "none"
+
+    @staticmethod
+    def _risk_amplification_level(martingale):
+        if (
+            martingale["worst_max_wager_multiple"] >= 32
+            or martingale["worst_drawdown_amplification"] >= 5
+        ):
+            return "extreme"
+        if (
+            martingale["worst_max_wager_multiple"] >= 8
+            or martingale["worst_drawdown_amplification"] >= 2
+        ):
+            return "elevated"
+        return "contained"
+
+    @staticmethod
+    def _advancement_gate(
+        signal_disposition,
+        capital_disposition,
+        confidence,
+        signal_reasons,
+        capital_reasons
+    ):
+        blockers = list(signal_reasons) + list(capital_reasons)
+        if confidence["level"] == "low":
+            return {
+                "decision": "hold",
+                "target": "current_signal_and_sizing_pair",
+                "blockers": ["insufficient_evidence_confidence"] + blockers,
+                "next_action": "expand_or_repair_validation_evidence"
+            }
+        if "reject" in [signal_disposition, capital_disposition]:
+            if signal_disposition == "reject" and capital_disposition == "reject":
+                next_action = "redesign_signal_and_reject_current_recovery_sizing"
+            elif signal_disposition == "reject":
+                next_action = "redesign_signal_before_sizing_optimization"
+            else:
+                next_action = "retain_signal_research_and_reject_current_sizing"
+            return {
+                "decision": "reject",
+                "target": "current_signal_and_sizing_pair",
+                "blockers": blockers,
+                "next_action": next_action
+            }
+        if "hold" in [signal_disposition, capital_disposition]:
+            return {
+                "decision": "hold",
+                "target": "current_signal_and_sizing_pair",
+                "blockers": blockers or ["component_requires_more_evidence"],
+                "next_action": "expand_validation_before_advancement"
+            }
+        return {
+            "decision": "advance",
+            "target": "current_signal_and_sizing_pair",
+            "blockers": [],
+            "next_action": "advance_to_parameter_neighborhood_validation"
         }
 
     def _validate_artifact(self, artifact):

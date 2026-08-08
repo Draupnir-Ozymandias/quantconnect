@@ -172,3 +172,22 @@ stability_score × coverage_ratio × (1 - risk_penalty)
 Thresholds and score versions are embedded in every report. These scores rank
 research fragility; they are not estimates of future returns or universal
 confidence claims.
+
+### Comparative interpretation gate
+
+The same stability report includes a versioned
+`qcrl.comparative_interpretation.v1` decision layer. It keeps signal stability
+separate from capital-recovery stability, classifies recovery dependence and
+risk amplification, grades evidence confidence, and emits one research gate:
+
+```text
+advance  strong enough for parameter-neighborhood validation
+hold     incomplete or mixed evidence; expand validation first
+reject   current signal+sizing pair fails the research gate
+```
+
+This is a research-progression decision, not live-trading authorization. For
+the completed 2022–2025 baseline the decision is `reject`: both components are
+fragile, recovery dependence is high, and risk amplification is extreme. The
+prescribed next action is to redesign the directional signal and reject the
+current recovery-sizing policy rather than optimize its parameters.

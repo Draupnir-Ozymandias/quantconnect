@@ -1275,6 +1275,8 @@ def run_stability(manifest, cases):
     coverage = report["coverage"]
     flat = report["flat_signal"]
     martingale = report["martingale_capital"]
+    interpretation = report["comparative_interpretation"]
+    gate = interpretation["advancement_gate"]
     print(f"Evidence status: {report['evidence_status']}")
     print(
         f"Coverage: {coverage['present_count']}/{coverage['expected_count']} "
@@ -1294,6 +1296,15 @@ def run_stability(manifest, cases):
         f"survival={martingale['survival_ratio']:.0%} "
         f"recovery_dependence={martingale['recovery_dependence_ratio']:.0%}"
     )
+    print(
+        "Comparative verdict: "
+        f"decision={gate['decision']} "
+        f"signal={interpretation['signal_stability']['disposition']} "
+        f"capital={interpretation['capital_recovery_stability']['disposition']} "
+        f"confidence={interpretation['evidence_confidence']['level']} "
+        f"risk={interpretation['risk_amplification']['level']}"
+    )
+    print(f"Next action: {gate['next_action']}")
     print("Warnings:")
     for warning in report["warnings"]:
         print(f"  - {warning}")
