@@ -109,6 +109,45 @@ Throttle events and policy values are persisted in campaign state; each retry
 is appended to the case log. Non-rate-limit failures continue to stop the
 campaign immediately.
 
+### Split cohort rankings
+
+As of 2026-08-08, campaign validation no longer combines flat and martingale
+runs into one leaderboard. Ranking definitions are explicit in the campaign
+manifest and are evaluated only against matching cohorts.
+
+The flat signal cohort uses:
+
+```text
+flat_profit_drawdown = net_profit / (1 + max_drawdown)
+```
+
+The martingale capital cohort uses the existing recovery-aware QCRL score:
+
+```text
+martingale_recovery_risk = risk_adjusted_score
+```
+
+The clean control rankings are:
+
+```text
+Flat signal
+1. 2025  score  2.35294117647
+2. 2024  score  1.14754098361
+3. 2023  score  0
+4. 2022  score -0.331125827815
+
+Martingale capital
+1. 2024  score 0.397350993377
+2. 2023  score 0.357615894040
+3. 2025  score 0.187566988210
+4. 2022  score 0.074711342540
+```
+
+Campaign state now stores a deterministic case-set hash separately from the
+full manifest hash. Analysis-only or operational manifest revisions preserve
+collected runs when the case set is identical. Parameter changes are rejected
+and require a new campaign ID.
+
 ---
 
 # Workstream A — Architecture / Engine

@@ -224,7 +224,12 @@ class CampaignRunnerTests(unittest.TestCase):
     def test_pair_validation_accepts_matching_signal_metrics(self):
         invariant_fields = self.manifest["pair_validation"]["invariants"]
         metrics = {field: index for index, field in enumerate(invariant_fields)}
-        metrics["risk_adjusted_score"] = 1.0
+        for field in qcrl_campaign.required_metric_fields(self.manifest):
+            metrics.setdefault(field, 1)
+        metrics["ruined"] = False
+        metrics["net_profit"] = 10
+        metrics["max_drawdown"] = 5
+        metrics["risk_adjusted_score"] = 0.5
         metrics["run_id"] = "test-run"
 
         with tempfile.TemporaryDirectory() as temporary:
@@ -236,12 +241,79 @@ class CampaignRunnerTests(unittest.TestCase):
             path.write_text(json.dumps(state), encoding="utf-8")
 
             with patch("qcrl_campaign.state_path", return_value=path):
-                with redirect_stdout(io.StringIO()):
+                output = io.StringIO()
+                with redirect_stdout(output):
                     result = qcrl_campaign.validate_campaign(
                         self.manifest, self.cases
                     )
 
         self.assertEqual(0, result)
+        self.assertIn("Flat signal ranking", output.getvalue())
+        self.assertIn("Martingale capital ranking", output.getvalue())
+        self.assertNotIn("Ranking by risk_adjusted_score", output.getvalue())
+
+    def test_cohort_scores_use_distinct_risk_models(self):
+        flat = {
+            "metrics": {
+                "net_profit": 120,
+                "max_drawdown": 50,
+                "ruined": False
+            }
+        }
+        martingale = {
+            "metrics": {
+                "risk_adjusted_score": 0.1875,
+                "ruined": False
+            }
+        }
+
+        self.assertAlmostEqual(
+            120 / 51,
+            qcrl_campaign.cohort_score("flat_profit_drawdown", flat)
+        )
+        self.assertEqual(
+            0.1875,
+            qcrl_campaign.cohort_score(
+                "martingale_recovery_risk", martingale
+            )
+        )
+
+    def test_analysis_revision_preserves_existing_case_state(self):
+        previous = json.loads(json.dumps(self.manifest))
+        previous.pop("cohort_rankings")
+        previous["objective"] = {
+            "field": "risk_adjusted_score",
+            "direction": "max"
+        }
+
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "state.json"
+            with patch("qcrl_campaign.state_path", return_value=path):
+                old_state = qcrl_campaign.load_state(previous, self.cases)
+                qcrl_campaign.write_json(path, old_state)
+                revised = qcrl_campaign.load_state(
+                    self.manifest, self.cases
+                )
+
+        self.assertEqual(
+            qcrl_campaign.case_set_hash(self.cases),
+            revised["case_set_hash"]
+        )
+        self.assertEqual(1, len(revised["manifest_revisions"]))
+
+    def test_case_revision_requires_a_new_campaign_id(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "state.json"
+            with patch("qcrl_campaign.state_path", return_value=path):
+                state = qcrl_campaign.load_state(self.manifest, self.cases)
+                qcrl_campaign.write_json(path, state)
+
+                changed = json.loads(json.dumps(self.manifest))
+                changed["base_parameters"]["streak_length"] = 3
+                changed_cases = qcrl_campaign.expand_cases(changed)
+
+                with self.assertRaises(qcrl_campaign.CampaignError):
+                    qcrl_campaign.load_state(changed, changed_cases)
 
     def test_duplicate_expansion_is_rejected(self):
         manifest = dict(self.manifest)

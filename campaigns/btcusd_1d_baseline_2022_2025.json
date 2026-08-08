@@ -52,10 +52,37 @@
       "martingale"
     ]
   },
-  "objective": {
-    "field": "risk_adjusted_score",
-    "direction": "max"
-  },
+  "cohort_rankings": [
+    {
+      "name": "Flat signal ranking",
+      "filters": {
+        "stake_mode": "flat"
+      },
+      "score_model": "flat_profit_drawdown",
+      "direction": "max",
+      "display_fields": [
+        "net_profit",
+        "win_rate",
+        "max_drawdown",
+        "max_loss_streak"
+      ]
+    },
+    {
+      "name": "Martingale capital ranking",
+      "filters": {
+        "stake_mode": "martingale"
+      },
+      "score_model": "martingale_recovery_risk",
+      "direction": "max",
+      "display_fields": [
+        "net_profit",
+        "max_drawdown",
+        "max_single_wager",
+        "max_recovery_depth",
+        "ruined"
+      ]
+    }
+  ],
   "pair_validation": {
     "dimension": "stake_mode",
     "expected_values": [

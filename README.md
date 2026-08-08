@@ -103,3 +103,16 @@ set +a
 
 Validation checks run completeness, native-objective availability, and the
 flat/martingale signal-sequence invariants before producing a ranking.
+
+Rankings are declared as separate cohorts in the campaign manifest. The clean
+control campaign uses:
+
+- `flat_profit_drawdown`: `net_profit / (1 + max_drawdown)`, with a ruin
+  penalty. This measures signal economics without recovery-depth penalties.
+- `martingale_recovery_risk`: the QCRL risk-adjusted score, which includes
+  drawdown and recovery depth and applies the engine's ruin penalty.
+
+Changing ranking, display, or submission configuration is accepted as an
+analysis-only manifest revision when the deterministic case set is unchanged.
+Changing any expanded parameter set requires a new `campaign_id`; existing run
+state cannot silently migrate to different experiments.

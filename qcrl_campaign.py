@@ -24,6 +24,14 @@ DEFAULT_SUBMISSION_POLICY = {
     "initial_backoff_seconds": 30.0,
     "max_backoff_seconds": 300.0
 }
+RANKING_SCORE_MODELS = {
+    "flat_profit_drawdown": {
+        "required_fields": {"net_profit", "max_drawdown", "ruined"}
+    },
+    "martingale_recovery_risk": {
+        "required_fields": {"risk_adjusted_score", "ruined"}
+    }
+}
 RESERVED_PARAMETERS = {"git_commit", "git_branch", "campaign_id"}
 ALLOWED_PARAMETERS = {
     "start_year", "start_month", "start_day",
@@ -111,7 +119,43 @@ def load_manifest(path):
     if not isinstance(manifest.get("matrix", {}), dict):
         raise CampaignError("matrix must be an object")
     submission_policy(manifest)
+    validate_cohort_rankings(manifest)
     return manifest
+
+
+def validate_cohort_rankings(manifest):
+    rankings = manifest.get("cohort_rankings", [])
+    if not isinstance(rankings, list):
+        raise CampaignError("cohort_rankings must be an array")
+    names = set()
+    for ranking in rankings:
+        if not isinstance(ranking, dict):
+            raise CampaignError("Every cohort_rankings entry must be an object")
+        name = str(ranking.get("name", "")).strip()
+        if not name:
+            raise CampaignError("Every cohort ranking requires a name")
+        if name in names:
+            raise CampaignError(f"Duplicate cohort ranking name: {name}")
+        names.add(name)
+        filters = ranking.get("filters", {})
+        if not isinstance(filters, dict) or not filters:
+            raise CampaignError(
+                f"Cohort ranking {name} requires non-empty filters"
+            )
+        score_model = ranking.get("score_model")
+        if score_model not in RANKING_SCORE_MODELS:
+            raise CampaignError(
+                f"Unknown score_model for {name}: {score_model}"
+            )
+        if ranking.get("direction", "max") not in {"max", "min"}:
+            raise CampaignError(
+                f"Cohort ranking {name} direction must be max or min"
+            )
+        display_fields = ranking.get("display_fields", [])
+        if not isinstance(display_fields, list):
+            raise CampaignError(
+                f"Cohort ranking {name} display_fields must be an array"
+            )
 
 
 def validate_parameters(parameters):
@@ -222,21 +266,62 @@ def state_path(manifest):
     )
 
 
+def case_set_hash(cases):
+    identity = [
+        {
+            "case_id": case["case_id"],
+            "parameter_hash": case["parameter_hash"]
+        }
+        for case in sorted(cases, key=lambda item: item["case_id"])
+    ]
+    return canonical_hash(identity)
+
+
+def state_case_set_hash(state):
+    identity = [
+        {
+            "case_id": run["case_id"],
+            "parameter_hash": run["parameter_hash"]
+        }
+        for run in sorted(
+            state.get("runs", {}).values(),
+            key=lambda item: item["case_id"]
+        )
+    ]
+    return canonical_hash(identity)
+
+
 def load_state(manifest, cases):
     path = state_path(manifest)
     manifest_hash = canonical_hash(manifest)
+    expected_case_set_hash = case_set_hash(cases)
     if path.exists():
         state = read_json(path)
-        if state.get("manifest_hash") != manifest_hash:
+        stored_case_set_hash = state.get(
+            "case_set_hash",
+            state_case_set_hash(state)
+        )
+        if stored_case_set_hash != expected_case_set_hash:
             raise CampaignError(
-                "Manifest changed after campaign state was created. "
-                "Use a new campaign_id or archive the old local state."
+                "Campaign cases changed after state was created. "
+                "Use a new campaign_id for a different parameter set."
             )
+        if state.get("manifest_hash") != manifest_hash:
+            state.setdefault("manifest_revisions", []).append({
+                "previous_manifest_hash": state.get("manifest_hash"),
+                "manifest_hash": manifest_hash,
+                "case_set_hash": expected_case_set_hash,
+                "accepted_at_utc": utc_now(),
+                "reason": "analysis_or_operational_configuration_changed"
+            })
+            state["manifest_hash"] = manifest_hash
+        state["case_set_hash"] = expected_case_set_hash
     else:
         state = {
             "schema_version": STATE_VERSION,
             "campaign_id": manifest["campaign_id"],
             "manifest_hash": manifest_hash,
+            "case_set_hash": expected_case_set_hash,
             "created_at_utc": utc_now(),
             "updated_at_utc": utc_now(),
             "runs": {}
@@ -476,6 +561,10 @@ def required_metric_fields(manifest):
     pair = manifest.get("pair_validation")
     if pair:
         fields.update(pair.get("invariants", []))
+    for ranking in manifest.get("cohort_rankings", []):
+        model = RANKING_SCORE_MODELS[ranking["score_model"]]
+        fields.update(model["required_fields"])
+        fields.update(ranking.get("display_fields", []))
     return fields
 
 
@@ -739,6 +828,63 @@ def equal_metric(first, second):
     return first == second
 
 
+def cohort_matches(run, filters):
+    for field, expected in filters.items():
+        actual = run.get("parameters", {}).get(field)
+        if actual is None:
+            actual = run.get("metrics", {}).get(field)
+        if actual != expected:
+            return False
+    return True
+
+
+def cohort_score(score_model, run):
+    metrics = run.get("metrics", {})
+    required = RANKING_SCORE_MODELS[score_model]["required_fields"]
+    if not required.issubset(metrics):
+        return None
+    if score_model == "flat_profit_drawdown":
+        score = float(metrics["net_profit"]) / (
+            1 + float(metrics["max_drawdown"])
+        )
+        if metrics["ruined"]:
+            score -= 1000
+        return score
+    if score_model == "martingale_recovery_risk":
+        return float(metrics["risk_adjusted_score"])
+    raise CampaignError(f"Unsupported ranking score model: {score_model}")
+
+
+def print_cohort_rankings(manifest, runs):
+    rankings = manifest.get("cohort_rankings", [])
+    for ranking in rankings:
+        scored = []
+        for run in runs:
+            if not cohort_matches(run, ranking["filters"]):
+                continue
+            score = cohort_score(ranking["score_model"], run)
+            if score is not None:
+                scored.append((score, run))
+        reverse = ranking.get("direction", "max") == "max"
+        scored.sort(key=lambda item: item[0], reverse=reverse)
+        print(
+            f"\n{ranking['name']} — {ranking['score_model']} "
+            f"({ranking.get('direction', 'max')}):"
+        )
+        if not scored:
+            print("  No complete records for this cohort.")
+            continue
+        for position, (score, run) in enumerate(scored, 1):
+            details = []
+            for field in ranking.get("display_fields", []):
+                value = run.get("metrics", {}).get(field)
+                details.append(f"{field}={value}")
+            suffix = " | " + " ".join(details) if details else ""
+            print(
+                f"  {position}. {run['case_id']} score={score:.12g}{suffix}"
+            )
+
+
 def validate_campaign(manifest, cases):
     state = load_state(manifest, cases)
     runs = [state["runs"][case["case_id"]] for case in cases]
@@ -788,7 +934,9 @@ def validate_campaign(manifest, cases):
         print(f"  - {violation}")
 
     objective = manifest.get("objective")
-    if objective:
+    if manifest.get("cohort_rankings"):
+        print_cohort_rankings(manifest, runs)
+    elif objective:
         field = objective["field"]
         reverse = objective.get("direction", "max") == "max"
         ranked = [
@@ -802,6 +950,7 @@ def validate_campaign(manifest, cases):
                     f"  {position}. {run['case_id']} "
                     f"{run['metrics'][field]}"
                 )
+    save_state(manifest, state)
     return 1 if failed or incomplete or uncollected or violations else 0
 
 
