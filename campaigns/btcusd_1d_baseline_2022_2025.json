@@ -83,6 +83,13 @@
       ]
     }
   ],
+  "pair_comparison": {
+    "baseline_value": "flat",
+    "comparison_value": "martingale",
+    "label_field": "start_year",
+    "baseline_score_model": "flat_profit_drawdown",
+    "comparison_score_model": "martingale_recovery_risk"
+  },
   "pair_validation": {
     "dimension": "stake_mode",
     "expected_values": [

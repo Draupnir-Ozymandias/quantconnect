@@ -148,6 +148,38 @@ full manifest hash. Analysis-only or operational manifest revisions preserve
 collected runs when the case set is identical. Parameter changes are rejected
 and require a new campaign ID.
 
+### Paired capital comparison
+
+Campaign validation now emits both a human-readable paired report and the
+structured local artifact:
+
+```text
+.qcrl/campaigns/{campaign_id}/paired_comparison.json
+```
+
+Artifact schema:
+
+```text
+qcrl.paired_comparison.v1
+```
+
+The clean control comparison is:
+
+```text
+Year  Flat PnL  Martingale PnL  Profit Delta  DD Multiple  Wager Multiple  Label
+2022       -50             330          +380          4.20            64  recovery-dependent-profit
+2023         0             270          +270          1.67            16  recovery-dependent-profit
+2024        70             300          +230          2.50            16  signal-supported-profit-amplification
+2025       120             350          +230          6.20            32  signal-supported-profit-amplification
+```
+
+Every paired artifact retains the baseline and comparison case IDs, group
+dimensions, invariant status, signal outcome, cohort-specific scores, capital
+deltas, drawdown amplification, maximum-wager multiple, recovery depth, and
+descriptive interpretation labels. The artifact is local and derived entirely
+from collected campaign state, making it the immediate input contract for the
+Stability Engine without another cloud execution.
+
 ---
 
 # Workstream A — Architecture / Engine

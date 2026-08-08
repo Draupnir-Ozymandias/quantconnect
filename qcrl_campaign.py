@@ -32,6 +32,11 @@ RANKING_SCORE_MODELS = {
         "required_fields": {"risk_adjusted_score", "ruined"}
     }
 }
+PAIR_COMPARISON_FIELDS = {
+    "net_profit", "win_rate", "trades", "max_drawdown",
+    "max_single_wager", "max_recovery_depth", "max_loss_streak",
+    "risk_adjusted_score", "ruined"
+}
 RESERVED_PARAMETERS = {"git_commit", "git_branch", "campaign_id"}
 ALLOWED_PARAMETERS = {
     "start_year", "start_month", "start_day",
@@ -120,6 +125,7 @@ def load_manifest(path):
         raise CampaignError("matrix must be an object")
     submission_policy(manifest)
     validate_cohort_rankings(manifest)
+    validate_pair_comparison(manifest)
     return manifest
 
 
@@ -155,6 +161,41 @@ def validate_cohort_rankings(manifest):
         if not isinstance(display_fields, list):
             raise CampaignError(
                 f"Cohort ranking {name} display_fields must be an array"
+            )
+
+
+def validate_pair_comparison(manifest):
+    comparison = manifest.get("pair_comparison")
+    if comparison is None:
+        return
+    if not isinstance(comparison, dict):
+        raise CampaignError("pair_comparison must be an object")
+    validation = manifest.get("pair_validation")
+    if not validation:
+        raise CampaignError("pair_comparison requires pair_validation")
+    expected = validation.get("expected_values", [])
+    for field in [
+        "baseline_value", "comparison_value", "label_field",
+        "baseline_score_model", "comparison_score_model"
+    ]:
+        if field not in comparison:
+            raise CampaignError(f"pair_comparison requires {field}")
+    if comparison["baseline_value"] not in expected:
+        raise CampaignError(
+            "pair_comparison baseline_value must be an expected pair value"
+        )
+    if comparison["comparison_value"] not in expected:
+        raise CampaignError(
+            "pair_comparison comparison_value must be an expected pair value"
+        )
+    if comparison["baseline_value"] == comparison["comparison_value"]:
+        raise CampaignError(
+            "pair_comparison baseline and comparison values must differ"
+        )
+    for field in ["baseline_score_model", "comparison_score_model"]:
+        if comparison[field] not in RANKING_SCORE_MODELS:
+            raise CampaignError(
+                f"pair_comparison {field} is not a known score model"
             )
 
 
@@ -565,6 +606,8 @@ def required_metric_fields(manifest):
         model = RANKING_SCORE_MODELS[ranking["score_model"]]
         fields.update(model["required_fields"])
         fields.update(ranking.get("display_fields", []))
+    if manifest.get("pair_comparison"):
+        fields.update(PAIR_COMPARISON_FIELDS)
     return fields
 
 
@@ -885,6 +928,215 @@ def print_cohort_rankings(manifest, runs):
             )
 
 
+def safe_ratio(numerator, denominator):
+    if numerator is None or denominator in {None, 0}:
+        return None
+    return float(numerator) / float(denominator)
+
+
+def outcome_label(net_profit, ruined=False):
+    if ruined:
+        return "ruined"
+    if net_profit > 0:
+        return "positive"
+    if net_profit < 0:
+        return "negative"
+    return "neutral"
+
+
+def capital_transform_label(baseline_profit, comparison_profit, ruined):
+    if ruined:
+        return "capital-transform-ruined"
+    if baseline_profit <= 0 < comparison_profit:
+        return "recovery-dependent-profit"
+    if baseline_profit > 0 and comparison_profit > baseline_profit:
+        return "signal-supported-profit-amplification"
+    if comparison_profit > baseline_profit:
+        return "profit-amplification"
+    return "no-profit-uplift"
+
+
+def amplification_label(value, measure):
+    if value is None:
+        return f"{measure}-undefined"
+    if value >= 32:
+        level = "extreme"
+    elif value >= 16:
+        level = "high"
+    elif value >= 5:
+        level = "substantial"
+    elif value >= 2:
+        level = "elevated"
+    elif value > 1:
+        level = "moderate"
+    else:
+        level = "none"
+    return f"{level}-{measure}-amplification"
+
+
+def build_pair_comparisons(manifest, runs):
+    config = manifest.get("pair_comparison")
+    validation = manifest.get("pair_validation")
+    if not config or not validation:
+        return []
+
+    dimension = validation["dimension"]
+    group_by = validation["group_by"]
+    invariants = validation.get("invariants", [])
+    groups = {}
+    for run in runs:
+        key = tuple(run["parameters"].get(field) for field in group_by)
+        groups.setdefault(key, {})[run["parameters"].get(dimension)] = run
+
+    comparisons = []
+    baseline_value = config["baseline_value"]
+    comparison_value = config["comparison_value"]
+    label_field = config["label_field"]
+    for key, members in groups.items():
+        if baseline_value not in members or comparison_value not in members:
+            continue
+        baseline = members[baseline_value]
+        comparison = members[comparison_value]
+        baseline_metrics = baseline.get("metrics", {})
+        comparison_metrics = comparison.get("metrics", {})
+        if not PAIR_COMPARISON_FIELDS.issubset(baseline_metrics):
+            continue
+        if not PAIR_COMPARISON_FIELDS.issubset(comparison_metrics):
+            continue
+
+        baseline_profit = baseline_metrics["net_profit"]
+        comparison_profit = comparison_metrics["net_profit"]
+        drawdown_amplification = safe_ratio(
+            comparison_metrics["max_drawdown"],
+            baseline_metrics["max_drawdown"]
+        )
+        base_wager = comparison["parameters"].get("base_wager")
+        wager_multiple = safe_ratio(
+            comparison_metrics["max_single_wager"],
+            base_wager
+        )
+        invariants_match = all(
+            field in baseline_metrics
+            and field in comparison_metrics
+            and equal_metric(
+                baseline_metrics[field], comparison_metrics[field]
+            )
+            for field in invariants
+        )
+
+        comparisons.append({
+            "label": baseline["parameters"].get(label_field),
+            "group": dict(zip(group_by, key)),
+            "baseline_value": baseline_value,
+            "comparison_value": comparison_value,
+            "baseline_case_id": baseline["case_id"],
+            "comparison_case_id": comparison["case_id"],
+            "signal_invariants_match": invariants_match,
+            "signal": {
+                "trades": baseline_metrics["trades"],
+                "win_rate": baseline_metrics["win_rate"],
+                "max_loss_streak": baseline_metrics["max_loss_streak"]
+            },
+            "baseline": {
+                "outcome": outcome_label(
+                    baseline_profit, baseline_metrics["ruined"]
+                ),
+                "net_profit": baseline_profit,
+                "max_drawdown": baseline_metrics["max_drawdown"],
+                "max_single_wager": baseline_metrics["max_single_wager"],
+                "score": cohort_score(
+                    config["baseline_score_model"], baseline
+                )
+            },
+            "comparison": {
+                "outcome": outcome_label(
+                    comparison_profit, comparison_metrics["ruined"]
+                ),
+                "net_profit": comparison_profit,
+                "max_drawdown": comparison_metrics["max_drawdown"],
+                "max_single_wager": comparison_metrics["max_single_wager"],
+                "max_recovery_depth": comparison_metrics[
+                    "max_recovery_depth"
+                ],
+                "score": cohort_score(
+                    config["comparison_score_model"], comparison
+                ),
+                "ruined": comparison_metrics["ruined"]
+            },
+            "deltas": {
+                "net_profit": comparison_profit - baseline_profit,
+                "max_drawdown": (
+                    comparison_metrics["max_drawdown"]
+                    - baseline_metrics["max_drawdown"]
+                ),
+                "drawdown_amplification": drawdown_amplification,
+                "max_wager_multiple_of_base": wager_multiple
+            },
+            "interpretation": {
+                "capital_transform": capital_transform_label(
+                    baseline_profit,
+                    comparison_profit,
+                    comparison_metrics["ruined"]
+                ),
+                "drawdown": amplification_label(
+                    drawdown_amplification, "drawdown"
+                ),
+                "wager": amplification_label(wager_multiple, "wager")
+            }
+        })
+
+    comparisons.sort(
+        key=lambda item: (item["label"] is None, str(item["label"]))
+    )
+    return comparisons
+
+
+def print_pair_comparisons(comparisons):
+    if not comparisons:
+        return
+    print("\nPaired capital transformation:")
+    for comparison in comparisons:
+        deltas = comparison["deltas"]
+        drawdown_multiple = deltas["drawdown_amplification"]
+        wager_multiple = deltas["max_wager_multiple_of_base"]
+        drawdown_text = (
+            f"{drawdown_multiple:.2f}x"
+            if drawdown_multiple is not None else "n/a"
+        )
+        wager_text = (
+            f"{wager_multiple:.2f}x"
+            if wager_multiple is not None else "n/a"
+        )
+        print(
+            f"  {comparison['label']}: "
+            f"flat={comparison['baseline']['net_profit']} "
+            f"martingale={comparison['comparison']['net_profit']} "
+            f"profit_delta={deltas['net_profit']:+g} "
+            f"drawdown={drawdown_text} wager={wager_text} "
+            f"recovery_depth={comparison['comparison']['max_recovery_depth']} "
+            f"{comparison['interpretation']['capital_transform']}"
+        )
+
+
+def write_pair_comparison_artifact(manifest, state, comparisons, violations):
+    if not manifest.get("pair_comparison"):
+        return None
+    artifact = {
+        "schema_version": "qcrl.paired_comparison.v1",
+        "campaign_id": manifest["campaign_id"],
+        "case_set_hash": state["case_set_hash"],
+        "generated_at_utc": utc_now(),
+        "validation": {
+            "pair_issue_count": len(violations),
+            "valid": len(violations) == 0
+        },
+        "pairs": comparisons
+    }
+    path = state_path(manifest).parent / "paired_comparison.json"
+    write_json(path, artifact)
+    return path
+
+
 def validate_campaign(manifest, cases):
     state = load_state(manifest, cases)
     runs = [state["runs"][case["case_id"]] for case in cases]
@@ -950,6 +1202,13 @@ def validate_campaign(manifest, cases):
                     f"  {position}. {run['case_id']} "
                     f"{run['metrics'][field]}"
                 )
+    comparisons = build_pair_comparisons(manifest, runs)
+    print_pair_comparisons(comparisons)
+    artifact_path = write_pair_comparison_artifact(
+        manifest, state, comparisons, violations
+    )
+    if artifact_path is not None:
+        print(f"\nPaired comparison artifact: {artifact_path}")
     save_state(manifest, state)
     return 1 if failed or incomplete or uncollected or violations else 0
 

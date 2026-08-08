@@ -116,3 +116,21 @@ Changing ranking, display, or submission configuration is accepted as an
 analysis-only manifest revision when the deterministic case set is unchanged.
 Changing any expanded parameter set requires a new `campaign_id`; existing run
 state cannot silently migrate to different experiments.
+
+When `pair_comparison` is present, validation also writes a structured artifact
+to `.qcrl/campaigns/{campaign_id}/paired_comparison.json`. Each pair contains:
+
+```text
+signal invariants and supporting case IDs
+flat and martingale outcomes
+profit and drawdown deltas
+drawdown amplification
+maximum-wager multiple of the base wager
+maximum recovery depth
+descriptive capital-transform and risk-amplification labels
+```
+
+The labels are descriptive rather than recommendations. In particular,
+`recovery-dependent-profit` means martingale produced a profit while the paired
+flat signal was neutral or negative. This artifact is the input boundary for
+the Stability Engine; it does not require another backtest or ObjectStore read.

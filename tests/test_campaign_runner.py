@@ -246,11 +246,20 @@ class CampaignRunnerTests(unittest.TestCase):
                     result = qcrl_campaign.validate_campaign(
                         self.manifest, self.cases
                     )
+                artifact = json.loads(
+                    (path.parent / "paired_comparison.json").read_text(
+                        encoding="utf-8"
+                    )
+                )
 
         self.assertEqual(0, result)
         self.assertIn("Flat signal ranking", output.getvalue())
         self.assertIn("Martingale capital ranking", output.getvalue())
+        self.assertIn("Paired capital transformation", output.getvalue())
         self.assertNotIn("Ranking by risk_adjusted_score", output.getvalue())
+        self.assertEqual("qcrl.paired_comparison.v1", artifact["schema_version"])
+        self.assertEqual(4, len(artifact["pairs"]))
+        self.assertTrue(artifact["validation"]["valid"])
 
     def test_cohort_scores_use_distinct_risk_models(self):
         flat = {
@@ -276,6 +285,51 @@ class CampaignRunnerTests(unittest.TestCase):
             qcrl_campaign.cohort_score(
                 "martingale_recovery_risk", martingale
             )
+        )
+
+    def test_pair_comparison_quantifies_capital_transformation(self):
+        flat = dict(self.cases[0])
+        martingale = dict(self.cases[1])
+        flat["metrics"] = {
+            "net_profit": -50,
+            "win_rate": 33 / 71,
+            "trades": 71,
+            "max_drawdown": 150,
+            "max_single_wager": 10,
+            "max_recovery_depth": 6,
+            "max_loss_streak": 6,
+            "risk_adjusted_score": -0.0473,
+            "ruined": False
+        }
+        martingale["metrics"] = {
+            "net_profit": 330,
+            "win_rate": 33 / 71,
+            "trades": 71,
+            "max_drawdown": 630,
+            "max_single_wager": 640,
+            "max_recovery_depth": 6,
+            "max_loss_streak": 6,
+            "risk_adjusted_score": 0.0747,
+            "ruined": False
+        }
+
+        comparisons = qcrl_campaign.build_pair_comparisons(
+            self.manifest, [flat, martingale]
+        )
+
+        self.assertEqual(1, len(comparisons))
+        comparison = comparisons[0]
+        self.assertEqual(2022, comparison["label"])
+        self.assertEqual(380, comparison["deltas"]["net_profit"])
+        self.assertEqual(
+            4.2, comparison["deltas"]["drawdown_amplification"]
+        )
+        self.assertEqual(
+            64, comparison["deltas"]["max_wager_multiple_of_base"]
+        )
+        self.assertEqual(
+            "recovery-dependent-profit",
+            comparison["interpretation"]["capital_transform"]
         )
 
     def test_analysis_revision_preserves_existing_case_state(self):
