@@ -1,0 +1,336 @@
+"""Cross-sample analysis for flat-sized directional signal cohorts."""
+
+from datetime import datetime, timezone
+import math
+import statistics
+
+
+class DirectionalCohortError(ValueError):
+    pass
+
+
+class DirectionalCohortEngine:
+    """Score signal generators across independent labels such as years."""
+
+    INPUT_SCHEMA_VERSION = "qcrl.directional_cohort.v1"
+    REPORT_SCHEMA_VERSION = "qcrl.directional_cohort_report.v1"
+    SCORE_VERSION = "qcrl.directional_cohort_score.v1"
+    SCORE_WEIGHTS = {
+        "profitable_sample_ratio": 0.30,
+        "nonnegative_sample_ratio": 0.20,
+        "win_rate_consistency": 0.25,
+        "win_rate_at_or_above_half_ratio": 0.15,
+        "profit_balance": 0.10
+    }
+    RISK_WEIGHTS = {
+        "worst_drawdown_in_base_wagers": 0.50,
+        "worst_loss_streak": 0.50
+    }
+    CLASSIFICATION_THRESHOLDS = {"stable": 70, "mixed": 50}
+    DEFAULT_THRESHOLDS = {
+        "minimum_samples": 4,
+        "win_rate_std_tolerance": 0.10,
+        "drawdown_base_wager_limit": 64.0,
+        "loss_streak_limit": 10.0
+    }
+
+    def __init__(self, thresholds=None):
+        self.thresholds = dict(self.DEFAULT_THRESHOLDS)
+        if thresholds:
+            unknown = set(thresholds) - set(self.thresholds)
+            if unknown:
+                raise DirectionalCohortError(
+                    "Unknown directional thresholds: "
+                    + ", ".join(sorted(unknown))
+                )
+            self.thresholds.update(thresholds)
+        for name, value in self.thresholds.items():
+            if float(value) <= 0:
+                raise DirectionalCohortError(
+                    f"Threshold {name} must be positive"
+                )
+
+    def analyze(self, artifact):
+        self._validate_artifact(artifact)
+        results = [
+            self._analyze_cohort(cohort, artifact["expected_labels"])
+            for cohort in artifact["cohorts"]
+        ]
+        results.sort(
+            key=lambda item: (-item["final_score"], item["group_key"])
+        )
+        for rank, result in enumerate(results, 1):
+            result["rank"] = rank
+
+        advance = [
+            result["group_key"] for result in results
+            if result["disposition"] == "advance"
+        ]
+        hold = [
+            result["group_key"] for result in results
+            if result["disposition"] == "hold"
+        ]
+        reject = [
+            result["group_key"] for result in results
+            if result["disposition"] == "reject"
+        ]
+        if advance:
+            next_action = "advance_candidates_to_single_gate_stage"
+        elif hold:
+            next_action = "run_parameter_neighborhood_validation"
+        else:
+            next_action = "redesign_directional_hypotheses"
+
+        return {
+            "schema_version": self.REPORT_SCHEMA_VERSION,
+            "score_version": self.SCORE_VERSION,
+            "generated_at_utc": datetime.now(timezone.utc).replace(
+                microsecond=0
+            ).isoformat().replace("+00:00", "Z"),
+            "campaign_id": artifact.get("campaign_id"),
+            "case_set_hash": artifact.get("case_set_hash"),
+            "scope": "flat_directional_research_not_live_authorization",
+            "group_field": artifact["group_field"],
+            "label_field": artifact["label_field"],
+            "expected_labels": artifact["expected_labels"],
+            "cohorts": results,
+            "decision_summary": {
+                "advance": advance,
+                "hold": hold,
+                "reject": reject,
+                "next_action": next_action
+            },
+            "thresholds": dict(self.thresholds),
+            "score_weights": dict(self.SCORE_WEIGHTS),
+            "risk_weights": dict(self.RISK_WEIGHTS),
+            "classification_thresholds": dict(
+                self.CLASSIFICATION_THRESHOLDS
+            ),
+            "limitations": [
+                "validation_cohort_not_universal_evidence",
+                "transaction_costs_not_modeled_by_qcrl_wager_accounting"
+            ]
+        }
+
+    def _validate_artifact(self, artifact):
+        if not isinstance(artifact, dict):
+            raise DirectionalCohortError("Directional artifact must be an object")
+        if artifact.get("schema_version") != self.INPUT_SCHEMA_VERSION:
+            raise DirectionalCohortError(
+                f"DirectionalCohortEngine requires {self.INPUT_SCHEMA_VERSION}"
+            )
+        if not artifact.get("validation", {}).get("valid"):
+            raise DirectionalCohortError(
+                "Directional artifact must pass evidence validation"
+            )
+        cohorts = artifact.get("cohorts")
+        if not isinstance(cohorts, list) or not cohorts:
+            raise DirectionalCohortError(
+                "Directional artifact must contain cohorts"
+            )
+        keys = [cohort.get("group_key") for cohort in cohorts]
+        if len(keys) != len(set(keys)):
+            raise DirectionalCohortError(
+                "Directional artifact contains duplicate cohort keys"
+            )
+
+    def _analyze_cohort(self, cohort, expected_labels):
+        records = cohort.get("records", [])
+        if not records:
+            raise DirectionalCohortError(
+                f"Cohort {cohort.get('group_key')} has no records"
+            )
+        labels = [record["label"] for record in records]
+        if len(labels) != len(set(labels)):
+            raise DirectionalCohortError(
+                f"Cohort {cohort.get('group_key')} has duplicate labels"
+            )
+        expected_set = set(expected_labels)
+        present_set = set(labels)
+        present_count = len(expected_set & present_set)
+        coverage_ratio = present_count / len(expected_labels)
+        missing_labels = [
+            label for label in expected_labels if label not in present_set
+        ]
+        unexpected_labels = [
+            label for label in labels if label not in expected_set
+        ]
+
+        profits = [float(record["net_profit"]) for record in records]
+        win_rates = [float(record["win_rate"]) for record in records]
+        trades = [float(record["trades"]) for record in records]
+        wins = [float(record["wins"]) for record in records]
+        drawdowns = [float(record["max_drawdown"]) for record in records]
+        drawdown_wagers = [
+            float(record["drawdown_in_base_wagers"]) for record in records
+        ]
+        loss_streaks = [
+            float(record["max_loss_streak"]) for record in records
+        ]
+        ruined = [bool(record["ruined"]) for record in records]
+        n = len(records)
+        profitable_ratio = sum(value > 0 for value in profits) / n
+        nonnegative_ratio = sum(value >= 0 for value in profits) / n
+        above_half_ratio = sum(value >= 0.5 for value in win_rates) / n
+        win_consistency = self._clamp(
+            1
+            - self._std(win_rates)
+            / self.thresholds["win_rate_std_tolerance"]
+        )
+        profit_balance = self._balance_score(profits)
+        components = {
+            "profitable_sample_ratio": profitable_ratio,
+            "nonnegative_sample_ratio": nonnegative_ratio,
+            "win_rate_consistency": win_consistency,
+            "win_rate_at_or_above_half_ratio": above_half_ratio,
+            "profit_balance": profit_balance
+        }
+        stability_score = 100 * sum(
+            self.SCORE_WEIGHTS[name] * value
+            for name, value in components.items()
+        )
+        risk_penalty = (
+            100
+            if any(ruined)
+            else 100 * self._clamp(
+                0.5
+                * max(drawdown_wagers)
+                / self.thresholds["drawdown_base_wager_limit"]
+                + 0.5
+                * max(loss_streaks)
+                / self.thresholds["loss_streak_limit"]
+            )
+        )
+        final_score = stability_score * coverage_ratio * (
+            1 - risk_penalty / 100
+        )
+        classification = self._classification(final_score)
+        if (
+            coverage_ratio < 1
+            or n < int(self.thresholds["minimum_samples"])
+        ):
+            disposition = "hold"
+            next_action = "complete_expected_validation_labels"
+        elif any(ruined):
+            disposition = "reject"
+            next_action = "reject_ruined_configuration"
+        elif classification == "stable":
+            disposition = "advance"
+            next_action = "advance_to_single_gate_stage"
+        elif classification == "mixed":
+            disposition = "hold"
+            next_action = "run_parameter_neighborhood_validation"
+        else:
+            disposition = "reject"
+            next_action = "reject_default_configuration"
+
+        warnings = []
+        if missing_labels:
+            warnings.append("incomplete_expected_label_coverage")
+        if unexpected_labels:
+            warnings.append("unexpected_validation_labels")
+        if n < int(self.thresholds["minimum_samples"]):
+            warnings.append("insufficient_independent_samples")
+        if profitable_ratio < 0.75:
+            warnings.append("profit_not_consistent_across_samples")
+        if max(win_rates) - min(win_rates) >= 0.10:
+            warnings.append("win_rate_regime_variation")
+        if self._coefficient_of_variation(trades) >= 0.25:
+            warnings.append("trade_frequency_regime_variation")
+        if max(drawdown_wagers) >= 15:
+            warnings.append("substantial_flat_drawdown")
+        if any(ruined):
+            warnings.append("cohort_ruin_observed")
+
+        return {
+            "group_key": cohort["group_key"],
+            "run_count": n,
+            "coverage": {
+                "expected_count": len(expected_labels),
+                "present_count": present_count,
+                "coverage_ratio": coverage_ratio,
+                "present_labels": labels,
+                "missing_labels": missing_labels,
+                "unexpected_labels": unexpected_labels
+            },
+            "profitable_samples": sum(value > 0 for value in profits),
+            "nonnegative_samples": sum(value >= 0 for value in profits),
+            "ruined_samples": sum(ruined),
+            "profit_consistency_ratio": profitable_ratio,
+            "nonnegative_ratio": nonnegative_ratio,
+            "total_net_profit": sum(profits),
+            "mean_net_profit": self._mean(profits),
+            "std_net_profit": self._std(profits),
+            "profit_balance_score": profit_balance,
+            "weighted_win_rate": (
+                sum(wins) / sum(trades) if sum(trades) else 0
+            ),
+            "mean_win_rate": self._mean(win_rates),
+            "std_win_rate": self._std(win_rates),
+            "min_win_rate": min(win_rates),
+            "max_win_rate": max(win_rates),
+            "win_rate_at_or_above_half_ratio": above_half_ratio,
+            "total_trades": sum(trades),
+            "mean_trades": self._mean(trades),
+            "trade_count_cv": self._coefficient_of_variation(trades),
+            "mean_max_drawdown": self._mean(drawdowns),
+            "worst_max_drawdown": max(drawdowns),
+            "worst_drawdown_in_base_wagers": max(drawdown_wagers),
+            "worst_max_loss_streak": max(loss_streaks),
+            "stability_score": stability_score,
+            "score_components": components,
+            "risk_penalty": risk_penalty,
+            "coverage_penalty": 100 * (1 - coverage_ratio),
+            "final_score": final_score,
+            "classification": classification,
+            "disposition": disposition,
+            "next_action": next_action,
+            "warnings": warnings,
+            "supporting_run_ids": [
+                record["run_id"] for record in records
+            ],
+            "supporting_case_ids": [
+                record["case_id"] for record in records
+            ]
+        }
+
+    @staticmethod
+    def _classification(score):
+        if score >= 70:
+            return "stable"
+        if score >= 50:
+            return "mixed"
+        return "fragile"
+
+    @staticmethod
+    def _mean(values):
+        return statistics.fmean(values)
+
+    @staticmethod
+    def _std(values):
+        return statistics.pstdev(values) if len(values) > 1 else 0
+
+    @staticmethod
+    def _coefficient_of_variation(values):
+        mean = statistics.fmean(values)
+        if math.isclose(mean, 0):
+            return 0
+        return statistics.pstdev(values) / abs(mean)
+
+    @staticmethod
+    def _balance_score(values):
+        absolute = [abs(value) for value in values]
+        total = sum(absolute)
+        if math.isclose(total, 0):
+            return 1
+        if len(values) <= 1:
+            return 0
+        dominance = max(absolute) / total
+        ideal = 1 / len(values)
+        return DirectionalCohortEngine._clamp(
+            (1 - dominance) / (1 - ideal)
+        )
+
+    @staticmethod
+    def _clamp(value):
+        return max(0, min(1, float(value)))

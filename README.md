@@ -141,6 +141,26 @@ but they are reserved for Stage 2. Only Stage 1 generators with credible
 cross-year evidence should receive one gate at a time. Composite filters and
 recovery sizing remain out of scope.
 
+After collection and validation, run the versioned cross-year analyzer:
+
+```bash
+./synch.sh campaign directional campaigns/btcusd_1d_directional_stage1_2022_2025.json
+```
+
+It writes two ignored, reproducible artifacts:
+
+```text
+.qcrl/campaigns/{campaign_id}/directional_cohort.json
+.qcrl/campaigns/{campaign_id}/directional_cohort_report.json
+```
+
+The `qcrl.directional_cohort_report.v1` result groups runs by signal generator,
+measures coverage, profit consistency, win-rate consistency, trade-frequency
+variation, drawdown, and loss streaks, then emits `advance`, `hold`, or `reject`.
+The completed Stage 1 campaign holds candle streak for parameter-neighborhood
+validation and rejects the tested RSI, MACD, and EMA defaults. A hold does not
+authorize filter testing; it requires the prescribed neighborhood campaign.
+
 When `pair_comparison` is present, validation also writes a structured artifact
 to `.qcrl/campaigns/{campaign_id}/paired_comparison.json`. Each pair contains:
 

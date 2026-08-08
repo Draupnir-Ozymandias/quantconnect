@@ -37,6 +37,10 @@ PAIR_COMPARISON_FIELDS = {
     "max_single_wager", "max_recovery_depth", "max_loss_streak",
     "risk_adjusted_score", "ruined"
 }
+DIRECTIONAL_COHORT_FIELDS = {
+    "run_id", "net_profit", "win_rate", "trades", "wins",
+    "max_drawdown", "max_loss_streak", "ruined"
+}
 RESERVED_PARAMETERS = {"git_commit", "git_branch", "campaign_id"}
 ENTRY_MODELS = {
     "fixed_bias", "previous_candle", "previous_candle_reverse",
@@ -136,7 +140,33 @@ def load_manifest(path):
     submission_policy(manifest)
     validate_cohort_rankings(manifest)
     validate_pair_comparison(manifest)
+    validate_directional_analysis(manifest)
     return manifest
+
+
+def validate_directional_analysis(manifest):
+    analysis = manifest.get("directional_analysis")
+    if analysis is None:
+        return
+    if not isinstance(analysis, dict):
+        raise CampaignError("directional_analysis must be an object")
+    for field in ["group_field", "label_field", "expected_labels"]:
+        if field not in analysis:
+            raise CampaignError(f"directional_analysis requires {field}")
+    labels = analysis["expected_labels"]
+    if not isinstance(labels, list) or not labels:
+        raise CampaignError(
+            "directional_analysis expected_labels must be a non-empty array"
+        )
+    if len(labels) != len(set(labels)):
+        raise CampaignError(
+            "directional_analysis expected_labels cannot contain duplicates"
+        )
+    required = analysis.get("required_parameters", {})
+    if not isinstance(required, dict):
+        raise CampaignError(
+            "directional_analysis required_parameters must be an object"
+        )
 
 
 def validate_cohort_rankings(manifest):
@@ -1318,6 +1348,145 @@ def show_status(manifest, cases):
     return 0
 
 
+def build_directional_cohort_artifact(manifest, state, cases):
+    config = manifest.get("directional_analysis")
+    if not config:
+        raise CampaignError(
+            "Manifest does not declare directional_analysis"
+        )
+    group_field = config["group_field"]
+    label_field = config["label_field"]
+    required_parameters = config.get("required_parameters", {})
+    groups = {}
+    issues = []
+    for case in cases:
+        run = state["runs"][case["case_id"]]
+        metrics = run.get("metrics", {})
+        if run.get("status") != "collected":
+            issues.append(f"{case['case_id']} is not collected")
+            continue
+        missing = sorted(DIRECTIONAL_COHORT_FIELDS - set(metrics))
+        if missing:
+            issues.append(
+                f"{case['case_id']} lacks metrics: {', '.join(missing)}"
+            )
+            continue
+        mismatches = [
+            f"{field}={run['parameters'].get(field)}"
+            for field, expected in required_parameters.items()
+            if run["parameters"].get(field) != expected
+        ]
+        if mismatches:
+            issues.append(
+                f"{case['case_id']} violates required parameters: "
+                + ", ".join(mismatches)
+            )
+            continue
+        group_key = run["parameters"].get(group_field)
+        label = run["parameters"].get(label_field)
+        if group_key is None or label is None:
+            issues.append(
+                f"{case['case_id']} lacks {group_field} or {label_field}"
+            )
+            continue
+        records = groups.setdefault(group_key, {})
+        if label in records:
+            issues.append(
+                f"{group_key} contains duplicate label {label}"
+            )
+            continue
+        records[label] = {
+            "label": label,
+            "case_id": run["case_id"],
+            "run_id": metrics["run_id"],
+            "net_profit": metrics["net_profit"],
+            "win_rate": metrics["win_rate"],
+            "trades": metrics["trades"],
+            "wins": metrics["wins"],
+            "max_drawdown": metrics["max_drawdown"],
+            "max_loss_streak": metrics["max_loss_streak"],
+            "ruined": metrics["ruined"],
+            "base_wager": run["parameters"].get("base_wager"),
+            "drawdown_in_base_wagers": safe_ratio(
+                metrics["max_drawdown"],
+                run["parameters"].get("base_wager")
+            )
+        }
+
+    cohorts = []
+    for group_key in sorted(groups, key=str):
+        records = [
+            groups[group_key][label]
+            for label in sorted(groups[group_key], key=str)
+        ]
+        cohorts.append({
+            "group_key": group_key,
+            "records": records
+        })
+    return {
+        "schema_version": "qcrl.directional_cohort.v1",
+        "campaign_id": manifest["campaign_id"],
+        "case_set_hash": state["case_set_hash"],
+        "generated_at_utc": utc_now(),
+        "group_field": group_field,
+        "label_field": label_field,
+        "expected_labels": config["expected_labels"],
+        "required_parameters": required_parameters,
+        "validation": {
+            "valid": not issues and bool(cohorts),
+            "issue_count": len(issues),
+            "issues": issues
+        },
+        "cohorts": cohorts
+    }
+
+
+def run_directional_analysis(manifest, cases):
+    from discovery.directional_cohort_engine import (
+        DirectionalCohortEngine,
+        DirectionalCohortError
+    )
+
+    state = load_state(manifest, cases)
+    artifact = build_directional_cohort_artifact(manifest, state, cases)
+    directory = state_path(manifest).parent
+    artifact_path = directory / "directional_cohort.json"
+    write_json(artifact_path, artifact)
+    if not artifact["validation"]["valid"]:
+        issues = "; ".join(artifact["validation"]["issues"])
+        raise CampaignError(
+            f"Directional evidence validation failed: {issues}"
+        )
+    try:
+        report = DirectionalCohortEngine().analyze(artifact)
+    except DirectionalCohortError as exc:
+        raise CampaignError(
+            f"Directional cohort analysis failed: {exc}"
+        ) from exc
+
+    report_path = directory / "directional_cohort_report.json"
+    write_json(report_path, report)
+    print("Directional cohort verdict:")
+    for cohort in report["cohorts"]:
+        print(
+            f"  {cohort['rank']}. {cohort['group_key']} "
+            f"score={cohort['final_score']:.2f} "
+            f"classification={cohort['classification']} "
+            f"decision={cohort['disposition']} "
+            f"profitable={cohort['profitable_samples']}/"
+            f"{cohort['run_count']} "
+            f"weighted_win_rate={cohort['weighted_win_rate']:.2%} "
+            f"total_profit={cohort['total_net_profit']:+g}"
+        )
+        if cohort["warnings"]:
+            print("     warnings=" + ",".join(cohort["warnings"]))
+    summary = report["decision_summary"]
+    print(f"Next action: {summary['next_action']}")
+    print(f"Directional evidence: {artifact_path}")
+    print(f"Directional report:   {report_path}")
+    return 0
+
+
 def run_stability(manifest, cases):
     from discovery.stability_engine import StabilityEngine, StabilityError
 
@@ -1387,7 +1556,9 @@ def run_stability(manifest, cases):
 def build_parser():
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    for command in ["plan", "status", "collect", "validate", "stability"]:
+    for command in [
+        "plan", "status", "collect", "validate", "stability", "directional"
+    ]:
         child = subparsers.add_parser(command)
         child.add_argument("manifest", type=Path)
     run_parser = subparsers.add_parser("run")
@@ -1435,6 +1606,8 @@ def main(arguments=None):
             return validate_campaign(manifest, cases)
         if args.command == "stability":
             return run_stability(manifest, cases)
+        if args.command == "directional":
+            return run_directional_analysis(manifest, cases)
         return show_status(manifest, cases)
     except CampaignError as exc:
         print(f"Campaign error: {exc}", file=sys.stderr)

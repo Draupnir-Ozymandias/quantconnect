@@ -47,6 +47,34 @@ class CampaignRunnerTests(unittest.TestCase):
             },
             {case["parameters"]["entry_model"] for case in cases}
         )
+        state = {
+            "case_set_hash": qcrl_campaign.case_set_hash(cases),
+            "runs": {}
+        }
+        for case in cases:
+            state["runs"][case["case_id"]] = {
+                "case_id": case["case_id"],
+                "status": "collected",
+                "parameters": case["parameters"],
+                "metrics": {
+                    "run_id": "run-" + case["case_id"],
+                    "net_profit": 10,
+                    "win_rate": 0.51,
+                    "trades": 100,
+                    "wins": 51,
+                    "max_drawdown": 20,
+                    "max_loss_streak": 3,
+                    "ruined": False
+                }
+            }
+        artifact = qcrl_campaign.build_directional_cohort_artifact(
+            manifest, state, cases
+        )
+        self.assertTrue(artifact["validation"]["valid"])
+        self.assertEqual(4, len(artifact["cohorts"]))
+        self.assertEqual(
+            "qcrl.directional_cohort.v1", artifact["schema_version"]
+        )
 
     def test_baseline_manifest_expands_to_four_pairs(self):
         self.assertEqual(8, len(self.cases))

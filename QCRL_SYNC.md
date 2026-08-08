@@ -1174,6 +1174,58 @@ ADX and ATR are intentionally excluded from Stage 1. Stage 2 may apply one
 gate at a time only to generators that survive cross-year signal analysis.
 Composite filters and recovery sizing remain gated.
 
+Directional Cohort Engine v1:
+
+```text
+input:  qcrl.directional_cohort.v1
+output: qcrl.directional_cohort_report.v1
+score:  qcrl.directional_cohort_score.v1
+```
+
+Score weights are embedded in every report:
+
+```text
+30% profitable-sample ratio
+20% non-negative-sample ratio
+25% win-rate consistency
+15% samples at or above 50% win rate
+10% profit balance
+```
+
+The risk penalty weights worst drawdown in base wagers and worst loss streak
+equally. Coverage multiplies the post-risk score. Stable begins at 70, mixed at
+50, and lower scores are fragile; all thresholds and weights are serialized.
+
+Command:
+
+```bash
+./synch.sh campaign directional campaigns/btcusd_1d_directional_stage1_2022_2025.json
+```
+
+Completed Stage 1 verdict:
+
+```text
+candle_streak       54.81  mixed    hold    +490  4/4 profitable
+rsi_mean_reversion  40.67  fragile  reject   +70  3/4 profitable
+macd_trend           12.41  fragile  reject  -250  2/4 profitable
+ema_trend             7.38  fragile  reject  -410  0/4 profitable
+```
+
+Candle streak is held because its cross-year consistency is credible but its
+worst drawdown reached 15 base wagers. RSI is rejected at the tested defaults
+because win rate and trade frequency varied sharply by year. MACD and EMA are
+rejected at their tested defaults because their aggregate signal economics are
+negative.
+
+The analyzer's campaign-level next action is:
+
+```text
+run_parameter_neighborhood_validation
+```
+
+The next campaign should vary candle-streak length under flat sizing with no
+filter. ADX and ATR remain gated until that neighborhood evidence is resolved.
+
 Canonical storage contracts are extended to preserve every active directional
 and gate parameter:
 
@@ -1205,8 +1257,10 @@ manifest pins `lab_version=QCRL-2.2.0` and the legacy model path is unchanged.
 Stability Engine v1 implemented
 Comparative interpretation v1 implemented
 Current signal+sizing pair rejected
-Directional Stage 1 campaign ready for QuantConnect execution
-Next: run, collect, and compare four flat-sized signal generators
+Directional Stage 1 campaign completed: 16/16 collected
+Directional Cohort Engine v1 implemented
+Candle streak held; RSI, MACD, and EMA defaults rejected
+Next: flat/no-filter candle-streak parameter-neighborhood validation
 ```
 
 ## Synchronization rule
@@ -1228,4 +1282,4 @@ next coding target
 
 # One-Sentence State
 
-> QCRL 2.3.0 now provides a factor-isolated, flat-only directional campaign across candle-streak, EMA, MACD, and RSI generators, while ADX/ATR gates and recovery sizing remain withheld until the Stage 1 evidence is collected and compared.
+> QCRL 2.3.0 now grades directional generators with a versioned cross-year cohort engine; candle-streak reversal is held for flat/no-filter parameter-neighborhood validation, while the tested RSI, MACD, and EMA defaults are rejected and all eligibility gates remain withheld.

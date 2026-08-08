@@ -81,5 +81,19 @@
         "max_loss_streak"
       ]
     }
-  ]
+  ],
+  "directional_analysis": {
+    "group_field": "entry_model",
+    "label_field": "start_year",
+    "expected_labels": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "required_parameters": {
+      "stake_mode": "flat",
+      "filter_model": "none"
+    }
+  }
 }
