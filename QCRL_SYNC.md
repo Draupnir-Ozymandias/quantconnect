@@ -1,7 +1,7 @@
 # QCRL Sync Log
 
-**Updated:** 2026-08-08
-**Sync version:** 2026-08-08 Campaign Throttling Foundation
+**Updated:** 2026-09-05
+**Sync version:** 2026-09-05 Neighborhood Decision and Stage 2 Gate
 **QCRL baseline:** 2.2.0  
 **Status:** Active research
 
@@ -1237,7 +1237,7 @@ run_parameter_neighborhood_validation
 The next campaign should vary candle-streak length under flat sizing with no
 filter. ADX and ATR remain gated until that neighborhood evidence is resolved.
 
-## Candle-streak neighborhood campaign ready
+## Candle-streak neighborhood campaign
 
 Manifest:
 
@@ -1264,6 +1264,43 @@ higher conditional reversal rate. The design does not assume monotonicity.
 Longer streaks are rarer, and continued streaks create overlapping signal
 windows, so raw trade count overstates independent episode count. That
 limitation is serialized into the directional evidence and report.
+
+## 2026-09-05 neighborhood result and Stage 2 handoff
+
+All 24 neighborhood cases were collected through the QuantConnect API and
+passed validation. The core result is not monotonic: length 2 had the strongest
+final score among the sufficiently sampled values, while lengths 1 and 3 both
+provided positive two-sided neighborhood support. Length 4 deteriorated and
+lengths 5–6 were too sparse for selection.
+
+The versioned `qcrl.directional_neighborhood_interpretation.v1` contract now
+records the predeclared candidate, core and tail values, supporting neighbors,
+tail exclusions, blockers, and the region-level next action. It selects
+`streak_length=2` for isolated eligibility-gate testing; this selection is a
+research-progression decision, not live authorization.
+
+Campaign evidence provenance is now explicit:
+
+```text
+lean_cli terminal metrics -> completed (preview only)
+quantconnect_api metrics + collected_at_utc -> collected (authoritative)
+```
+
+Directional artifacts reject terminal-only evidence. Legacy collected state
+with an API collection timestamp is migrated in memory to the explicit API
+source and persisted on the next validation or directional-analysis command.
+
+The next manifest is:
+
+```text
+campaigns/btcusd_1d_candle_streak_stage2_gates_2022_2025.json
+length 2 x [none, adx_strength, atr_volatility] x 4 years = 12 cases
+stake_mode = flat
+```
+
+It tests each gate independently against the unfiltered control and validates
+that generated UP/DOWN signal counts are unchanged. Composite gates, parameter
+optimization, and recovery sizing remain gated.
 
 Canonical storage contracts are extended to preserve every active directional
 and gate parameter:
@@ -1299,8 +1336,10 @@ Current signal+sizing pair rejected
 Directional Stage 1 campaign completed: 16/16 collected
 Directional Cohort Engine v1 implemented
 Candle streak held; RSI, MACD, and EMA defaults rejected
-Candle-streak lengths 1–6 neighborhood campaign ready (24 cases)
-Next: execute, collect, validate, and analyze the neighborhood campaign
+Candle-streak lengths 1–6 neighborhood campaign complete (24/24 API-collected)
+Length 2 selected with two-sided core-neighborhood support
+Stage 2 isolated ADX/ATR gate campaign ready (12 cases)
+Next: commit and synchronize the Stage 2 manifest, then run one integration case
 ```
 
 ## Synchronization rule
@@ -1322,4 +1361,4 @@ next coding target
 
 # One-Sentence State
 
-> QCRL 2.3.0 now has a 24-case flat/no-filter candle-streak neighborhood campaign spanning lengths 1–6, with score-v2 sparse-evidence safeguards and explicit overlapping-window limitations; all eligibility gates remain withheld pending its result.
+> QCRL 2.3.0 selected length-2 candle-streak reversal from a fully API-collected 24-case neighborhood and is ready for a 12-case flat-sizing Stage 2 that isolates ADX and ATR eligibility gates against yearly unfiltered controls.

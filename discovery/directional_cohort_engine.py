@@ -15,6 +15,7 @@ class DirectionalCohortEngine:
     INPUT_SCHEMA_VERSION = "qcrl.directional_cohort.v1"
     REPORT_SCHEMA_VERSION = "qcrl.directional_cohort_report.v1"
     SCORE_VERSION = "qcrl.directional_cohort_score.v2"
+    NEIGHBORHOOD_VERSION = "qcrl.directional_neighborhood_interpretation.v1"
     SCORE_WEIGHTS = {
         "profitable_sample_ratio": 0.30,
         "nonnegative_sample_ratio": 0.20,
@@ -76,14 +77,21 @@ class DirectionalCohortEngine:
             result["group_key"] for result in results
             if result["disposition"] == "reject"
         ]
-        if advance:
+        stage = artifact.get("analysis_stage", "generator_screen")
+        neighborhood = None
+        if stage == "parameter_neighborhood":
+            neighborhood = self._interpret_neighborhood(results, artifact)
+            next_action = neighborhood["next_action"]
+        elif stage == "single_gate":
+            next_action = "compare_single_gate_cohorts_to_unfiltered_control"
+        elif advance:
             next_action = "advance_candidates_to_single_gate_stage"
         elif hold:
             next_action = "run_parameter_neighborhood_validation"
         else:
             next_action = "redesign_directional_hypotheses"
 
-        return {
+        report = {
             "schema_version": self.REPORT_SCHEMA_VERSION,
             "score_version": self.SCORE_VERSION,
             "generated_at_utc": datetime.now(timezone.utc).replace(
@@ -94,6 +102,7 @@ class DirectionalCohortEngine:
             "scope": "flat_directional_research_not_live_authorization",
             "group_field": artifact["group_field"],
             "label_field": artifact["label_field"],
+            "analysis_stage": stage,
             "expected_labels": artifact["expected_labels"],
             "cohorts": results,
             "decision_summary": {
@@ -114,6 +123,14 @@ class DirectionalCohortEngine:
                 *artifact.get("limitations", [])
             ])
         }
+        if neighborhood is not None:
+            report["neighborhood_interpretation"] = neighborhood
+            report["decision_summary"]["selected_candidates"] = (
+                [neighborhood["selected_value"]]
+                if neighborhood["decision"] == "advance"
+                else []
+            )
+        return report
 
     def _validate_artifact(self, artifact):
         if not isinstance(artifact, dict):
@@ -136,6 +153,130 @@ class DirectionalCohortEngine:
             raise DirectionalCohortError(
                 "Directional artifact contains duplicate cohort keys"
             )
+        if artifact.get("analysis_stage") == "parameter_neighborhood":
+            candidate = artifact.get("candidate_value")
+            core = artifact.get("core_values")
+            tail = artifact.get("tail_values")
+            if not isinstance(core, list) or not core:
+                raise DirectionalCohortError(
+                    "Parameter neighborhood requires core_values"
+                )
+            if not isinstance(tail, list):
+                raise DirectionalCohortError(
+                    "Parameter neighborhood requires tail_values"
+                )
+            if candidate not in core:
+                raise DirectionalCohortError(
+                    "Neighborhood candidate_value must be a core value"
+                )
+            declared = set(core) | set(tail)
+            if set(keys) != declared:
+                raise DirectionalCohortError(
+                    "Neighborhood cohorts must exactly match core and tail values"
+                )
+
+    def _interpret_neighborhood(self, results, artifact):
+        """Select a core candidate only when both adjacent sides support it."""
+        by_key = {result["group_key"]: result for result in results}
+        candidate_value = artifact["candidate_value"]
+        core_values = artifact["core_values"]
+        tail_values = artifact["tail_values"]
+        candidate = by_key[candidate_value]
+
+        def supports_region(result):
+            return (
+                result["coverage"]["coverage_ratio"] == 1
+                and result["sample_size_sufficient"]
+                and result["ruined_samples"] == 0
+                and result["profitable_samples"] >= 3
+                and result["weighted_win_rate"] > 0.5
+                and result["total_net_profit"] > 0
+            )
+
+        eligible_core = [
+            by_key[value] for value in core_values
+            if supports_region(by_key[value])
+        ]
+        supporting_values = [
+            result["group_key"] for result in eligible_core
+            if result["group_key"] != candidate_value
+        ]
+        try:
+            lower_support = any(
+                value < candidate_value for value in supporting_values
+            )
+            upper_support = any(
+                value > candidate_value for value in supporting_values
+            )
+        except TypeError as exc:
+            raise DirectionalCohortError(
+                "Neighborhood values must be mutually ordered"
+            ) from exc
+        best_core_score = max(
+            (result["final_score"] for result in eligible_core),
+            default=None
+        )
+        candidate_is_best = (
+            best_core_score is not None
+            and math.isclose(candidate["final_score"], best_core_score)
+        )
+        candidate_supported = supports_region(candidate)
+        advance = (
+            candidate_supported
+            and candidate_is_best
+            and lower_support
+            and upper_support
+        )
+
+        rationale = []
+        blockers = []
+        if candidate_supported:
+            rationale.append("candidate_has_sufficient_positive_evidence")
+        else:
+            blockers.append("candidate_lacks_sufficient_positive_evidence")
+        if candidate_is_best:
+            rationale.append("candidate_best_core_final_score")
+        else:
+            blockers.append("candidate_not_best_eligible_core_value")
+        if lower_support and upper_support:
+            rationale.append("supported_by_lower_and_upper_core_neighbors")
+        else:
+            blockers.append("missing_two_sided_core_neighbor_support")
+
+        excluded_tail = []
+        for value in tail_values:
+            result = by_key[value]
+            reasons = []
+            if not result["sample_size_sufficient"]:
+                reasons.append("sparse_evidence")
+            if result["total_net_profit"] <= 0:
+                reasons.append("nonpositive_total_profit")
+            if result["profitable_samples"] < 3:
+                reasons.append("profit_not_consistent_across_samples")
+            if result["ruined_samples"]:
+                reasons.append("ruin_observed")
+            excluded_tail.append({
+                "value": value,
+                "reasons": reasons or ["exploratory_tail_not_selection_core"]
+            })
+
+        return {
+            "schema_version": self.NEIGHBORHOOD_VERSION,
+            "decision": "advance" if advance else "hold",
+            "selected_value": candidate_value,
+            "core_values": core_values,
+            "supporting_values": supporting_values,
+            "lower_neighbor_support": lower_support,
+            "upper_neighbor_support": upper_support,
+            "rationale": rationale,
+            "blockers": blockers,
+            "excluded_tail_values": excluded_tail,
+            "next_action": (
+                "advance_selected_candidate_to_single_gate_stage"
+                if advance
+                else "refine_parameter_neighborhood_evidence"
+            )
+        }
 
     def _analyze_cohort(self, cohort, expected_labels):
         records = cohort.get("records", [])

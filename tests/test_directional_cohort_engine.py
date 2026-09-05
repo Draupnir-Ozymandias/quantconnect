@@ -1,3 +1,4 @@
+import copy
 import unittest
 
 from discovery.directional_cohort_engine import (
@@ -69,6 +70,39 @@ def directional_artifact():
         "group_field": "entry_model",
         "label_field": "start_year",
         "expected_labels": years,
+        "validation": {"valid": True, "issue_count": 0, "issues": []},
+        "cohorts": cohorts
+    }
+
+
+def neighborhood_artifact():
+    source = directional_artifact()["cohorts"][0]["records"]
+    settings = {
+        1: ([20, 20, 20, 20], 150),
+        2: ([30, 30, 30, 30], 50),
+        3: ([10, 10, 10, -5], 160)
+    }
+    cohorts = []
+    for length, (profits, drawdown) in settings.items():
+        records = copy.deepcopy(source)
+        for index, record in enumerate(records):
+            record["case_id"] = f"{record['label']}-length-{length}"
+            record["run_id"] = f"run-{record['label']}-length-{length}"
+            record["net_profit"] = profits[index]
+            record["max_drawdown"] = drawdown
+            record["drawdown_in_base_wagers"] = drawdown / 10
+        cohorts.append({"group_key": length, "records": records})
+    return {
+        "schema_version": "qcrl.directional_cohort.v1",
+        "campaign_id": "streak-neighborhood",
+        "case_set_hash": "neighborhood123",
+        "analysis_stage": "parameter_neighborhood",
+        "group_field": "streak_length",
+        "label_field": "start_year",
+        "candidate_value": 2,
+        "core_values": [1, 2, 3],
+        "tail_values": [],
+        "expected_labels": [2022, 2023, 2024, 2025],
         "validation": {"valid": True, "issue_count": 0, "issues": []},
         "cohorts": cohorts
     }
@@ -148,6 +182,49 @@ class DirectionalCohortEngineTests(unittest.TestCase):
         self.assertFalse(cohort["sample_size_sufficient"])
         self.assertEqual("expand_sparse_signal_evidence", cohort["next_action"])
         self.assertIn("insufficient_total_trades", cohort["warnings"])
+
+    def test_neighborhood_selects_best_candidate_with_two_sided_support(self):
+        report = DirectionalCohortEngine().analyze(neighborhood_artifact())
+        decision = report["neighborhood_interpretation"]
+
+        self.assertEqual(
+            "qcrl.directional_neighborhood_interpretation.v1",
+            decision["schema_version"]
+        )
+        self.assertEqual("advance", decision["decision"])
+        self.assertEqual(2, decision["selected_value"])
+        self.assertEqual([1, 3], decision["supporting_values"])
+        self.assertEqual(
+            "advance_selected_candidate_to_single_gate_stage",
+            report["decision_summary"]["next_action"]
+        )
+        self.assertEqual([2], report["decision_summary"]["selected_candidates"])
+
+    def test_neighborhood_holds_candidate_without_upper_support(self):
+        artifact = neighborhood_artifact()
+        for record in artifact["cohorts"][2]["records"]:
+            record["net_profit"] = -10
+
+        report = DirectionalCohortEngine().analyze(artifact)
+        decision = report["neighborhood_interpretation"]
+
+        self.assertEqual("hold", decision["decision"])
+        self.assertFalse(decision["upper_neighbor_support"])
+        self.assertIn(
+            "missing_two_sided_core_neighbor_support",
+            decision["blockers"]
+        )
+
+    def test_single_gate_stage_requires_control_comparison(self):
+        artifact = directional_artifact()
+        artifact["analysis_stage"] = "single_gate"
+
+        report = DirectionalCohortEngine().analyze(artifact)
+
+        self.assertEqual(
+            "compare_single_gate_cohorts_to_unfiltered_control",
+            report["decision_summary"]["next_action"]
+        )
 
 
 if __name__ == "__main__":

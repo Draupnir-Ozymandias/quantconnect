@@ -55,6 +55,8 @@ class CampaignRunnerTests(unittest.TestCase):
             state["runs"][case["case_id"]] = {
                 "case_id": case["case_id"],
                 "status": "collected",
+                "metrics_source": "quantconnect_api",
+                "collected_at_utc": "2026-09-05T15:05:35Z",
                 "parameters": case["parameters"],
                 "metrics": {
                     "run_id": "run-" + case["case_id"],
@@ -74,6 +76,20 @@ class CampaignRunnerTests(unittest.TestCase):
         self.assertEqual(4, len(artifact["cohorts"]))
         self.assertEqual(
             "qcrl.directional_cohort.v1", artifact["schema_version"]
+        )
+        self.assertEqual(
+            "quantconnect_api",
+            artifact["cohorts"][0]["records"][0]["metrics_source"]
+        )
+        first = state["runs"][cases[0]["case_id"]]
+        first["metrics_source"] = "lean_cli"
+        invalid = qcrl_campaign.build_directional_cohort_artifact(
+            manifest, state, cases
+        )
+        self.assertFalse(invalid["validation"]["valid"])
+        self.assertIn(
+            "authoritative API provenance",
+            invalid["validation"]["issues"][0]
         )
 
     def test_streak_neighborhood_manifest_includes_core_and_tail_lengths(self):
@@ -104,6 +120,40 @@ class CampaignRunnerTests(unittest.TestCase):
         self.assertIn(
             "overlapping_streak_signals_are_not_independent_events",
             manifest["directional_analysis"]["limitations"]
+        )
+        self.assertEqual(
+            "parameter_neighborhood",
+            manifest["directional_analysis"]["analysis_stage"]
+        )
+        self.assertEqual(
+            2, manifest["directional_analysis"]["candidate_value"]
+        )
+        self.assertEqual(
+            [1, 2, 3], manifest["directional_analysis"]["core_values"]
+        )
+
+    def test_stage2_manifest_is_flat_and_tests_one_gate_at_a_time(self):
+        manifest = qcrl_campaign.load_manifest(
+            Path(__file__).parents[1]
+            / "campaigns"
+            / "btcusd_1d_candle_streak_stage2_gates_2022_2025.json"
+        )
+        cases = qcrl_campaign.expand_cases(manifest)
+
+        self.assertEqual(12, len(cases))
+        self.assertEqual(
+            {"none", "adx_strength", "atr_volatility"},
+            {case["parameters"]["filter_model"] for case in cases}
+        )
+        self.assertEqual(
+            {2}, {case["parameters"]["streak_length"] for case in cases}
+        )
+        self.assertEqual(
+            {"flat"}, {case["parameters"]["stake_mode"] for case in cases}
+        )
+        self.assertEqual(
+            ["signals_generated", "up_signals", "down_signals"],
+            manifest["pair_validation"]["invariants"]
         )
 
     def test_baseline_manifest_expands_to_four_pairs(self):
@@ -147,6 +197,8 @@ class CampaignRunnerTests(unittest.TestCase):
             "runs": {
                 "case": {
                     "status": "collected",
+                    "metrics_source": "quantconnect_api",
+                    "collected_at_utc": "2026-09-05T15:05:35Z",
                     "metrics": {"run_id": "run-1", "trades": 58}
                 }
             }
@@ -159,6 +211,29 @@ class CampaignRunnerTests(unittest.TestCase):
             "risk_adjusted_score",
             state["runs"]["case"]["collection_error"]
         )
+
+    def test_complete_terminal_metrics_await_authoritative_api_collection(self):
+        metrics = {
+            field: 1 for field in qcrl_campaign.required_metric_fields(
+                self.manifest
+            )
+        }
+        metrics["ruined"] = False
+        state = {
+            "runs": {
+                "case": {
+                    "status": "collected",
+                    "metrics": metrics
+                }
+            }
+        }
+
+        qcrl_campaign.normalize_collection_status(self.manifest, state)
+
+        run = state["runs"]["case"]
+        self.assertEqual("completed", run["status"])
+        self.assertEqual("lean_cli", run["metrics_source"])
+        self.assertIn("authoritative", run["collection_error"])
 
     def test_rate_limit_detection_is_specific_to_throttle_output(self):
         self.assertTrue(qcrl_campaign.rate_limit_detected(
@@ -322,6 +397,8 @@ class CampaignRunnerTests(unittest.TestCase):
             state = qcrl_campaign.load_state(self.manifest, self.cases)
             for run in state["runs"].values():
                 run["status"] = "collected"
+                run["metrics_source"] = "quantconnect_api"
+                run["collected_at_utc"] = "2026-09-05T15:05:35Z"
                 run["metrics"] = dict(metrics)
             path.write_text(json.dumps(state), encoding="utf-8")
 

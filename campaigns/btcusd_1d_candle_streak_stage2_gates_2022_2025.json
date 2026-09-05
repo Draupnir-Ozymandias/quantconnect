@@ -1,12 +1,12 @@
 {
   "schema_version": "qcrl.campaign.v1",
-  "campaign_id": "btcusd-1d-candle-streak-neighborhood-2022-2025-v1",
+  "campaign_id": "btcusd-1d-candle-streak-stage2-gates-2022-2025-v1",
   "project_id": 33239307,
-  "description": "Flat/no-filter reversal neighborhood across streak lengths 1-6; lengths 1-3 are core and 4-6 are exploratory tail lengths.",
-  "backtest_name_prefix": "QCRL-2.3.0-BTCUSD-1D-Streak-N1-6",
+  "description": "Isolated ADX-strength and ATR-volatility eligibility gates for the selected length-2 flat candle-streak reversal signal, with an unfiltered control in every year.",
+  "backtest_name_prefix": "QCRL-2.3.0-BTCUSD-1D-Streak-S2-Gates",
   "case_name_fields": [
     "start_year",
-    "streak_length"
+    "filter_model"
   ],
   "base_parameters": {
     "start_month": 1,
@@ -16,8 +16,8 @@
     "coin": "BTCUSD",
     "timeframe": "1d",
     "entry_model": "candle_streak",
+    "streak_length": 2,
     "streak_mode": "reverse",
-    "filter_model": "none",
     "ema_fast": 5,
     "ema_slow": 10,
     "macd_fast": 12,
@@ -58,22 +58,19 @@
     }
   ],
   "matrix": {
-    "streak_length": [
-      1,
-      2,
-      3,
-      4,
-      5,
-      6
+    "filter_model": [
+      "none",
+      "adx_strength",
+      "atr_volatility"
     ]
   },
   "cohort_rankings": [
     {
-      "name": "Candle-streak reversal neighborhood ranking",
+      "name": "Length-2 isolated eligibility-gate ranking",
       "filters": {
         "entry_model": "candle_streak",
-        "stake_mode": "flat",
-        "filter_model": "none"
+        "streak_length": 2,
+        "stake_mode": "flat"
       },
       "score_model": "flat_profit_drawdown",
       "direction": "max",
@@ -86,21 +83,32 @@
       ]
     }
   ],
+  "pair_validation": {
+    "dimension": "filter_model",
+    "expected_values": [
+      "none",
+      "adx_strength",
+      "atr_volatility"
+    ],
+    "group_by": [
+      "coin",
+      "timeframe",
+      "start_year",
+      "entry_model",
+      "streak_length",
+      "streak_mode",
+      "stake_mode"
+    ],
+    "invariants": [
+      "signals_generated",
+      "up_signals",
+      "down_signals"
+    ]
+  },
   "directional_analysis": {
-    "analysis_stage": "parameter_neighborhood",
-    "group_field": "streak_length",
+    "analysis_stage": "single_gate",
+    "group_field": "filter_model",
     "label_field": "start_year",
-    "candidate_value": 2,
-    "core_values": [
-      1,
-      2,
-      3
-    ],
-    "tail_values": [
-      4,
-      5,
-      6
-    ],
     "expected_labels": [
       2022,
       2023,
@@ -109,14 +117,15 @@
     ],
     "required_parameters": {
       "entry_model": "candle_streak",
+      "streak_length": 2,
       "streak_mode": "reverse",
-      "stake_mode": "flat",
-      "filter_model": "none"
+      "stake_mode": "flat"
     },
     "limitations": [
-      "streak_lengths_1_to_3_are_core_neighborhood",
-      "streak_lengths_4_to_6_are_exploratory_tail",
-      "overlapping_streak_signals_are_not_independent_events"
+      "one_default_setting_per_eligibility_gate",
+      "gates_are_tested_individually_not_as_composites",
+      "overlapping_streak_signals_are_not_independent_events",
+      "recovery_sizing_remains_out_of_scope"
     ]
   }
 }

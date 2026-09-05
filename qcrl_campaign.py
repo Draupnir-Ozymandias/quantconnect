@@ -175,6 +175,30 @@ def validate_directional_analysis(manifest):
         raise CampaignError(
             "directional_analysis limitations must be an array of strings"
         )
+    stage = analysis.get("analysis_stage", "generator_screen")
+    if stage not in {
+        "generator_screen", "parameter_neighborhood", "single_gate"
+    }:
+        raise CampaignError(
+            "directional_analysis analysis_stage must be generator_screen, "
+            "parameter_neighborhood, or single_gate"
+        )
+    if stage == "parameter_neighborhood":
+        for field in ["candidate_value", "core_values", "tail_values"]:
+            if field not in analysis:
+                raise CampaignError(
+                    f"parameter_neighborhood analysis requires {field}"
+                )
+        core_values = analysis["core_values"]
+        tail_values = analysis["tail_values"]
+        if not isinstance(core_values, list) or not core_values:
+            raise CampaignError("core_values must be a non-empty array")
+        if not isinstance(tail_values, list):
+            raise CampaignError("tail_values must be an array")
+        if analysis["candidate_value"] not in core_values:
+            raise CampaignError("candidate_value must be in core_values")
+        if set(core_values) & set(tail_values):
+            raise CampaignError("core_values and tail_values cannot overlap")
 
 
 def validate_cohort_rankings(manifest):
@@ -728,6 +752,8 @@ def required_metric_fields(manifest):
         fields.update(ranking.get("display_fields", []))
     if manifest.get("pair_comparison"):
         fields.update(PAIR_COMPARISON_FIELDS)
+    if manifest.get("directional_analysis"):
+        fields.update(DIRECTIONAL_COHORT_FIELDS)
     return fields
 
 
@@ -737,7 +763,22 @@ def missing_metric_fields(manifest, metrics):
 
 def normalize_collection_status(manifest, state):
     for run in state.get("runs", {}).values():
+        if run.get("metrics") and not run.get("metrics_source"):
+            run["metrics_source"] = (
+                "quantconnect_api"
+                if run.get("collected_at_utc")
+                else "lean_cli"
+            )
         if run.get("status") == "collected":
+            if (
+                run.get("metrics_source") != "quantconnect_api"
+                or not run.get("collected_at_utc")
+            ):
+                run["status"] = "completed"
+                run["collection_error"] = (
+                    "Awaiting authoritative QuantConnect API collection"
+                )
+                continue
             missing = missing_metric_fields(manifest, run.get("metrics", {}))
             if missing:
                 run["status"] = "completed"
@@ -922,16 +963,20 @@ def run_campaign(
         cli_metrics = parse_cli_metrics(output)
         if cli_metrics:
             run["metrics"] = cli_metrics
+            run["metrics_source"] = "lean_cli"
         if return_code == 0 and backtest_id:
             missing = missing_metric_fields(manifest, cli_metrics)
+            run["status"] = "completed"
             if missing:
-                run["status"] = "completed"
                 run["collection_error"] = (
                     "Awaiting API collection; terminal table omitted: "
                     + ", ".join(missing)
                 )
             else:
-                run["status"] = "collected"
+                run["collection_error"] = (
+                    "Terminal metrics complete; awaiting authoritative "
+                    "QuantConnect API collection"
+                )
         else:
             run["status"] = "failed"
             if rate_limit_detected(output):
@@ -968,6 +1013,7 @@ def collect_campaign(manifest, cases):
             run["collection_error"] = "No QCRL summary statistics found"
             continue
         run["metrics"] = metrics
+        run["metrics_source"] = "quantconnect_api"
         missing = missing_metric_fields(manifest, metrics)
         run["status"] = "completed" if missing else "collected"
         run["collected_at_utc"] = utc_now()
@@ -1347,12 +1393,18 @@ def validate_campaign(manifest, cases):
 def show_status(manifest, cases):
     state = load_state(manifest, cases)
     counts = {}
+    source_counts = {}
     for run in state["runs"].values():
         counts[run["status"]] = counts.get(run["status"], 0) + 1
+        source = run.get("metrics_source")
+        if source:
+            source_counts[source] = source_counts.get(source, 0) + 1
     print(f"Campaign: {manifest['campaign_id']}")
     print(f"State:    {state_path(manifest)}")
     for status in sorted(counts):
         print(f"{status:10} {counts[status]}")
+    for source in sorted(source_counts):
+        print(f"source:{source:20} {source_counts[source]}")
     return 0
 
 
@@ -1372,6 +1424,14 @@ def build_directional_cohort_artifact(manifest, state, cases):
         metrics = run.get("metrics", {})
         if run.get("status") != "collected":
             issues.append(f"{case['case_id']} is not collected")
+            continue
+        if (
+            run.get("metrics_source") != "quantconnect_api"
+            or not run.get("collected_at_utc")
+        ):
+            issues.append(
+                f"{case['case_id']} lacks authoritative API provenance"
+            )
             continue
         missing = sorted(DIRECTIONAL_COHORT_FIELDS - set(metrics))
         if missing:
@@ -1407,6 +1467,8 @@ def build_directional_cohort_artifact(manifest, state, cases):
             "label": label,
             "case_id": run["case_id"],
             "run_id": metrics["run_id"],
+            "metrics_source": run["metrics_source"],
+            "collected_at_utc": run["collected_at_utc"],
             "net_profit": metrics["net_profit"],
             "win_rate": metrics["win_rate"],
             "trades": metrics["trades"],
@@ -1438,6 +1500,12 @@ def build_directional_cohort_artifact(manifest, state, cases):
         "generated_at_utc": utc_now(),
         "group_field": group_field,
         "label_field": label_field,
+        "analysis_stage": config.get(
+            "analysis_stage", "generator_screen"
+        ),
+        "candidate_value": config.get("candidate_value"),
+        "core_values": config.get("core_values", []),
+        "tail_values": config.get("tail_values", []),
         "expected_labels": config["expected_labels"],
         "required_parameters": required_parameters,
         "limitations": config.get("limitations", []),
@@ -1457,6 +1525,7 @@ def run_directional_analysis(manifest, cases):
     )
 
     state = load_state(manifest, cases)
+    save_state(manifest, state)
     artifact = build_directional_cohort_artifact(manifest, state, cases)
     directory = state_path(manifest).parent
     artifact_path = directory / "directional_cohort.json"
@@ -1490,6 +1559,14 @@ def run_directional_analysis(manifest, cases):
         if cohort["warnings"]:
             print("     warnings=" + ",".join(cohort["warnings"]))
     summary = report["decision_summary"]
+    neighborhood = report.get("neighborhood_interpretation")
+    if neighborhood:
+        print(
+            "Neighborhood selection: "
+            f"{neighborhood['decision']} "
+            f"value={neighborhood['selected_value']} "
+            f"support={neighborhood['supporting_values']}"
+        )
     print(f"Next action: {summary['next_action']}")
     print(f"Directional evidence: {artifact_path}")
     print(f"Directional report:   {report_path}")
