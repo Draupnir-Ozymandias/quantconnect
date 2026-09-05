@@ -1179,7 +1179,7 @@ Directional Cohort Engine v1:
 ```text
 input:  qcrl.directional_cohort.v1
 output: qcrl.directional_cohort_report.v1
-score:  qcrl.directional_cohort_score.v1
+score:  qcrl.directional_cohort_score.v2
 ```
 
 Score weights are embedded in every report:
@@ -1195,6 +1195,17 @@ Score weights are embedded in every report:
 The risk penalty weights worst drawdown in base wagers and worst loss streak
 equally. Coverage multiplies the post-risk score. Stable begins at 70, mixed at
 50, and lower scores are fragile; all thresholds and weights are serialized.
+
+Score v2 adds evidence floors before any terminal `advance` or `reject`:
+
+```text
+minimum total trades: 100
+minimum trades in every yearly sample: 20
+```
+
+Below either floor, the disposition is `hold` with an explicit sparse-evidence
+warning. This protects the exploratory long-streak tail from small-sample win
+rates.
 
 Command:
 
@@ -1225,6 +1236,34 @@ run_parameter_neighborhood_validation
 
 The next campaign should vary candle-streak length under flat sizing with no
 filter. ADX and ATR remain gated until that neighborhood evidence is resolved.
+
+## Candle-streak neighborhood campaign ready
+
+Manifest:
+
+```text
+campaigns/btcusd_1d_candle_streak_neighborhood_2022_2025.json
+```
+
+Design:
+
+```text
+BTCUSD 1d
+2022, 2023, 2024, 2025
+entry_model = candle_streak
+streak_mode = reverse
+streak_length = 1, 2, 3, 4, 5, 6
+stake_mode = flat
+filter_model = none
+24 cases
+```
+
+Lengths 1–3 are the core local neighborhood around the current length-2 result.
+Lengths 4–6 test the exploratory tail hypothesis that longer streaks may have a
+higher conditional reversal rate. The design does not assume monotonicity.
+Longer streaks are rarer, and continued streaks create overlapping signal
+windows, so raw trade count overstates independent episode count. That
+limitation is serialized into the directional evidence and report.
 
 Canonical storage contracts are extended to preserve every active directional
 and gate parameter:
@@ -1260,7 +1299,8 @@ Current signal+sizing pair rejected
 Directional Stage 1 campaign completed: 16/16 collected
 Directional Cohort Engine v1 implemented
 Candle streak held; RSI, MACD, and EMA defaults rejected
-Next: flat/no-filter candle-streak parameter-neighborhood validation
+Candle-streak lengths 1–6 neighborhood campaign ready (24 cases)
+Next: execute, collect, validate, and analyze the neighborhood campaign
 ```
 
 ## Synchronization rule
@@ -1282,4 +1322,4 @@ next coding target
 
 # One-Sentence State
 
-> QCRL 2.3.0 now grades directional generators with a versioned cross-year cohort engine; candle-streak reversal is held for flat/no-filter parameter-neighborhood validation, while the tested RSI, MACD, and EMA defaults are rejected and all eligibility gates remain withheld.
+> QCRL 2.3.0 now has a 24-case flat/no-filter candle-streak neighborhood campaign spanning lengths 1–6, with score-v2 sparse-evidence safeguards and explicit overlapping-window limitations; all eligibility gates remain withheld pending its result.

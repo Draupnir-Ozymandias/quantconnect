@@ -76,6 +76,36 @@ class CampaignRunnerTests(unittest.TestCase):
             "qcrl.directional_cohort.v1", artifact["schema_version"]
         )
 
+    def test_streak_neighborhood_manifest_includes_core_and_tail_lengths(self):
+        manifest = qcrl_campaign.load_manifest(
+            Path(__file__).parents[1]
+            / "campaigns"
+            / "btcusd_1d_candle_streak_neighborhood_2022_2025.json"
+        )
+        cases = qcrl_campaign.expand_cases(manifest)
+
+        self.assertEqual(24, len(cases))
+        self.assertEqual(
+            {1, 2, 3, 4, 5, 6},
+            {case["parameters"]["streak_length"] for case in cases}
+        )
+        self.assertEqual(
+            {"flat"},
+            {case["parameters"]["stake_mode"] for case in cases}
+        )
+        self.assertEqual(
+            {"none"},
+            {case["parameters"]["filter_model"] for case in cases}
+        )
+        self.assertEqual(
+            "streak_length",
+            manifest["directional_analysis"]["group_field"]
+        )
+        self.assertIn(
+            "overlapping_streak_signals_are_not_independent_events",
+            manifest["directional_analysis"]["limitations"]
+        )
+
     def test_baseline_manifest_expands_to_four_pairs(self):
         self.assertEqual(8, len(self.cases))
         years = {case["parameters"]["start_year"] for case in self.cases}

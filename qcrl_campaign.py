@@ -167,6 +167,14 @@ def validate_directional_analysis(manifest):
         raise CampaignError(
             "directional_analysis required_parameters must be an object"
         )
+    limitations = analysis.get("limitations", [])
+    if not isinstance(limitations, list) or any(
+        not isinstance(value, str) or not value.strip()
+        for value in limitations
+    ):
+        raise CampaignError(
+            "directional_analysis limitations must be an array of strings"
+        )
 
 
 def validate_cohort_rankings(manifest):
@@ -1432,6 +1440,7 @@ def build_directional_cohort_artifact(manifest, state, cases):
         "label_field": label_field,
         "expected_labels": config["expected_labels"],
         "required_parameters": required_parameters,
+        "limitations": config.get("limitations", []),
         "validation": {
             "valid": not issues and bool(cohorts),
             "issue_count": len(issues),

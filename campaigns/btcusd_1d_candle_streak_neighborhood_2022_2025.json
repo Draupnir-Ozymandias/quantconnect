@@ -1,0 +1,110 @@
+{
+  "schema_version": "qcrl.campaign.v1",
+  "campaign_id": "btcusd-1d-candle-streak-neighborhood-2022-2025-v1",
+  "project_id": 33239307,
+  "description": "Flat/no-filter reversal neighborhood across streak lengths 1-6; lengths 1-3 are core and 4-6 are exploratory tail lengths.",
+  "backtest_name_prefix": "QCRL-2.3.0-BTCUSD-1D-Streak-N1-6",
+  "case_name_fields": [
+    "start_year",
+    "streak_length"
+  ],
+  "base_parameters": {
+    "start_month": 1,
+    "start_day": 1,
+    "end_month": 12,
+    "end_day": 31,
+    "coin": "BTCUSD",
+    "timeframe": "1d",
+    "entry_model": "candle_streak",
+    "streak_mode": "reverse",
+    "filter_model": "none",
+    "ema_fast": 5,
+    "ema_slow": 10,
+    "macd_fast": 12,
+    "macd_slow": 26,
+    "macd_signal": 9,
+    "rsi_period": 14,
+    "rsi_oversold": 30,
+    "rsi_overbought": 70,
+    "adx_period": 14,
+    "adx_threshold": 25,
+    "atr_period": 14,
+    "atr_min_pct": 1,
+    "atr_max_pct": 10,
+    "stake_mode": "flat",
+    "base_wager": 10,
+    "bankroll": 100000,
+    "multiplier": 2,
+    "max_steps": 10,
+    "enable_plots": false,
+    "lab_version": "QCRL-2.3.0"
+  },
+  "variants": [
+    {
+      "start_year": 2022,
+      "end_year": 2022
+    },
+    {
+      "start_year": 2023,
+      "end_year": 2023
+    },
+    {
+      "start_year": 2024,
+      "end_year": 2024
+    },
+    {
+      "start_year": 2025,
+      "end_year": 2025
+    }
+  ],
+  "matrix": {
+    "streak_length": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  },
+  "cohort_rankings": [
+    {
+      "name": "Candle-streak reversal neighborhood ranking",
+      "filters": {
+        "entry_model": "candle_streak",
+        "stake_mode": "flat",
+        "filter_model": "none"
+      },
+      "score_model": "flat_profit_drawdown",
+      "direction": "max",
+      "display_fields": [
+        "net_profit",
+        "win_rate",
+        "trades",
+        "max_drawdown",
+        "max_loss_streak"
+      ]
+    }
+  ],
+  "directional_analysis": {
+    "group_field": "streak_length",
+    "label_field": "start_year",
+    "expected_labels": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "required_parameters": {
+      "entry_model": "candle_streak",
+      "streak_mode": "reverse",
+      "stake_mode": "flat",
+      "filter_model": "none"
+    },
+    "limitations": [
+      "streak_lengths_1_to_3_are_core_neighborhood",
+      "streak_lengths_4_to_6_are_exploratory_tail",
+      "overlapping_streak_signals_are_not_independent_events"
+    ]
+  }
+}

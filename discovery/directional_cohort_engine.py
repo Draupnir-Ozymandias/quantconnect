@@ -14,7 +14,7 @@ class DirectionalCohortEngine:
 
     INPUT_SCHEMA_VERSION = "qcrl.directional_cohort.v1"
     REPORT_SCHEMA_VERSION = "qcrl.directional_cohort_report.v1"
-    SCORE_VERSION = "qcrl.directional_cohort_score.v1"
+    SCORE_VERSION = "qcrl.directional_cohort_score.v2"
     SCORE_WEIGHTS = {
         "profitable_sample_ratio": 0.30,
         "nonnegative_sample_ratio": 0.20,
@@ -29,6 +29,8 @@ class DirectionalCohortEngine:
     CLASSIFICATION_THRESHOLDS = {"stable": 70, "mixed": 50}
     DEFAULT_THRESHOLDS = {
         "minimum_samples": 4,
+        "minimum_total_trades": 100,
+        "minimum_trades_per_sample": 20,
         "win_rate_std_tolerance": 0.10,
         "drawdown_base_wager_limit": 64.0,
         "loss_streak_limit": 10.0
@@ -106,10 +108,11 @@ class DirectionalCohortEngine:
             "classification_thresholds": dict(
                 self.CLASSIFICATION_THRESHOLDS
             ),
-            "limitations": [
+            "limitations": self._unique([
                 "validation_cohort_not_universal_evidence",
-                "transaction_costs_not_modeled_by_qcrl_wager_accounting"
-            ]
+                "transaction_costs_not_modeled_by_qcrl_wager_accounting",
+                *artifact.get("limitations", [])
+            ])
         }
 
     def _validate_artifact(self, artifact):
@@ -169,6 +172,13 @@ class DirectionalCohortEngine:
         ]
         ruined = [bool(record["ruined"]) for record in records]
         n = len(records)
+        total_trades = sum(trades)
+        minimum_sample_trades = min(trades)
+        sample_size_sufficient = (
+            total_trades >= self.thresholds["minimum_total_trades"]
+            and minimum_sample_trades
+            >= self.thresholds["minimum_trades_per_sample"]
+        )
         profitable_ratio = sum(value > 0 for value in profits) / n
         nonnegative_ratio = sum(value >= 0 for value in profits) / n
         above_half_ratio = sum(value >= 0.5 for value in win_rates) / n
@@ -211,6 +221,9 @@ class DirectionalCohortEngine:
         ):
             disposition = "hold"
             next_action = "complete_expected_validation_labels"
+        elif not sample_size_sufficient:
+            disposition = "hold"
+            next_action = "expand_sparse_signal_evidence"
         elif any(ruined):
             disposition = "reject"
             next_action = "reject_ruined_configuration"
@@ -231,6 +244,13 @@ class DirectionalCohortEngine:
             warnings.append("unexpected_validation_labels")
         if n < int(self.thresholds["minimum_samples"]):
             warnings.append("insufficient_independent_samples")
+        if total_trades < self.thresholds["minimum_total_trades"]:
+            warnings.append("insufficient_total_trades")
+        if (
+            minimum_sample_trades
+            < self.thresholds["minimum_trades_per_sample"]
+        ):
+            warnings.append("insufficient_trades_in_one_or_more_samples")
         if profitable_ratio < 0.75:
             warnings.append("profit_not_consistent_across_samples")
         if max(win_rates) - min(win_rates) >= 0.10:
@@ -270,7 +290,9 @@ class DirectionalCohortEngine:
             "min_win_rate": min(win_rates),
             "max_win_rate": max(win_rates),
             "win_rate_at_or_above_half_ratio": above_half_ratio,
-            "total_trades": sum(trades),
+            "total_trades": total_trades,
+            "minimum_sample_trades": minimum_sample_trades,
+            "sample_size_sufficient": sample_size_sufficient,
             "mean_trades": self._mean(trades),
             "trade_count_cv": self._coefficient_of_variation(trades),
             "mean_max_drawdown": self._mean(drawdowns),
@@ -334,3 +356,11 @@ class DirectionalCohortEngine:
     @staticmethod
     def _clamp(value):
         return max(0, min(1, float(value)))
+
+    @staticmethod
+    def _unique(values):
+        result = []
+        for value in values:
+            if value not in result:
+                result.append(value)
+        return result

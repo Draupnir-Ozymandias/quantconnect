@@ -85,6 +85,10 @@ class DirectionalCohortEngineTests(unittest.TestCase):
             "qcrl.directional_cohort_report.v1",
             report["schema_version"]
         )
+        self.assertEqual(
+            "qcrl.directional_cohort_score.v2",
+            report["score_version"]
+        )
         self.assertEqual(0.30, report["score_weights"][
             "profitable_sample_ratio"
         ])
@@ -128,6 +132,22 @@ class DirectionalCohortEngineTests(unittest.TestCase):
         self.assertEqual("reject", cohort["disposition"])
         self.assertEqual(100, cohort["risk_penalty"])
         self.assertIn("cohort_ruin_observed", cohort["warnings"])
+
+    def test_sparse_cohort_is_held_even_when_score_is_attractive(self):
+        artifact = directional_artifact()
+        artifact["cohorts"] = [artifact["cohorts"][0]]
+        for record in artifact["cohorts"][0]["records"]:
+            record["trades"] = 10
+            record["wins"] = 7
+            record["win_rate"] = 0.7
+            record["net_profit"] = 40
+
+        cohort = DirectionalCohortEngine().analyze(artifact)["cohorts"][0]
+
+        self.assertEqual("hold", cohort["disposition"])
+        self.assertFalse(cohort["sample_size_sufficient"])
+        self.assertEqual("expand_sparse_signal_evidence", cohort["next_action"])
+        self.assertIn("insufficient_total_trades", cohort["warnings"])
 
 
 if __name__ == "__main__":
