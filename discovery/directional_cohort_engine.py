@@ -334,7 +334,7 @@ class DirectionalCohortEngine:
         }
 
     def _interpret_single_gates(self, results, artifact):
-        """Compare each isolated gate with the same-label unfiltered control."""
+        """Compare candidates with a declared same-label control cohort."""
         by_key = {result["group_key"]: result for result in results}
         control_value = artifact["control_value"]
         control = by_key[control_value]
@@ -452,6 +452,7 @@ class DirectionalCohortEngine:
                 decision = "hold"
                 next_action = "expand_single_gate_evidence"
             comparisons.append({
+                "control_value": control_value,
                 "candidate_value": candidate_value,
                 "decision": decision,
                 "next_action": next_action,
@@ -494,16 +495,22 @@ class DirectionalCohortEngine:
     def _interpret_gate_attribution(self, results, artifact):
         """Separate indicator-readiness effects from active gate effects."""
         diagnostic_value = artifact["diagnostic_value"]
-        comparison_artifact = dict(artifact)
-        comparison_artifact["candidate_values"] = [
-            diagnostic_value, *artifact["candidate_values"]
-        ]
+        control_artifact = dict(artifact)
+        control_artifact["candidate_values"] = [diagnostic_value]
         control_comparison = self._interpret_single_gates(
-            results, comparison_artifact
+            results, control_artifact
         )
-        comparisons = {
+        diagnostic_control_comparison = (
+            control_comparison["comparisons"][0]
+        )
+        incremental_artifact = dict(artifact)
+        incremental_artifact["control_value"] = diagnostic_value
+        incremental_comparison = self._interpret_single_gates(
+            results, incremental_artifact
+        )
+        incremental_comparisons = {
             item["candidate_value"]: item
-            for item in control_comparison["comparisons"]
+            for item in incremental_comparison["comparisons"]
         }
         records = {
             cohort["group_key"]: {
@@ -541,7 +548,8 @@ class DirectionalCohortEngine:
                 float(record.get(rejected_field, 0))
                 for record in candidate_records.values()
             )
-            base_decision = comparisons[candidate_value]["decision"]
+            incremental = incremental_comparisons[candidate_value]
+            base_decision = incremental["decision"]
             if equivalent:
                 decision = "no_incremental_effect"
                 next_action = "do_not_tune_inert_gate_bounds"
@@ -563,7 +571,10 @@ class DirectionalCohortEngine:
                 "next_action": next_action,
                 "equivalent_to_diagnostic": equivalent,
                 "rejected_signal_total": rejected_total,
-                "control_comparison": comparisons[candidate_value]
+                "rejected_signal_delta": (
+                    rejected_total - diagnostic_rejected
+                ),
+                "diagnostic_comparison": incremental
             })
 
         selected = [
@@ -583,14 +594,14 @@ class DirectionalCohortEngine:
             "diagnostic_decision": "diagnostic_only",
             "diagnostic_not_ready_total": diagnostic_not_ready,
             "diagnostic_rejected_total": diagnostic_rejected,
-            "diagnostic_control_comparison": comparisons[diagnostic_value],
+            "diagnostic_control_comparison": diagnostic_control_comparison,
             "candidates": candidate_results,
             "selected_candidates": selected,
             "next_action": (
                 "collect_signal_time_filter_telemetry"
                 if all_inert
                 else (
-                    "run_selected_component_parameter_neighborhood"
+                    "validate_selected_active_gate_out_of_sample"
                     if selected
                     else "review_mixed_gate_attribution"
                 )

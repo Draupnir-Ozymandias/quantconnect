@@ -255,9 +255,30 @@ the length-2 signal fires. Its 0%–100% band is deliberately nonrestrictive:
 ./synch.sh campaign validate campaigns/btcusd_1d_atr_signal_telemetry_2022_2025.json
 ```
 
-Each result exports count, minimum, p10, p25, p50, p75, p90, and maximum ATR
-percentage. Use those yearly distributions to predeclare a small, interpretable
-bound neighborhood; do not launch a broad threshold optimizer yet.
+The telemetry campaign completed 4/4 with 660 usable signal observations. ATR
+percentages ranged from 1.90% to 8.50%, while annual medians ranged from 3.21%
+to 5.02%. This confirms that the old 1%–10% band was outside the observed range
+and that absolute ATR thresholds have materially different selectivity between
+years.
+
+The next exploratory campaign tests two lower bounds and two upper bounds
+independently. Every active threshold is compared with the same-year
+warmup-only diagnostic, preventing the warmup effect from entering its verdict:
+
+```bash
+./synch.sh campaign plan campaigns/btcusd_1d_atr_active_bounds_2022_2025.json
+./synch.sh campaign run campaigns/btcusd_1d_atr_active_bounds_2022_2025.json --execute --limit 1
+./synch.sh campaign run campaigns/btcusd_1d_atr_active_bounds_2022_2025.json --execute
+./synch.sh campaign collect campaigns/btcusd_1d_atr_active_bounds_2022_2025.json
+./synch.sh campaign validate campaigns/btcusd_1d_atr_active_bounds_2022_2025.json
+./synch.sh campaign directional campaigns/btcusd_1d_atr_active_bounds_2022_2025.json
+```
+
+The 24 cases cover unfiltered control, warmup-only, lower bounds of 2.5% and
+3.0%, and upper bounds of 5.0% and 6.0% across 2022–2025. Lower and upper bounds
+remain isolated; combined bands and broad optimization are still gated. Since
+the thresholds were selected from telemetry over these same years, this is an
+exploratory screen rather than out-of-sample confirmation.
 
 When `pair_comparison` is present, validation also writes a structured artifact
 to `.qcrl/campaigns/{campaign_id}/paired_comparison.json`. Each pair contains:

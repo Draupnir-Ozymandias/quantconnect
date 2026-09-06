@@ -1,0 +1,286 @@
+{
+  "schema_version": "qcrl.campaign.v1",
+  "campaign_id": "btcusd-1d-atr-active-bounds-2022-2025-v1",
+  "project_id": 33239307,
+  "description": "Exploratory component-isolated ATR bound screen selected from prior-state signal telemetry, with warmup-only and unfiltered controls.",
+  "backtest_name_prefix": "QCRL-2.3.0-BTCUSD-1D-ATR-Active-Bounds",
+  "case_name_fields": [
+    "start_year",
+    "run_notes"
+  ],
+  "base_parameters": {
+    "start_month": 1,
+    "start_day": 1,
+    "end_month": 12,
+    "end_day": 31,
+    "coin": "BTCUSD",
+    "timeframe": "1d",
+    "entry_model": "candle_streak",
+    "streak_length": 2,
+    "streak_mode": "reverse",
+    "ema_fast": 5,
+    "ema_slow": 10,
+    "macd_fast": 12,
+    "macd_slow": 26,
+    "macd_signal": 9,
+    "rsi_period": 14,
+    "rsi_oversold": 30,
+    "rsi_overbought": 70,
+    "adx_period": 14,
+    "adx_threshold": 25,
+    "atr_period": 14,
+    "atr_min_pct": 0,
+    "atr_max_pct": 100,
+    "stake_mode": "flat",
+    "base_wager": 10,
+    "bankroll": 100000,
+    "multiplier": 2,
+    "max_steps": 10,
+    "enable_plots": false,
+    "lab_version": "QCRL-2.3.0"
+  },
+  "variants": [
+    {
+      "start_year": 2022,
+      "end_year": 2022,
+      "filter_model": "none",
+      "run_notes": "control"
+    },
+    {
+      "start_year": 2022,
+      "end_year": 2022,
+      "filter_model": "atr_volatility",
+      "run_notes": "atr_warmup_only"
+    },
+    {
+      "start_year": 2022,
+      "end_year": 2022,
+      "filter_model": "atr_volatility",
+      "atr_min_pct": 2.5,
+      "run_notes": "atr_lower_2_5"
+    },
+    {
+      "start_year": 2022,
+      "end_year": 2022,
+      "filter_model": "atr_volatility",
+      "atr_min_pct": 3,
+      "run_notes": "atr_lower_3_0"
+    },
+    {
+      "start_year": 2022,
+      "end_year": 2022,
+      "filter_model": "atr_volatility",
+      "atr_max_pct": 5,
+      "run_notes": "atr_upper_5_0"
+    },
+    {
+      "start_year": 2022,
+      "end_year": 2022,
+      "filter_model": "atr_volatility",
+      "atr_max_pct": 6,
+      "run_notes": "atr_upper_6_0"
+    },
+    {
+      "start_year": 2023,
+      "end_year": 2023,
+      "filter_model": "none",
+      "run_notes": "control"
+    },
+    {
+      "start_year": 2023,
+      "end_year": 2023,
+      "filter_model": "atr_volatility",
+      "run_notes": "atr_warmup_only"
+    },
+    {
+      "start_year": 2023,
+      "end_year": 2023,
+      "filter_model": "atr_volatility",
+      "atr_min_pct": 2.5,
+      "run_notes": "atr_lower_2_5"
+    },
+    {
+      "start_year": 2023,
+      "end_year": 2023,
+      "filter_model": "atr_volatility",
+      "atr_min_pct": 3,
+      "run_notes": "atr_lower_3_0"
+    },
+    {
+      "start_year": 2023,
+      "end_year": 2023,
+      "filter_model": "atr_volatility",
+      "atr_max_pct": 5,
+      "run_notes": "atr_upper_5_0"
+    },
+    {
+      "start_year": 2023,
+      "end_year": 2023,
+      "filter_model": "atr_volatility",
+      "atr_max_pct": 6,
+      "run_notes": "atr_upper_6_0"
+    },
+    {
+      "start_year": 2024,
+      "end_year": 2024,
+      "filter_model": "none",
+      "run_notes": "control"
+    },
+    {
+      "start_year": 2024,
+      "end_year": 2024,
+      "filter_model": "atr_volatility",
+      "run_notes": "atr_warmup_only"
+    },
+    {
+      "start_year": 2024,
+      "end_year": 2024,
+      "filter_model": "atr_volatility",
+      "atr_min_pct": 2.5,
+      "run_notes": "atr_lower_2_5"
+    },
+    {
+      "start_year": 2024,
+      "end_year": 2024,
+      "filter_model": "atr_volatility",
+      "atr_min_pct": 3,
+      "run_notes": "atr_lower_3_0"
+    },
+    {
+      "start_year": 2024,
+      "end_year": 2024,
+      "filter_model": "atr_volatility",
+      "atr_max_pct": 5,
+      "run_notes": "atr_upper_5_0"
+    },
+    {
+      "start_year": 2024,
+      "end_year": 2024,
+      "filter_model": "atr_volatility",
+      "atr_max_pct": 6,
+      "run_notes": "atr_upper_6_0"
+    },
+    {
+      "start_year": 2025,
+      "end_year": 2025,
+      "filter_model": "none",
+      "run_notes": "control"
+    },
+    {
+      "start_year": 2025,
+      "end_year": 2025,
+      "filter_model": "atr_volatility",
+      "run_notes": "atr_warmup_only"
+    },
+    {
+      "start_year": 2025,
+      "end_year": 2025,
+      "filter_model": "atr_volatility",
+      "atr_min_pct": 2.5,
+      "run_notes": "atr_lower_2_5"
+    },
+    {
+      "start_year": 2025,
+      "end_year": 2025,
+      "filter_model": "atr_volatility",
+      "atr_min_pct": 3,
+      "run_notes": "atr_lower_3_0"
+    },
+    {
+      "start_year": 2025,
+      "end_year": 2025,
+      "filter_model": "atr_volatility",
+      "atr_max_pct": 5,
+      "run_notes": "atr_upper_5_0"
+    },
+    {
+      "start_year": 2025,
+      "end_year": 2025,
+      "filter_model": "atr_volatility",
+      "atr_max_pct": 6,
+      "run_notes": "atr_upper_6_0"
+    }
+  ],
+  "cohort_rankings": [
+    {
+      "name": "ATR active-bound component ranking",
+      "filters": {
+        "stake_mode": "flat"
+      },
+      "score_model": "flat_profit_drawdown",
+      "direction": "max",
+      "display_fields": [
+        "net_profit",
+        "win_rate",
+        "trades",
+        "max_drawdown",
+        "max_loss_streak",
+        "skipped_filter_not_ready",
+        "skipped_filter_rejected"
+      ]
+    }
+  ],
+  "pair_validation": {
+    "dimension": "run_notes",
+    "expected_values": [
+      "control",
+      "atr_warmup_only",
+      "atr_lower_2_5",
+      "atr_lower_3_0",
+      "atr_upper_5_0",
+      "atr_upper_6_0"
+    ],
+    "group_by": [
+      "coin",
+      "timeframe",
+      "start_year",
+      "entry_model",
+      "streak_length",
+      "streak_mode",
+      "stake_mode"
+    ],
+    "invariants": [
+      "signals_generated",
+      "up_signals",
+      "down_signals"
+    ]
+  },
+  "directional_analysis": {
+    "analysis_stage": "gate_attribution",
+    "group_field": "run_notes",
+    "label_field": "start_year",
+    "control_value": "control",
+    "diagnostic_value": "atr_warmup_only",
+    "candidate_values": [
+      "atr_lower_2_5",
+      "atr_lower_3_0",
+      "atr_upper_5_0",
+      "atr_upper_6_0"
+    ],
+    "additional_metrics": [
+      "skipped_filter_not_ready",
+      "skipped_filter_rejected"
+    ],
+    "expected_labels": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "required_parameters": {
+      "entry_model": "candle_streak",
+      "streak_length": 2,
+      "streak_mode": "reverse",
+      "stake_mode": "flat"
+    },
+    "limitations": [
+      "thresholds_were_selected_from_2022_2025_telemetry",
+      "same_period_results_are_exploratory_not_out_of_sample_confirmation",
+      "absolute_atr_thresholds_have_regime_dependent_selectivity",
+      "atr_period_is_fixed_at_14",
+      "lower_and_upper_components_are_not_combined",
+      "overlapping_streak_signals_are_not_independent_events",
+      "recovery_sizing_remains_out_of_scope"
+    ]
+  }
+}

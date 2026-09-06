@@ -103,3 +103,10 @@ def _validate_gate_attribution(analysis, error_type):
         raise error_type(
             "gate attribution control, diagnostic, and candidates must differ"
         )
+    required_metrics = {
+        "skipped_filter_not_ready", "skipped_filter_rejected"
+    }
+    if not required_metrics.issubset(analysis.get("additional_metrics", [])):
+        raise error_type(
+            "gate_attribution requires filter readiness and rejection metrics"
+        )

@@ -365,6 +365,32 @@ class DirectionalCohortEngineTests(unittest.TestCase):
             self.assertTrue(candidate["equivalent_to_diagnostic"])
             self.assertEqual(0, candidate["rejected_signal_total"])
 
+    def test_attribution_judges_active_component_against_diagnostic(self):
+        artifact = attribution_artifact()
+        candidate = next(
+            cohort for cohort in artifact["cohorts"]
+            if cohort["group_key"] == "atr_lower_only"
+        )
+        for record in candidate["records"]:
+            record["skipped_filter_rejected"] = 1
+
+        report = DirectionalCohortEngine().analyze(artifact)
+        interpretation = report["gate_attribution_interpretation"]
+        result = next(
+            item for item in interpretation["candidates"]
+            if item["candidate_value"] == "atr_lower_only"
+        )
+
+        self.assertEqual("reject", result["decision"])
+        self.assertEqual(
+            "atr_warmup_only",
+            result["diagnostic_comparison"]["control_value"]
+        )
+        self.assertEqual(
+            0, result["diagnostic_comparison"]["total_net_profit_delta"]
+        )
+        self.assertEqual(4, result["rejected_signal_delta"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1350,11 +1350,20 @@ QCRL Filter Value Max
 ```
 
 The values are prior-state ATR percentages captured only when a directional
-signal is generated, preserving lookahead-free decision ordering. The next
-campaign is `btcusd_1d_atr_signal_telemetry_2022_2025.json`: four annual cases,
-ATR period 14, flat sizing, and a deliberately nonrestrictive 0%–100% band.
-After collection, yearly quantiles will support a predeclared compact gate
-neighborhood. Broad optimization remains gated.
+signal is generated, preserving lookahead-free decision ordering. The telemetry
+campaign completed 4/4 with 660 usable values. The pooled observed envelope was
+1.90%–8.50%; annual medians ranged from 3.21% to 5.02%, demonstrating meaningful
+regime-dependent selectivity for any absolute threshold.
+
+The predeclared active-bound screen is
+`btcusd_1d_atr_active_bounds_2022_2025.json`. Its 24 cases compare warmup-only
+with lower bounds 2.5% and 3.0% and upper bounds 5.0% and 6.0%, retaining an
+unfiltered control in each year. The attribution engine now evaluates active
+components incrementally against warmup-only rather than allowing the warmup
+effect to leak into candidate decisions. Lower and upper components remain
+isolated. Because these thresholds were selected from 2022–2025 telemetry,
+same-period results are exploratory; any survivor requires out-of-sample
+validation. Broad optimization remains gated.
 
 Canonical storage contracts are extended to preserve every active directional
 and gate parameter:
@@ -1395,8 +1404,10 @@ Length 2 selected with two-sided core-neighborhood support
 Stage 2 complete: ATR advanced provisionally; ADX default rejected
 ATR attribution complete: 20/20 API-collected, all bounds inert
 Attribution-aware verdict v1 implemented
-Prior-state ATR signal telemetry implemented and covered by a four-case manifest
-Next: synchronize the telemetry extension, then run one telemetry integration case
+ATR telemetry complete: 4/4 API-collected, 660 signal-time values
+Active ATR bound screen ready: 24 cases at lower 2.5/3.0 and upper 5.0/6.0
+Attribution candidates are judged incrementally against warmup-only
+Next: synchronize the active-bound campaign, then run one integration case
 ```
 
 ## Synchronization rule
@@ -1418,4 +1429,4 @@ next coding target
 
 # One-Sentence State
 
-> QCRL 2.3.0 has attributed the apparent ATR improvement entirely to indicator warmup, rejected the tested bounds as inert, and is ready to measure signal-time ATR distributions before declaring a compact threshold neighborhood.
+> QCRL 2.3.0 has used completed signal-time telemetry to declare a component-isolated ATR bound screen whose candidates are judged against warmup-only and require out-of-sample validation before advancement.

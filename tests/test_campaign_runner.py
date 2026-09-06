@@ -232,6 +232,42 @@ class CampaignRunnerTests(unittest.TestCase):
         ]:
             self.assertIn(field, required)
 
+    def test_atr_active_bound_manifest_is_component_isolated(self):
+        manifest = qcrl_campaign.load_manifest(
+            Path(__file__).parents[1]
+            / "campaigns"
+            / "btcusd_1d_atr_active_bounds_2022_2025.json"
+        )
+        cases = qcrl_campaign.expand_cases(manifest)
+        expected_profiles = {
+            "control": ("none", 0, 100),
+            "atr_warmup_only": ("atr_volatility", 0, 100),
+            "atr_lower_2_5": ("atr_volatility", 2.5, 100),
+            "atr_lower_3_0": ("atr_volatility", 3, 100),
+            "atr_upper_5_0": ("atr_volatility", 0, 5),
+            "atr_upper_6_0": ("atr_volatility", 0, 6)
+        }
+
+        self.assertEqual(24, len(cases))
+        for year in [2022, 2023, 2024, 2025]:
+            annual = {
+                case["parameters"]["run_notes"]: (
+                    case["parameters"]["filter_model"],
+                    case["parameters"]["atr_min_pct"],
+                    case["parameters"]["atr_max_pct"]
+                )
+                for case in cases
+                if case["parameters"]["start_year"] == year
+            }
+            self.assertEqual(expected_profiles, annual)
+        analysis = manifest["directional_analysis"]
+        self.assertEqual("gate_attribution", analysis["analysis_stage"])
+        self.assertEqual("atr_warmup_only", analysis["diagnostic_value"])
+        self.assertIn(
+            "same_period_results_are_exploratory_not_out_of_sample_confirmation",
+            analysis["limitations"]
+        )
+
     def test_baseline_manifest_expands_to_four_pairs(self):
         self.assertEqual(8, len(self.cases))
         years = {case["parameters"]["start_year"] for case in self.cases}
