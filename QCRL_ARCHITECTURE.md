@@ -400,7 +400,7 @@ This enables filtering, auditing, comparison, and reproducibility.
 
 ## Current
 
-* ROC Regime Attribution Campaign
+* ROC Regime Temporal Forward Validation
 * Audit Database
 * Experiment Registry
 

@@ -106,6 +106,29 @@ def print_directional_report(report, artifact_path, report_path):
                 f"trades={values['trades']:g}"
             )
 
+    forward = report.get("regime_state_validation_interpretation")
+    if forward:
+        print(
+            "Forward regime-state validation: "
+            f"verdict={forward['verdict']} "
+            f"ready={forward['ready_ratio']:.2%} "
+            f"pooled_edge={forward['pooled_win_rate_edge']:+.2%}"
+        )
+        for name in ["nonpositive", "positive", "not_ready"]:
+            values = forward["states"][name]
+            print(
+                f"  {name}: profit={values['net_profit']:+g} "
+                f"win_rate={values['win_rate']:.2%} "
+                f"trades={values['trades']:g}"
+            )
+        print(
+            "  side_edges: "
+            + " ".join(
+                f"{side}={edge:+.2%}"
+                for side, edge in forward["side_win_rate_edges"].items()
+            )
+        )
+
     print(f"Next action: {report['decision_summary']['next_action']}")
     print(f"Directional evidence: {artifact_path}")
     print(f"Directional report:   {report_path}")

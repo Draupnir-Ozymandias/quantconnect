@@ -323,6 +323,44 @@ def regime_attribution_artifact():
     }
 
 
+def forward_regime_artifact():
+    source = regime_attribution_artifact()
+    record = copy.deepcopy(source["cohorts"][0]["records"][0])
+    record["label"] = 2026
+    record["case_id"] = "2026-forward"
+    record["run_id"] = "run-2026-forward"
+    for field in ["trades", "wins", "net_profit"]:
+        positive = f"up_positive_regime_{field}"
+        nonpositive = f"up_nonpositive_regime_{field}"
+        record[positive], record[nonpositive] = (
+            record[nonpositive], record[positive]
+        )
+    return {
+        "schema_version": "qcrl.directional_cohort.v1",
+        "campaign_id": "regime-forward",
+        "case_set_hash": "forward123",
+        "analysis_stage": "regime_state_validation",
+        "group_field": "run_notes",
+        "cohort_value": "roc_regime_forward",
+        "label_field": "start_year",
+        "expected_labels": [2026],
+        "regime_state_hypothesis": {
+            "name": "nonpositive_medium_horizon_state_advantage",
+            "origin_campaign_id": "regime-attribution",
+            "origin_case_set_hash": "regime123",
+            "favored_regime": "nonpositive",
+            "comparison_regime": "positive",
+            "minimum_ready_ratio": 0.85,
+            "minimum_regime_trades": 30,
+            "minimum_side_cell_trades": 10,
+            "minimum_pooled_win_rate_edge": 0.02,
+            "require_positive_edge_both_sides": True
+        },
+        "validation": {"valid": True, "issue_count": 0, "issues": []},
+        "cohorts": [{"group_key": "roc_regime_forward", "records": [record]}]
+    }
+
+
 class DirectionalCohortEngineTests(unittest.TestCase):
     def test_real_stage1_shape_produces_family_decisions(self):
         report = DirectionalCohortEngine().analyze(directional_artifact())
@@ -594,6 +632,55 @@ class DirectionalCohortEngineTests(unittest.TestCase):
             DirectionalCohortError, "do not conserve"
         ):
             DirectionalCohortEngine().analyze(artifact)
+
+    def test_forward_regime_state_requires_pooled_and_both_side_edges(self):
+        interpretation = DirectionalCohortEngine().analyze(
+            forward_regime_artifact()
+        )["regime_state_validation_interpretation"]
+
+        self.assertEqual(
+            "qcrl.regime_state_validation_interpretation.v1",
+            interpretation["schema_version"]
+        )
+        self.assertEqual("supported", interpretation["verdict"])
+        self.assertGreater(interpretation["pooled_win_rate_edge"], 0.02)
+        self.assertTrue(all(
+            value > 0
+            for value in interpretation["side_win_rate_edges"].values()
+        ))
+        self.assertEqual(
+            "extend_forward_nonpositive_regime_validation",
+            interpretation["next_action"]
+        )
+
+    def test_forward_regime_state_rejects_one_side_contradiction(self):
+        artifact = forward_regime_artifact()
+        record = artifact["cohorts"][0]["records"][0]
+        for field in ["trades", "wins", "net_profit"]:
+            positive = f"up_positive_regime_{field}"
+            nonpositive = f"up_nonpositive_regime_{field}"
+            record[positive], record[nonpositive] = (
+                record[nonpositive], record[positive]
+            )
+
+        interpretation = DirectionalCohortEngine().analyze(artifact)[
+            "regime_state_validation_interpretation"
+        ]
+        self.assertEqual("rejected", interpretation["verdict"])
+        self.assertFalse(interpretation["checks"]["positive_edge_on_both_sides"])
+
+    def test_forward_regime_state_holds_undersized_cells(self):
+        artifact = forward_regime_artifact()
+        artifact["regime_state_hypothesis"]["minimum_side_cell_trades"] = 40
+
+        interpretation = DirectionalCohortEngine().analyze(artifact)[
+            "regime_state_validation_interpretation"
+        ]
+        self.assertEqual("inconclusive", interpretation["verdict"])
+        self.assertEqual(
+            "extend_forward_window_without_parameter_changes",
+            interpretation["next_action"]
+        )
 
 
 if __name__ == "__main__":

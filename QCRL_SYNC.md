@@ -1,7 +1,7 @@
 # QCRL Sync Log
 
 **Updated:** 2026-09-06
-**Sync version:** 2026-09-06 Prior-State Regime Bridge
+**Sync version:** 2026-09-06 ROC Regime Forward Validation
 **QCRL baseline:** 2.2.0  
 **Status:** Active research
 
@@ -1510,6 +1510,47 @@ expansion, metric-map parity, Python compilation, and whitespace validation.
 Next coding target: none until the 2018 integration case confirms QuantConnect
 compilation, API metric visibility, and regime accounting on real bars.
 
+## 2026-09-06 ROC regime result and forward declaration
+
+The 2018–2025 attribution campaign completed 8/8 with authoritative API
+metrics, exact side/regime accounting, 94.36% regime readiness, and adequate
+evidence in all four active cells. The predeclared trend-alignment hypothesis
+was correctly rejected because its positive edge appeared in five of eight
+years rather than the required six:
+
+```text
+aligned: +630 | 56.98% | 451 trades
+counter: +520 | 53.17% | 820 trades
+pooled aligned edge: +3.81 percentage points
+annual support: 5/8
+```
+
+No lookback or threshold optimization follows. A distinct post-hoc observation
+from the locked discovery report is now recorded as a new hypothesis:
+
+```text
+nonpositive 20-day state: +950 | 58.06% | 589 trades
+positive 20-day state:    +200 | 51.47% | 682 trades
+UP nonpositive edge over positive:   +3.26 percentage points
+DOWN nonpositive edge over positive: +10.90 percentage points
+```
+
+`btcusd_1d_candle_streak_roc_regime_forward_2026.json` freezes the observer and
+tests this state effect only on January 1 through August 31, 2026. The new
+`qcrl.regime_state_validation_interpretation.v1` gate requires complete
+forward coverage, 85% readiness, 30 pooled trades in each regime, 10 trades in
+each side/regime cell, a +2-point pooled edge, greater favored-state profit,
+and positive edges on both UP and DOWN. It cannot pass on aggregate improvement
+driven by one direction alone.
+
+A supported single partial-year result advances only to additional frozen
+forward observation. A rejected result closes the ROC state-gate hypothesis
+and retains the unfiltered signal. An undersized result extends the observation
+window without changing parameters. Tests completed: 81 deterministic unit
+tests, forward-manifest expansion, Python compilation, and whitespace checks.
+
+Next: synchronize the declaration and execute the single 2026 forward case.
+
 ## Workstream A exports
 
 - QCRL 2.2.0 validated baseline reports
@@ -1547,8 +1588,10 @@ Cross-regime side synthesis v1 implemented
 Directional leadership flips by era; static side restriction rejected
 Both directions retained in the daily signal
 ROC-sign observer and regime-attribution verdict implemented
-2018–2025 eight-case measurement campaign declared
-Next: synchronize, run the 2018 integration case, and inspect API metrics
+2018–2025 trend-alignment hypothesis rejected at 5/8 supporting years
+Post-hoc nonpositive-state advantage isolated and labeled discovery-only
+Frozen January–August 2026 forward-validation campaign declared
+Next: synchronize and execute the single 2026 forward case
 ```
 
 ## Synchronization rule
@@ -1570,4 +1613,4 @@ next coding target
 
 # One-Sentence State
 
-> QCRL 2.3.0 now measures a predeclared 20-day ROC alignment hypothesis across both sides of the daily length-2 reversal signal; the next gate is the 2018 QuantConnect integration case, not parameter optimization.
+> QCRL 2.3.0 rejected 20-day trend alignment, isolated a post-hoc nonpositive-state advantage on both forecast sides, and has locked that hypothesis for one untouched January–August 2026 forward test without filtering any trades.

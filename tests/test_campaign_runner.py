@@ -56,6 +56,36 @@ class CampaignRunnerTests(unittest.TestCase):
             analysis["regime_hypothesis"]["aligned_cells"]
         )
 
+    def test_roc_forward_manifest_uses_only_untouched_2026_window(self):
+        manifest = qcrl_campaign.load_manifest(
+            Path(__file__).parents[1]
+            / "campaigns"
+            / "btcusd_1d_candle_streak_roc_regime_forward_2026.json"
+        )
+        cases = qcrl_campaign.expand_cases(manifest)
+
+        self.assertEqual(1, len(cases))
+        parameters = cases[0]["parameters"]
+        self.assertEqual((2026, 1, 1), (
+            parameters["start_year"], parameters["start_month"],
+            parameters["start_day"]
+        ))
+        self.assertEqual((2026, 8, 31), (
+            parameters["end_year"], parameters["end_month"],
+            parameters["end_day"]
+        ))
+        self.assertEqual("none", parameters["filter_model"])
+        self.assertEqual("flat", parameters["stake_mode"])
+        hypothesis = manifest["directional_analysis"][
+            "regime_state_hypothesis"
+        ]
+        self.assertEqual("nonpositive", hypothesis["favored_regime"])
+        self.assertTrue(hypothesis["require_positive_edge_both_sides"])
+        self.assertEqual(
+            "30370107cdbd5e2bf6fe8168c5cbe94e9a012d63e94cecba1b09d0a51c62c8a4",
+            hypothesis["origin_case_set_hash"]
+        )
+
     def test_directional_stage1_manifest_is_flat_and_factor_isolated(self):
         manifest = qcrl_campaign.load_manifest(
             Path(__file__).parents[1]

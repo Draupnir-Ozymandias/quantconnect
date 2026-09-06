@@ -1501,6 +1501,7 @@ def build_directional_cohort_artifact(manifest, state, cases):
         "evidence_role": config.get("evidence_role", "discovery"),
         "hypothesis_side": config.get("hypothesis_side"),
         "regime_hypothesis": config.get("regime_hypothesis"),
+        "regime_state_hypothesis": config.get("regime_state_hypothesis"),
         "candidate_values": config.get("candidate_values", []),
         "additional_metrics": config.get("additional_metrics", []),
         "expected_labels": config["expected_labels"],

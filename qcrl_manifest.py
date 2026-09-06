@@ -48,12 +48,13 @@ def validate_directional_analysis(manifest, metric_fields, error_type):
     stage = analysis.get("analysis_stage", "generator_screen")
     if stage not in {
         "generator_screen", "parameter_neighborhood", "single_gate",
-        "gate_attribution", "side_attribution", "regime_attribution"
+        "gate_attribution", "side_attribution", "regime_attribution",
+        "regime_state_validation"
     }:
         raise error_type(
             "directional_analysis analysis_stage must be generator_screen, "
             "parameter_neighborhood, single_gate, gate_attribution, or "
-            "side_attribution, or regime_attribution"
+            "side_attribution, regime_attribution, or regime_state_validation"
         )
     if stage == "parameter_neighborhood":
         _validate_parameter_neighborhood(analysis, error_type)
@@ -65,6 +66,8 @@ def validate_directional_analysis(manifest, metric_fields, error_type):
         _validate_side_attribution(analysis, error_type)
     if stage == "regime_attribution":
         _validate_regime_attribution(analysis, error_type)
+    if stage == "regime_state_validation":
+        _validate_regime_state_validation(analysis, error_type)
 
 
 def _validate_parameter_neighborhood(analysis, error_type):
@@ -200,3 +203,49 @@ def _validate_regime_attribution(analysis, error_type):
         raise error_type(
             "minimum_supporting_labels exceeds expected label count"
         )
+
+
+def _validate_regime_state_validation(analysis, error_type):
+    if "cohort_value" not in analysis:
+        raise error_type("regime_state_validation requires cohort_value")
+    required = {
+        f"{direction}_{regime}_regime_{field}"
+        for direction in ["up", "down"]
+        for regime in ["positive", "nonpositive", "not_ready"]
+        for field in ["trades", "wins", "net_profit"]
+    }
+    required.update({
+        f"{direction}_{field}"
+        for direction in ["up", "down"]
+        for field in ["trades", "wins", "net_profit"]
+    })
+    missing = required - set(analysis.get("additional_metrics", []))
+    if missing:
+        raise error_type(
+            "regime_state_validation requires metrics: "
+            + ", ".join(sorted(missing))
+        )
+    hypothesis = analysis.get("regime_state_hypothesis")
+    if not isinstance(hypothesis, dict):
+        raise error_type(
+            "regime_state_validation requires regime_state_hypothesis"
+        )
+    if hypothesis.get("favored_regime") != "nonpositive":
+        raise error_type("Forward hypothesis must favor nonpositive regime")
+    if hypothesis.get("comparison_regime") != "positive":
+        raise error_type("Forward hypothesis must compare positive regime")
+    if hypothesis.get("require_positive_edge_both_sides") is not True:
+        raise error_type("Forward hypothesis must require both-side support")
+    for field in [
+        "minimum_ready_ratio", "minimum_regime_trades",
+        "minimum_side_cell_trades", "minimum_pooled_win_rate_edge"
+    ]:
+        if field not in hypothesis or float(hypothesis[field]) <= 0:
+            raise error_type(f"Forward hypothesis requires positive {field}")
+    if float(hypothesis["minimum_ready_ratio"]) > 1:
+        raise error_type("minimum_ready_ratio cannot exceed 1")
+    if float(hypothesis["minimum_pooled_win_rate_edge"]) > 1:
+        raise error_type("minimum_pooled_win_rate_edge cannot exceed 1")
+    for field in ["origin_campaign_id", "origin_case_set_hash"]:
+        if not str(hypothesis.get(field, "")).strip():
+            raise error_type(f"Forward hypothesis requires {field}")

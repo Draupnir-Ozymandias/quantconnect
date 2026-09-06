@@ -384,6 +384,28 @@ declared before collection. A supported result would justify only a genuinely
 forward gate-validation design; it would not authorize applying the gate to
 the same discovery period.
 
+The trend-alignment hypothesis was rejected: its pooled edge was +3.81
+percentage points, but only five of eight years supported it against a required
+six. A different pattern observed after that verdict—therefore explicitly
+post-hoc—was that both forecast sides performed better in nonpositive 20-day
+return states. The untouched January–August 2026 window tests that new
+hypothesis without changing the observer or signal:
+
+```bash
+./synch.sh campaign plan campaigns/btcusd_1d_candle_streak_roc_regime_forward_2026.json
+./synch.sh campaign run campaigns/btcusd_1d_candle_streak_roc_regime_forward_2026.json --execute
+./synch.sh campaign collect campaigns/btcusd_1d_candle_streak_roc_regime_forward_2026.json
+./synch.sh campaign validate campaigns/btcusd_1d_candle_streak_roc_regime_forward_2026.json
+./synch.sh campaign directional campaigns/btcusd_1d_candle_streak_roc_regime_forward_2026.json
+```
+
+The forward verdict requires 85% readiness, at least 30 trades in each pooled
+regime, at least 10 trades in every active side/regime cell, a minimum
+two-percentage-point nonpositive-state win-rate advantage, greater
+nonpositive-state profit, and a positive advantage independently for both UP
+and DOWN. One supported partial-year result is corroboration, not completion;
+the frozen hypothesis would still require additional forward evidence.
+
 When `pair_comparison` is present, validation also writes a structured artifact
 to `.qcrl/campaigns/{campaign_id}/paired_comparison.json`. Each pair contains:
 

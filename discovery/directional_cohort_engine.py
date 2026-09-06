@@ -20,6 +20,9 @@ class DirectionalCohortEngine:
     ATTRIBUTION_VERSION = "qcrl.gate_attribution_interpretation.v1"
     SIDE_ATTRIBUTION_VERSION = "qcrl.side_attribution_interpretation.v1"
     REGIME_ATTRIBUTION_VERSION = "qcrl.regime_attribution_interpretation.v1"
+    REGIME_STATE_VALIDATION_VERSION = (
+        "qcrl.regime_state_validation_interpretation.v1"
+    )
     SIDE_THRESHOLDS = {
         "minimum_total_trades": 100,
         "minimum_trades_per_sample": 20,
@@ -96,6 +99,7 @@ class DirectionalCohortEngine:
         attribution = None
         side_attribution = None
         regime_attribution = None
+        regime_state_validation = None
         if stage == "parameter_neighborhood":
             neighborhood = self._interpret_neighborhood(results, artifact)
             next_action = neighborhood["next_action"]
@@ -111,6 +115,9 @@ class DirectionalCohortEngine:
         elif stage == "regime_attribution":
             regime_attribution = self._interpret_regime(artifact)
             next_action = regime_attribution["next_action"]
+        elif stage == "regime_state_validation":
+            regime_state_validation = self._interpret_regime_state(artifact)
+            next_action = regime_state_validation["next_action"]
         elif advance:
             next_action = "advance_candidates_to_single_gate_stage"
         elif hold:
@@ -174,6 +181,11 @@ class DirectionalCohortEngine:
             )
         if regime_attribution is not None:
             report["regime_attribution_interpretation"] = regime_attribution
+            report["decision_summary"]["selected_candidates"] = []
+        if regime_state_validation is not None:
+            report["regime_state_validation_interpretation"] = (
+                regime_state_validation
+            )
             report["decision_summary"]["selected_candidates"] = []
         return report
 
@@ -263,6 +275,12 @@ class DirectionalCohortEngine:
             if set(keys) != {cohort_value}:
                 raise DirectionalCohortError(
                     "Regime attribution requires exactly its declared cohort"
+                )
+        if artifact.get("analysis_stage") == "regime_state_validation":
+            cohort_value = artifact.get("cohort_value")
+            if set(keys) != {cohort_value}:
+                raise DirectionalCohortError(
+                    "Regime state validation requires its declared cohort"
                 )
 
     def _interpret_neighborhood(self, results, artifact):
@@ -957,6 +975,137 @@ class DirectionalCohortEngine:
             "ready_ratio": self._safe_ratio(ready_trades, all_trades),
             "pooled_win_rate_edge": pooled_edge,
             "supporting_labels": supporting_labels,
+            "next_action": next_action
+        }
+
+    def _interpret_regime_state(self, artifact):
+        """Evaluate a locked state effect only on forward-period evidence."""
+        cohort = artifact["cohorts"][0]
+        records = {item["label"]: item for item in cohort["records"]}
+        labels = artifact["expected_labels"]
+        hypothesis = artifact["regime_state_hypothesis"]
+        favored = hypothesis["favored_regime"]
+        comparison = hypothesis["comparison_regime"]
+        states = {
+            name: {"trades": 0.0, "wins": 0.0, "net_profit": 0.0}
+            for name in [favored, comparison, "not_ready"]
+        }
+        sides = {
+            direction: {
+                name: {"trades": 0.0, "wins": 0.0, "net_profit": 0.0}
+                for name in [favored, comparison]
+            }
+            for direction in ["up", "down"]
+        }
+        annual = []
+        for label in labels:
+            record = records.get(label)
+            if record is None:
+                continue
+            values = {}
+            for name in [favored, comparison, "not_ready"]:
+                values[name] = self._sum_regime_cells(record, [
+                    (direction, name) for direction in ["up", "down"]
+                ])
+                for field in states[name]:
+                    states[name][field] += values[name][field]
+            for direction in ["up", "down"]:
+                side_total = self._sum_regime_cells(record, [
+                    (direction, name)
+                    for name in [favored, comparison, "not_ready"]
+                ])
+                for field in ["trades", "wins", "net_profit"]:
+                    if not math.isclose(
+                        side_total[field], float(record[f"{direction}_{field}"])
+                    ):
+                        raise DirectionalCohortError(
+                            f"Regime cells do not conserve {direction} {field} "
+                            f"for {label}"
+                        )
+                for name in [favored, comparison]:
+                    cell = self._sum_regime_cells(record, [(direction, name)])
+                    for field in sides[direction][name]:
+                        sides[direction][name][field] += cell[field]
+            ready = values[favored]["trades"] + values[comparison]["trades"]
+            total = ready + values["not_ready"]["trades"]
+            annual.append({
+                "label": label,
+                "case_id": record["case_id"],
+                "run_id": record["run_id"],
+                "ready_ratio": self._safe_ratio(ready, total),
+                "states": values
+            })
+
+        for values in [*states.values(), *[
+            cell for direction in sides.values() for cell in direction.values()
+        ]]:
+            values["win_rate"] = self._safe_ratio(
+                values["wins"], values["trades"]
+            )
+        ready_trades = states[favored]["trades"] + states[comparison]["trades"]
+        total_trades = ready_trades + states["not_ready"]["trades"]
+        pooled_edge = (
+            states[favored]["win_rate"] - states[comparison]["win_rate"]
+        )
+        side_edges = {
+            direction: (
+                values[favored]["win_rate"] - values[comparison]["win_rate"]
+            )
+            for direction, values in sides.items()
+        }
+        checks = {
+            "complete_forward_coverage": len(annual) == len(labels),
+            "ready_ratio_sufficient": all(
+                item["ready_ratio"] >= hypothesis["minimum_ready_ratio"]
+                for item in annual
+            ),
+            "regime_samples_sufficient": all(
+                states[name]["trades"] >= hypothesis["minimum_regime_trades"]
+                for name in [favored, comparison]
+            ),
+            "side_cells_sufficient": all(
+                cell["trades"] >= hypothesis["minimum_side_cell_trades"]
+                for values in sides.values() for cell in values.values()
+            ),
+            "pooled_win_rate_edge_sufficient": (
+                pooled_edge >= hypothesis["minimum_pooled_win_rate_edge"]
+            ),
+            "favored_profit_exceeds_comparison": (
+                states[favored]["net_profit"]
+                > states[comparison]["net_profit"]
+            ),
+            "positive_edge_on_both_sides": all(
+                value > 0 for value in side_edges.values()
+            )
+        }
+        evidence_complete = all([
+            checks["complete_forward_coverage"],
+            checks["ready_ratio_sufficient"],
+            checks["regime_samples_sufficient"],
+            checks["side_cells_sufficient"]
+        ])
+        if all(checks.values()):
+            verdict = "supported"
+            next_action = "extend_forward_nonpositive_regime_validation"
+        elif evidence_complete:
+            verdict = "rejected"
+            next_action = "retain_unfiltered_signal_and_close_roc_state_gate"
+        else:
+            verdict = "inconclusive"
+            next_action = "extend_forward_window_without_parameter_changes"
+        return {
+            "schema_version": self.REGIME_STATE_VALIDATION_VERSION,
+            "cohort_value": artifact["cohort_value"],
+            "evidence_role": "temporal_forward_validation",
+            "hypothesis": hypothesis,
+            "verdict": verdict,
+            "checks": checks,
+            "annual_results": annual,
+            "states": states,
+            "sides": sides,
+            "ready_ratio": self._safe_ratio(ready_trades, total_trades),
+            "pooled_win_rate_edge": pooled_edge,
+            "side_win_rate_edges": side_edges,
             "next_action": next_action
         }
 
