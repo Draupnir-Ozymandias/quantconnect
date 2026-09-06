@@ -765,6 +765,9 @@ class DirectionalCohortEngine:
             item["direction"] for item in sides
             if item["disposition"] == "supported"
         ]
+        evidence_role = artifact.get("evidence_role", "discovery")
+        hypothesis_side = artifact.get("hypothesis_side")
+        hypothesis_result = None
         if len(selected) == 2:
             verdict = "two_sided"
             next_action = "preserve_two_sided_signal_and_test_next_hypothesis"
@@ -777,9 +780,26 @@ class DirectionalCohortEngine:
         else:
             verdict = "no_supported_side"
             next_action = "redesign_directional_signal"
+        if evidence_role == "historical_regime_stress":
+            hypothesis_disposition = next(
+                item["disposition"] for item in sides
+                if item["direction"] == hypothesis_side
+            )
+            if hypothesis_disposition == "supported":
+                hypothesis_result = "supported"
+                next_action = "review_cross_regime_directional_evidence"
+            elif hypothesis_disposition == "hold":
+                hypothesis_result = "inconclusive"
+                next_action = "hold_direction_restriction"
+            else:
+                hypothesis_result = "contradicted"
+                next_action = "reject_direction_restriction"
         return {
             "schema_version": self.SIDE_ATTRIBUTION_VERSION,
             "cohort_value": artifact["cohort_value"],
+            "evidence_role": evidence_role,
+            "hypothesis_side": hypothesis_side,
+            "hypothesis_result": hypothesis_result,
             "verdict": verdict,
             "selected_sides": selected,
             "sides": sides,

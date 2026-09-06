@@ -1487,6 +1487,8 @@ def build_directional_cohort_artifact(manifest, state, cases):
         "control_value": config.get("control_value"),
         "diagnostic_value": config.get("diagnostic_value"),
         "cohort_value": config.get("cohort_value"),
+        "evidence_role": config.get("evidence_role", "discovery"),
+        "hypothesis_side": config.get("hypothesis_side"),
         "candidate_values": config.get("candidate_values", []),
         "additional_metrics": config.get("additional_metrics", []),
         "expected_labels": config["expected_labels"],

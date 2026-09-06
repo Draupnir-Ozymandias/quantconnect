@@ -1393,6 +1393,22 @@ cannot advance without out-of-sample validation. Side-specific drawdown is an
 independent side equity-curve statistic, not an additive decomposition of the
 combined portfolio drawdown.
 
+The completed 2022–2025 attribution verdict was `down_dominant`:
+
+```text
+UP:   reject    | profit +60  | weighted win rate 50.85% | profitable 1/4
+DOWN: supported | profit +430 | weighted win rate 56.38% | profitable 3/4
+```
+
+The relationship reversed in 2024, when UP earned +170 and DOWN lost 80, so
+DOWN dominance is not assumed universal. The next four-case manifest,
+`btcusd_1d_candle_streak_side_stress_2018_2021.json`, predeclares DOWN as the
+hypothesis under `evidence_role=historical_regime_stress`. It treats 2018–2021
+as a materially different early-adoption market regime, not an IID extension
+or conventional forward holdout. QuantConnect documents Coinbase crypto data
+from January 2015, while the first integration case remains the definitive
+access and data-quality check for this project.
+
 Canonical storage contracts are extended to preserve every active directional
 and gate parameter:
 
@@ -1435,9 +1451,9 @@ Attribution-aware verdict v1 implemented
 ATR telemetry complete: 4/4 API-collected, 660 signal-time values
 Active ATR bound screen complete: 24/24 API-collected, all candidates rejected
 Attribution candidates are judged incrementally against warmup-only
-Directional-side accounting and versioned verdict implemented
-Side-attribution campaign ready: four unfiltered flat annual cases
-Next: synchronize side telemetry, then run one integration case
+Directional-side result: DOWN supported, UP rejected over 2022–2025
+Earlier-regime DOWN hypothesis manifest ready for 2018–2021
+Next: synchronize the stress-test declaration, then run the 2018 integration case
 ```
 
 ## Synchronization rule
@@ -1459,4 +1475,4 @@ next coding target
 
 # One-Sentence State
 
-> QCRL 2.3.0 has closed absolute ATR gating and is ready to determine whether the surviving length-2 reversal evidence is genuinely two-sided or concentrated in one forecast direction.
+> QCRL 2.3.0 found DOWN-dominant length-2 reversal evidence in 2022–2025 and is ready to stress that predeclared hypothesis against the structurally earlier 2018–2021 Bitcoin regime.

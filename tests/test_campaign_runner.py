@@ -303,6 +303,29 @@ class CampaignRunnerTests(unittest.TestCase):
             ]:
                 self.assertIn(f"{side}_{field}", required)
 
+    def test_side_stress_manifest_declares_earlier_regime_hypothesis(self):
+        manifest = qcrl_campaign.load_manifest(
+            Path(__file__).parents[1]
+            / "campaigns"
+            / "btcusd_1d_candle_streak_side_stress_2018_2021.json"
+        )
+        cases = qcrl_campaign.expand_cases(manifest)
+
+        self.assertEqual(4, len(cases))
+        self.assertEqual(
+            {2018, 2019, 2020, 2021},
+            {case["parameters"]["start_year"] for case in cases}
+        )
+        analysis = manifest["directional_analysis"]
+        self.assertEqual(
+            "historical_regime_stress", analysis["evidence_role"]
+        )
+        self.assertEqual("down", analysis["hypothesis_side"])
+        self.assertIn(
+            "historical_regime_stress_is_not_forward_out_of_sample_validation",
+            analysis["limitations"]
+        )
+
     def test_baseline_manifest_expands_to_four_pairs(self):
         self.assertEqual(8, len(self.cases))
         years = {case["parameters"]["start_year"] for case in self.cases}

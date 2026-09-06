@@ -489,6 +489,21 @@ class DirectionalCohortEngineTests(unittest.TestCase):
             interpretation["next_action"]
         )
 
+    def test_side_stress_evaluates_declared_down_hypothesis(self):
+        artifact = side_attribution_artifact()
+        artifact["evidence_role"] = "historical_regime_stress"
+        artifact["hypothesis_side"] = "down"
+
+        interpretation = DirectionalCohortEngine().analyze(artifact)[
+            "side_attribution_interpretation"
+        ]
+
+        self.assertEqual("supported", interpretation["hypothesis_result"])
+        self.assertEqual(
+            "review_cross_regime_directional_evidence",
+            interpretation["next_action"]
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

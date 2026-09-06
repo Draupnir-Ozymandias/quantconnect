@@ -69,8 +69,14 @@ def print_directional_report(report, artifact_path, report_path):
     if side_attribution:
         print(
             "Directional-side attribution: "
-            f"verdict={side_attribution['verdict']}"
+            f"verdict={side_attribution['verdict']} "
+            f"evidence_role={side_attribution['evidence_role']}"
         )
+        if side_attribution["hypothesis_side"]:
+            print(
+                f"  hypothesis={side_attribution['hypothesis_side']} "
+                f"result={side_attribution['hypothesis_result']}"
+            )
         for side in side_attribution["sides"]:
             print(
                 f"  {side['direction']}: "

@@ -316,6 +316,28 @@ unstable evidence. Any same-period side restriction requires out-of-sample
 validation. Side drawdown is measured on each side's independent flat-profit
 curve and is not a decomposition of portfolio drawdown.
 
+The 2022–2025 result was `down_dominant`: DOWN produced +430 at a 56.38%
+weighted win rate and was profitable in three of four years; UP produced +60 at
+50.85% and was profitable only in 2024. Because 2024 reversed the relationship,
+the result is not treated as universal.
+
+The follow-up tests the predeclared DOWN hypothesis in the structurally earlier
+2018–2021 Bitcoin market:
+
+```bash
+./synch.sh campaign plan campaigns/btcusd_1d_candle_streak_side_stress_2018_2021.json
+./synch.sh campaign run campaigns/btcusd_1d_candle_streak_side_stress_2018_2021.json --execute --limit 1
+./synch.sh campaign run campaigns/btcusd_1d_candle_streak_side_stress_2018_2021.json --execute
+./synch.sh campaign collect campaigns/btcusd_1d_candle_streak_side_stress_2018_2021.json
+./synch.sh campaign validate campaigns/btcusd_1d_candle_streak_side_stress_2018_2021.json
+./synch.sh campaign directional campaigns/btcusd_1d_candle_streak_side_stress_2018_2021.json
+```
+
+This is explicitly a historical-regime stress test, not conventional forward
+out-of-sample validation. QuantConnect documents Coinbase crypto coverage from
+January 2015, but the one-case integration run remains the authoritative check
+for project access and usable bars.
+
 When `pair_comparison` is present, validation also writes a structured artifact
 to `.qcrl/campaigns/{campaign_id}/paired_comparison.json`. Each pair contains:
 

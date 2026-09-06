@@ -132,3 +132,16 @@ def _validate_side_attribution(analysis, error_type):
             "side_attribution requires metrics: "
             + ", ".join(sorted(missing))
         )
+    evidence_role = analysis.get("evidence_role", "discovery")
+    if evidence_role not in {"discovery", "historical_regime_stress"}:
+        raise error_type(
+            "side_attribution evidence_role must be discovery or "
+            "historical_regime_stress"
+        )
+    hypothesis_side = analysis.get("hypothesis_side")
+    if evidence_role == "historical_regime_stress" and hypothesis_side not in {
+        "up", "down"
+    }:
+        raise error_type(
+            "historical_regime_stress requires hypothesis_side up or down"
+        )
