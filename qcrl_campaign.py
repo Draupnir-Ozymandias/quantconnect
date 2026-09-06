@@ -14,6 +14,8 @@ import sys
 import time
 from urllib import error, request
 
+from qcrl_manifest import validate_directional_analysis
+
 
 SCHEMA_VERSION = "qcrl.campaign.v1"
 STATE_VERSION = "qcrl.campaign_state.v1"
@@ -142,87 +144,10 @@ def load_manifest(path):
     submission_policy(manifest)
     validate_cohort_rankings(manifest)
     validate_pair_comparison(manifest)
-    validate_directional_analysis(manifest)
+    validate_directional_analysis(
+        manifest, QCRL_STATISTICS.values(), CampaignError
+    )
     return manifest
-
-
-def validate_directional_analysis(manifest):
-    analysis = manifest.get("directional_analysis")
-    if analysis is None:
-        return
-    if not isinstance(analysis, dict):
-        raise CampaignError("directional_analysis must be an object")
-    for field in ["group_field", "label_field", "expected_labels"]:
-        if field not in analysis:
-            raise CampaignError(f"directional_analysis requires {field}")
-    labels = analysis["expected_labels"]
-    if not isinstance(labels, list) or not labels:
-        raise CampaignError(
-            "directional_analysis expected_labels must be a non-empty array"
-        )
-    if len(labels) != len(set(labels)):
-        raise CampaignError(
-            "directional_analysis expected_labels cannot contain duplicates"
-        )
-    required = analysis.get("required_parameters", {})
-    if not isinstance(required, dict):
-        raise CampaignError(
-            "directional_analysis required_parameters must be an object"
-        )
-    limitations = analysis.get("limitations", [])
-    if not isinstance(limitations, list) or any(
-        not isinstance(value, str) or not value.strip()
-        for value in limitations
-    ):
-        raise CampaignError(
-            "directional_analysis limitations must be an array of strings"
-        )
-    additional_metrics = analysis.get("additional_metrics", [])
-    if not isinstance(additional_metrics, list) or any(
-        not isinstance(value, str) for value in additional_metrics
-    ):
-        raise CampaignError(
-            "directional_analysis additional_metrics must be an array of strings"
-        )
-    unknown_metrics = set(additional_metrics) - set(QCRL_STATISTICS.values())
-    if unknown_metrics:
-        raise CampaignError(
-            "Unknown directional additional_metrics: "
-            + ", ".join(sorted(unknown_metrics))
-        )
-    stage = analysis.get("analysis_stage", "generator_screen")
-    if stage not in {
-        "generator_screen", "parameter_neighborhood", "single_gate"
-    }:
-        raise CampaignError(
-            "directional_analysis analysis_stage must be generator_screen, "
-            "parameter_neighborhood, or single_gate"
-        )
-    if stage == "parameter_neighborhood":
-        for field in ["candidate_value", "core_values", "tail_values"]:
-            if field not in analysis:
-                raise CampaignError(
-                    f"parameter_neighborhood analysis requires {field}"
-                )
-        core_values = analysis["core_values"]
-        tail_values = analysis["tail_values"]
-        if not isinstance(core_values, list) or not core_values:
-            raise CampaignError("core_values must be a non-empty array")
-        if not isinstance(tail_values, list):
-            raise CampaignError("tail_values must be an array")
-        if analysis["candidate_value"] not in core_values:
-            raise CampaignError("candidate_value must be in core_values")
-        if set(core_values) & set(tail_values):
-            raise CampaignError("core_values and tail_values cannot overlap")
-    if stage == "single_gate":
-        for field in ["control_value", "candidate_values"]:
-            if field not in analysis:
-                raise CampaignError(f"single_gate analysis requires {field}")
-        candidates = analysis["candidate_values"]
-        if not isinstance(candidates, list) or not candidates:
-            raise CampaignError("candidate_values must be a non-empty array")
-        if analysis["control_value"] in candidates:
-            raise CampaignError("control_value cannot be a candidate_value")
 
 
 def validate_cohort_rankings(manifest):
