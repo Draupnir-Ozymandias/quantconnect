@@ -261,6 +261,68 @@ def side_attribution_artifact():
     }
 
 
+def regime_attribution_artifact():
+    records = []
+    for year in range(2018, 2026):
+        record = {
+            "label": year,
+            "case_id": f"{year}-regime",
+            "run_id": f"run-{year}-regime",
+            "net_profit": 60,
+            "win_rate": 0.53,
+            "trades": 100,
+            "wins": 53,
+            "max_drawdown": 50,
+            "max_loss_streak": 5,
+            "ruined": False,
+            "base_wager": 10,
+            "drawdown_in_base_wagers": 5,
+            "up_trades": 50,
+            "up_wins": 27,
+            "up_net_profit": 40,
+            "down_trades": 50,
+            "down_wins": 26,
+            "down_net_profit": 20
+        }
+        cell_values = {
+            ("up", "positive"): (30, 18, 60),
+            ("up", "nonpositive"): (18, 8, -20),
+            ("up", "not_ready"): (2, 1, 0),
+            ("down", "positive"): (18, 8, -20),
+            ("down", "nonpositive"): (30, 18, 60),
+            ("down", "not_ready"): (2, 0, -20)
+        }
+        for (direction, regime), (trades, wins, profit) in cell_values.items():
+            prefix = f"{direction}_{regime}_regime_"
+            record[prefix + "trades"] = trades
+            record[prefix + "wins"] = wins
+            record[prefix + "net_profit"] = profit
+        records.append(record)
+    return {
+        "schema_version": "qcrl.directional_cohort.v1",
+        "campaign_id": "regime-attribution",
+        "case_set_hash": "regime123",
+        "analysis_stage": "regime_attribution",
+        "group_field": "run_notes",
+        "cohort_value": "roc_regime_attribution",
+        "label_field": "start_year",
+        "expected_labels": list(range(2018, 2026)),
+        "regime_hypothesis": {
+            "name": "medium_horizon_trend_alignment",
+            "aligned_cells": ["up:positive", "down:nonpositive"],
+            "counter_cells": ["up:nonpositive", "down:positive"],
+            "minimum_ready_ratio": 0.85,
+            "minimum_win_rate_edge": 0.02,
+            "minimum_supporting_labels": 6,
+            "minimum_cell_trades": 50
+        },
+        "validation": {"valid": True, "issue_count": 0, "issues": []},
+        "cohorts": [{
+            "group_key": "roc_regime_attribution", "records": records
+        }]
+    }
+
+
 class DirectionalCohortEngineTests(unittest.TestCase):
     def test_real_stage1_shape_produces_family_decisions(self):
         report = DirectionalCohortEngine().analyze(directional_artifact())
@@ -503,6 +565,35 @@ class DirectionalCohortEngineTests(unittest.TestCase):
             "review_cross_regime_directional_evidence",
             interpretation["next_action"]
         )
+
+    def test_regime_attribution_advances_only_predeclared_alignment(self):
+        interpretation = DirectionalCohortEngine().analyze(
+            regime_attribution_artifact()
+        )["regime_attribution_interpretation"]
+
+        self.assertEqual(
+            "qcrl.regime_attribution_interpretation.v1",
+            interpretation["schema_version"]
+        )
+        self.assertEqual("supported", interpretation["verdict"])
+        self.assertEqual(0.96, interpretation["ready_ratio"])
+        self.assertEqual(8, interpretation["supporting_labels"])
+        self.assertGreater(interpretation["pooled_win_rate_edge"], 0.02)
+        self.assertEqual(
+            "design_forward_roc_alignment_gate",
+            interpretation["next_action"]
+        )
+
+    def test_regime_attribution_rejects_accounting_drift(self):
+        artifact = regime_attribution_artifact()
+        artifact["cohorts"][0]["records"][0][
+            "up_positive_regime_trades"
+        ] += 1
+
+        with self.assertRaisesRegex(
+            DirectionalCohortError, "do not conserve"
+        ):
+            DirectionalCohortEngine().analyze(artifact)
 
 
 if __name__ == "__main__":

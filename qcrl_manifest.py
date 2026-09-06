@@ -48,12 +48,12 @@ def validate_directional_analysis(manifest, metric_fields, error_type):
     stage = analysis.get("analysis_stage", "generator_screen")
     if stage not in {
         "generator_screen", "parameter_neighborhood", "single_gate",
-        "gate_attribution", "side_attribution"
+        "gate_attribution", "side_attribution", "regime_attribution"
     }:
         raise error_type(
             "directional_analysis analysis_stage must be generator_screen, "
             "parameter_neighborhood, single_gate, gate_attribution, or "
-            "side_attribution"
+            "side_attribution, or regime_attribution"
         )
     if stage == "parameter_neighborhood":
         _validate_parameter_neighborhood(analysis, error_type)
@@ -63,6 +63,8 @@ def validate_directional_analysis(manifest, metric_fields, error_type):
         _validate_gate_attribution(analysis, error_type)
     if stage == "side_attribution":
         _validate_side_attribution(analysis, error_type)
+    if stage == "regime_attribution":
+        _validate_regime_attribution(analysis, error_type)
 
 
 def _validate_parameter_neighborhood(analysis, error_type):
@@ -144,4 +146,57 @@ def _validate_side_attribution(analysis, error_type):
     }:
         raise error_type(
             "historical_regime_stress requires hypothesis_side up or down"
+        )
+
+
+def _validate_regime_attribution(analysis, error_type):
+    if "cohort_value" not in analysis:
+        raise error_type("regime_attribution requires cohort_value")
+    required = {
+        f"{direction}_{regime}_regime_{field}"
+        for direction in ["up", "down"]
+        for regime in ["positive", "nonpositive", "not_ready"]
+        for field in ["trades", "wins", "net_profit"]
+    }
+    required.update({
+        f"{direction}_{field}"
+        for direction in ["up", "down"]
+        for field in ["trades", "wins", "net_profit"]
+    })
+    missing = required - set(analysis.get("additional_metrics", []))
+    if missing:
+        raise error_type(
+            "regime_attribution requires metrics: "
+            + ", ".join(sorted(missing))
+        )
+    hypothesis = analysis.get("regime_hypothesis")
+    if not isinstance(hypothesis, dict):
+        raise error_type("regime_attribution requires regime_hypothesis")
+    if hypothesis.get("aligned_cells") != [
+        "up:positive", "down:nonpositive"
+    ]:
+        raise error_type(
+            "regime_hypothesis must predeclare ROC trend-aligned cells"
+        )
+    if hypothesis.get("counter_cells") != [
+        "up:nonpositive", "down:positive"
+    ]:
+        raise error_type(
+            "regime_hypothesis must predeclare ROC counter-trend cells"
+        )
+    for field in [
+        "minimum_ready_ratio", "minimum_win_rate_edge",
+        "minimum_supporting_labels", "minimum_cell_trades"
+    ]:
+        if field not in hypothesis or float(hypothesis[field]) <= 0:
+            raise error_type(f"regime_hypothesis requires positive {field}")
+    if float(hypothesis["minimum_ready_ratio"]) > 1:
+        raise error_type("minimum_ready_ratio cannot exceed 1")
+    if float(hypothesis["minimum_win_rate_edge"]) > 1:
+        raise error_type("minimum_win_rate_edge cannot exceed 1")
+    if int(hypothesis["minimum_supporting_labels"]) > len(
+        analysis["expected_labels"]
+    ):
+        raise error_type(
+            "minimum_supporting_labels exceeds expected label count"
         )

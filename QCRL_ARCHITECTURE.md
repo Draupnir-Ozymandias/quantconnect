@@ -135,6 +135,20 @@ Planned:
 
 ---
 
+# Regime Observers
+
+Regime observers measure prior-state context independently of filters. They
+must update after the signal decision and may not approve, reject, or resize a
+trade. This preserves the unfiltered control while testing explanations for
+behavioral variation.
+
+Current:
+
+* ROC Sign — classifies the return over a declared number of completed bars as
+  positive or nonpositive
+
+---
+
 # Stake Models
 
 Current
@@ -386,7 +400,7 @@ This enables filtering, auditing, comparison, and reproducibility.
 
 ## Current
 
-* Prior-State Regime Hypotheses
+* ROC Regime Attribution Campaign
 * Audit Database
 * Experiment Registry
 

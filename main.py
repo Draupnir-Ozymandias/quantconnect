@@ -8,6 +8,7 @@ from entry_models import EntryModelFactory
 from stake_models import StakeModelFactory
 from risk_models import RiskTracker
 from filter_models import FilterModelFactory
+from regime_models import RegimeModelFactory
 from stats_models import StatsTracker
 from metadata_models import ExperimentMetadataBuilder
 from report_models import ResearchReport
@@ -169,6 +170,18 @@ class QuantConnectResearchLab(QCAlgorithm):
         self.atr_max_pct = float(
             self.Param("atr_max_pct", LabConfig.ATR_MAX_PCT)
         )
+        self.regime_model_name = self.Param(
+            "regime_model", LabConfig.REGIME_MODEL
+        ).lower()
+        self.regime_lookback = int(
+            self.Param("regime_lookback", LabConfig.REGIME_LOOKBACK)
+        )
+        self.regime_threshold_pct = float(
+            self.Param(
+                "regime_threshold_pct",
+                LabConfig.REGIME_THRESHOLD_PCT
+            )
+        )
 
         self.enable_plots = (
             str(
@@ -289,6 +302,13 @@ class QuantConnectResearchLab(QCAlgorithm):
             self.atr_max_pct
         )
 
+        # The regime model is an observer. It never approves or rejects a trade.
+        self.regime_model = RegimeModelFactory.create(
+            self.regime_model_name,
+            self.regime_lookback,
+            self.regime_threshold_pct
+        )
+
         self.stats = StatsTracker()
 
         # Factual metadata is generated from the resolved runtime values.
@@ -401,6 +421,11 @@ class QuantConnectResearchLab(QCAlgorithm):
         filter_regime = self.filter_model.regime()
         filter_telemetry_value = self.filter_model.telemetry_value()
 
+        # Capture market context from prior completed bars. Like the filter,
+        # the observer receives the current bar only after the decision state
+        # has been captured, but unlike a filter it cannot change eligibility.
+        market_regime = self.regime_model.regime()
+
         filter_allowed = False
 
         if direction is not None and filter_ready:
@@ -410,6 +435,7 @@ class QuantConnectResearchLab(QCAlgorithm):
 
         # Current bar updates filter state only for the next bar.
         self.filter_model.update(bar)
+        self.regime_model.update(bar)
 
         if direction is None:
             self.stats.record_no_direction()
@@ -473,7 +499,8 @@ class QuantConnectResearchLab(QCAlgorithm):
             won,
             wager,
             recovery_level,
-            filter_regime
+            filter_regime,
+            market_regime
         )
 
         if self.risk.ruined:

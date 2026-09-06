@@ -28,6 +28,34 @@ class CampaignRunnerTests(unittest.TestCase):
         self.assertEqual("synthesize", args.command)
         self.assertEqual(Path("syntheses/example.json"), args.spec)
 
+    def test_roc_regime_manifest_is_observational_and_predeclared(self):
+        manifest = qcrl_campaign.load_manifest(
+            Path(__file__).parents[1]
+            / "campaigns"
+            / "btcusd_1d_candle_streak_roc_regime_attribution_2018_2025.json"
+        )
+        cases = qcrl_campaign.expand_cases(manifest)
+
+        self.assertEqual(8, len(cases))
+        self.assertEqual(
+            {"none"},
+            {case["parameters"]["filter_model"] for case in cases}
+        )
+        self.assertEqual(
+            {"flat"},
+            {case["parameters"]["stake_mode"] for case in cases}
+        )
+        self.assertEqual(
+            {"roc_sign"},
+            {case["parameters"]["regime_model"] for case in cases}
+        )
+        analysis = manifest["directional_analysis"]
+        self.assertEqual("regime_attribution", analysis["analysis_stage"])
+        self.assertEqual(
+            ["up:positive", "down:nonpositive"],
+            analysis["regime_hypothesis"]["aligned_cells"]
+        )
+
     def test_directional_stage1_manifest_is_flat_and_factor_isolated(self):
         manifest = qcrl_campaign.load_manifest(
             Path(__file__).parents[1]

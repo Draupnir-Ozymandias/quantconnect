@@ -357,6 +357,33 @@ Synthesis artifacts are written under
 `.qcrl/syntheses/btcusd-1d-candle-streak-cross-regime-sides-v1/` and remain
 local, reproducible derivatives of the authoritative campaign evidence.
 
+### Prior-state regime bridge
+
+The first explanatory hypothesis uses the sign of BTC's return over the 20
+completed daily bars preceding each signal. The regime model is observational:
+it records context but cannot approve, reject, or resize a trade. Positive
+prior return paired with an UP reversal and nonpositive prior return paired
+with a DOWN reversal are predeclared as trend-aligned cells; the other two
+cells are the counter-trend comparison.
+
+```bash
+./synch.sh campaign plan campaigns/btcusd_1d_candle_streak_roc_regime_attribution_2018_2025.json
+./synch.sh campaign run campaigns/btcusd_1d_candle_streak_roc_regime_attribution_2018_2025.json --execute --limit 1
+./synch.sh campaign run campaigns/btcusd_1d_candle_streak_roc_regime_attribution_2018_2025.json --execute
+./synch.sh campaign collect campaigns/btcusd_1d_candle_streak_roc_regime_attribution_2018_2025.json
+./synch.sh campaign validate campaigns/btcusd_1d_candle_streak_roc_regime_attribution_2018_2025.json
+./synch.sh campaign directional campaigns/btcusd_1d_candle_streak_roc_regime_attribution_2018_2025.json
+```
+
+The eight annual cases cover 2018–2025 with the same unfiltered, flat-sized,
+two-sided signal. The versioned verdict requires at least 85% regime-ready
+trades in every year, 50 pooled trades in every active side/regime cell, a
+two-percentage-point aligned win-rate edge, and positive alignment in at least
+six of eight years. These thresholds and the 20-day/zero-return boundary are
+declared before collection. A supported result would justify only a genuinely
+forward gate-validation design; it would not authorize applying the gate to
+the same discovery period.
+
 When `pair_comparison` is present, validation also writes a structured artifact
 to `.qcrl/campaigns/{campaign_id}/paired_comparison.json`. Each pair contains:
 

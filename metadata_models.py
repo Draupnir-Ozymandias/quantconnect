@@ -40,19 +40,22 @@ class ExperimentMetadataBuilder:
         stake_mode = str(
             getattr(algo, "stake_mode", "unknown")
         ).lower()
+        regime_model = str(
+            getattr(algo, "regime_model_name", "none")
+        ).lower()
 
+        group_parts = [
+            coin.lower(),
+            ExperimentMetadataBuilder._year_label(start_year, end_year),
+            timeframe,
+            entry_model,
+            filter_model,
+            stake_mode
+        ]
+        if regime_model != "none":
+            group_parts.append(regime_model)
         experiment_group = ExperimentMetadataBuilder._slug(
-            "_".join([
-                coin.lower(),
-                ExperimentMetadataBuilder._year_label(
-                    start_year,
-                    end_year
-                ),
-                timeframe,
-                entry_model,
-                filter_model,
-                stake_mode
-            ])
+            "_".join(group_parts)
         )
 
         experiment_family = ExperimentMetadataBuilder._family(algo)
@@ -133,6 +136,9 @@ class ExperimentMetadataBuilder:
         ).lower()
         stake_mode = str(
             getattr(algo, "stake_mode", "unknown")
+        ).lower()
+        regime_model = str(
+            getattr(algo, "regime_model_name", "none")
         ).lower()
 
         identity = {
@@ -220,6 +226,15 @@ class ExperimentMetadataBuilder:
                 getattr(algo, "atr_max_pct", 0)
             )
 
+        if regime_model != "none":
+            identity["regime_model"] = regime_model
+            identity["regime_lookback"] = int(
+                getattr(algo, "regime_lookback", 0)
+            )
+            identity["regime_threshold_pct"] = float(
+                getattr(algo, "regime_threshold_pct", 0)
+            )
+
         if stake_mode == "martingale":
             identity["multiplier"] = float(
                 getattr(algo, "multiplier", 0.0)
@@ -241,6 +256,9 @@ class ExperimentMetadataBuilder:
         stake_mode = str(
             getattr(algo, "stake_mode", "unknown")
         ).lower()
+        regime_model = str(
+            getattr(algo, "regime_model_name", "none")
+        ).lower()
 
         entry_family = entry_model
 
@@ -254,9 +272,10 @@ class ExperimentMetadataBuilder:
                 getattr(algo, "streak_mode", "follow")
             ).lower()
 
-        return ExperimentMetadataBuilder._slug(
-            f"{entry_family}__{filter_model}__{stake_mode}"
-        )
+        family = f"{entry_family}__{filter_model}__{stake_mode}"
+        if regime_model != "none":
+            family += f"__{regime_model}"
+        return ExperimentMetadataBuilder._slug(family)
 
     @staticmethod
     def _name(algo):
@@ -273,11 +292,12 @@ class ExperimentMetadataBuilder:
         entry_label = ExperimentMetadataBuilder._entry_label(algo)
         filter_label = ExperimentMetadataBuilder._filter_label(algo)
         stake_label = ExperimentMetadataBuilder._stake_label(algo)
-
-        return (
+        name = (
             f"{coin} {timeframe} {year_label} | "
             f"{entry_label} | {filter_label} | {stake_label}"
         )
+        regime_label = ExperimentMetadataBuilder._regime_label(algo)
+        return f"{name} | {regime_label}" if regime_label else name
 
     @staticmethod
     def _entry_label(algo):
@@ -383,6 +403,19 @@ class ExperimentMetadataBuilder:
         return stake_mode.replace("_", " ").title()
 
     @staticmethod
+    def _regime_label(algo):
+        model = str(getattr(algo, "regime_model_name", "none")).lower()
+        if model == "none":
+            return None
+        if model == "roc_sign":
+            lookback = int(getattr(algo, "regime_lookback", 0))
+            threshold = ExperimentMetadataBuilder._number_text(
+                getattr(algo, "regime_threshold_pct", 0)
+            )
+            return f"ROC Sign Observer {lookback} Bars @ {threshold}%"
+        return model.replace("_", " ").title()
+
+    @staticmethod
     def _tags(algo, start_year, end_year):
         tags = []
 
@@ -402,6 +435,9 @@ class ExperimentMetadataBuilder:
         stake_mode = str(
             getattr(algo, "stake_mode", "unknown")
         ).lower()
+        regime_model = str(
+            getattr(algo, "regime_model_name", "none")
+        ).lower()
 
         add(coin)
         add(timeframe)
@@ -412,6 +448,8 @@ class ExperimentMetadataBuilder:
         add(entry_model)
         add(filter_model)
         add(stake_mode)
+        if regime_model != "none":
+            add(f"regime_{regime_model}")
         add(str(getattr(algo, "lab_version", "unknown")))
 
         if entry_model == "fixed_bias":

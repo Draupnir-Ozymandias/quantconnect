@@ -1,7 +1,7 @@
 # QCRL Sync Log
 
 **Updated:** 2026-09-06
-**Sync version:** 2026-09-06 Cross-Regime Side Synthesis
+**Sync version:** 2026-09-06 Prior-State Regime Bridge
 **QCRL baseline:** 2.2.0  
 **Status:** Active research
 
@@ -1409,12 +1409,12 @@ or conventional forward holdout. QuantConnect documents Coinbase crypto data
 from January 2015, while the first integration case remains the definitive
 access and data-quality check for this project.
 
-Canonical storage contracts are extended to preserve every active directional
-and gate parameter:
+Canonical storage contracts are extended to preserve every active directional,
+gate, and observational-regime parameter:
 
 ```text
-qcrl.research_report.v4
-qcrl.experiment_record.v3
+qcrl.research_report.v5
+qcrl.experiment_record.v4
 ```
 
 The existing QCRL 2.2.0 baseline campaign remains reproducible because its
@@ -1464,6 +1464,52 @@ Tests completed: 71 deterministic unit tests, Python compilation, diff
 whitespace validation, and a successful synthesis against both authoritative
 local campaign reports.
 
+## 2026-09-06 prior-state regime bridge
+
+The first regime hypothesis is now declared and runnable. `regime_models.py`
+adds an observational `roc_sign` model whose state at a signal is computed only
+from closes completed before the signal bar. Its default campaign lookback is
+20 daily bars and its predeclared boundary is zero percent. The observer is
+architecturally separate from the filter layer and cannot change eligibility,
+sizing, or the two-sided signal.
+
+`StatsTracker` and the v5/v4 report contracts attribute trades, wins, losses,
+and realized wager profit to UP/DOWN × positive/nonpositive/not-ready cells.
+Eighteen scalar cell metrics are exported through QuantConnect's result API.
+Configuration identity includes regime parameters only when an observer is
+active, preserving the identity of existing no-observer experiments.
+
+The new `qcrl.regime_attribution_interpretation.v1` path verifies annual
+accounting conservation before testing one predeclared hypothesis:
+
+```text
+aligned: UP in positive 20-day drift + DOWN in nonpositive 20-day drift
+counter: UP in nonpositive drift + DOWN in positive drift
+minimum regime-ready ratio: 85% in every annual sample
+minimum active-cell evidence: 50 pooled trades per cell
+minimum pooled aligned win-rate edge: +2 percentage points
+minimum annual directional support: 6 of 8 years
+```
+
+The campaign
+`btcusd_1d_candle_streak_roc_regime_attribution_2018_2025.json` contains eight
+flat, unfiltered annual cases spanning 2018–2025. It measures all existing
+trades rather than applying a gate. If the declared hypothesis is supported,
+the only permitted advancement is a new forward gate-validation design that
+does not reuse 2018–2025 for confirmation. If rejected, the unfiltered
+two-sided signal remains intact and this ROC-alignment explanation closes.
+
+Files changed or created: `regime_models.py`, algorithm configuration and
+execution wiring, stats/report/metadata contracts, campaign collection and
+manifest validation, directional interpretation and output, the versioned
+campaign declaration, architecture/readme/sync documentation, and deterministic
+tests. No new request is imposed on Workstream A beyond preserving v5/v4
+schema compatibility. Tests completed: 77 deterministic unit tests, manifest
+expansion, metric-map parity, Python compilation, and whitespace validation.
+
+Next coding target: none until the 2018 integration case confirms QuantConnect
+compilation, API metric visibility, and regime accounting on real bars.
+
 ## Workstream A exports
 
 - QCRL 2.2.0 validated baseline reports
@@ -1500,7 +1546,9 @@ Earlier-regime stress complete: UP supported, DOWN held over 2018–2021
 Cross-regime side synthesis v1 implemented
 Directional leadership flips by era; static side restriction rejected
 Both directions retained in the daily signal
-Next: define prior-state regime hypotheses without direction restriction
+ROC-sign observer and regime-attribution verdict implemented
+2018–2025 eight-case measurement campaign declared
+Next: synchronize, run the 2018 integration case, and inspect API metrics
 ```
 
 ## Synchronization rule
@@ -1522,4 +1570,4 @@ next coding target
 
 # One-Sentence State
 
-> QCRL 2.3.0 retains both sides of the daily length-2 reversal signal after directional leadership flipped between 2018–2021 and 2022–2025; the next target is a predeclared, prior-state regime hypothesis rather than a static side restriction.
+> QCRL 2.3.0 now measures a predeclared 20-day ROC alignment hypothesis across both sides of the daily length-2 reversal signal; the next gate is the 2018 QuantConnect integration case, not parameter optimization.

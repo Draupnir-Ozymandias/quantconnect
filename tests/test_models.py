@@ -18,6 +18,7 @@ from filter_models import (
 )
 from metadata_models import ExperimentMetadataBuilder
 from risk_models import RiskTracker
+from regime_models import RocSignRegimeModel
 from stake_models import FlatStakeModel, MartingaleStakeModel
 from stats_models import StatsTracker
 
@@ -57,6 +58,9 @@ class AlgorithmConfiguration:
     atr_period = 14
     atr_min_pct = 1
     atr_max_pct = 10
+    regime_model_name = "none"
+    regime_lookback = 20
+    regime_threshold_pct = 0
     stake_mode = "flat"
     base_wager = 10.0
     initial_bankroll = 100000.0
@@ -73,6 +77,20 @@ class AlgorithmConfiguration:
 
 
 class ModelTests(unittest.TestCase):
+    def test_roc_regime_uses_only_prior_completed_bars(self):
+        model = RocSignRegimeModel(2)
+        for close in [100, 90, 110]:
+            model.update(Bar(close, close))
+
+        self.assertTrue(model.is_ready())
+        self.assertEqual("positive", model.regime())
+        self.assertAlmostEqual(10, model.telemetry_value())
+
+        # The current signal bar has not entered the observer yet.
+        self.assertEqual("positive", model.regime())
+        model.update(Bar(110, 80))
+        self.assertEqual("nonpositive", model.regime())
+
     def test_candle_streak_uses_prior_bars(self):
         model = CandleStreakEntryModel(2, "reverse")
 
@@ -203,6 +221,35 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(0, summary["down"]["net_profit"])
         self.assertEqual(10, summary["down"]["max_drawdown"])
 
+    def test_market_regime_summary_attributes_side_outcomes(self):
+        stats = StatsTracker()
+        stats.record_trade_result(
+            "up", True, 10, 0, "none", "positive"
+        )
+        stats.record_trade_result(
+            "up", False, 10, 0, "none", "nonpositive"
+        )
+        stats.record_trade_result(
+            "down", False, 10, 0, "none", "not_ready"
+        )
+
+        summary = stats.market_regime_summary()
+        self.assertEqual(10, summary["up"]["positive"]["net_profit"])
+        self.assertEqual(-10, summary["up"]["nonpositive"]["net_profit"])
+        self.assertEqual(1, summary["down"]["not_ready"]["losses"])
+
+    def test_metadata_tracks_active_regime_parameters(self):
+        first = AlgorithmConfiguration()
+        second = AlgorithmConfiguration()
+        first.regime_model_name = "roc_sign"
+        second.regime_model_name = "roc_sign"
+        second.regime_lookback = 30
+
+        self.assertNotEqual(
+            ExperimentMetadataBuilder.build(first)["experiment_id"],
+            ExperimentMetadataBuilder.build(second)["experiment_id"]
+        )
+
     def test_metadata_ignores_inactive_parameters(self):
         first = AlgorithmConfiguration()
         second = AlgorithmConfiguration()
@@ -212,6 +259,8 @@ class ModelTests(unittest.TestCase):
         second.rsi_period = 7
         second.adx_threshold = 40
         second.atr_min_pct = 2
+        second.regime_lookback = 90
+        second.regime_threshold_pct = 5
         second.multiplier = 9
         second.max_steps = 99
 

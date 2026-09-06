@@ -88,6 +88,24 @@ def print_directional_report(report, artifact_path, report_path):
                 f"{side['run_count']}"
             )
 
+    regime = report.get("regime_attribution_interpretation")
+    if regime:
+        print(
+            "Prior-state regime attribution: "
+            f"verdict={regime['verdict']} "
+            f"ready={regime['ready_ratio']:.2%} "
+            f"aligned_edge={regime['pooled_win_rate_edge']:+.2%} "
+            f"supporting={regime['supporting_labels']}/"
+            f"{len(regime['annual_results'])}"
+        )
+        for name in ["aligned", "counter", "not_ready"]:
+            values = regime["pooled"][name]
+            print(
+                f"  {name}: profit={values['net_profit']:+g} "
+                f"win_rate={values['win_rate']:.2%} "
+                f"trades={values['trades']:g}"
+            )
+
     print(f"Next action: {report['decision_summary']['next_action']}")
     print(f"Directional evidence: {artifact_path}")
     print(f"Directional report:   {report_path}")

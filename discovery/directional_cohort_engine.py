@@ -19,6 +19,7 @@ class DirectionalCohortEngine:
     SINGLE_GATE_VERSION = "qcrl.single_gate_interpretation.v1"
     ATTRIBUTION_VERSION = "qcrl.gate_attribution_interpretation.v1"
     SIDE_ATTRIBUTION_VERSION = "qcrl.side_attribution_interpretation.v1"
+    REGIME_ATTRIBUTION_VERSION = "qcrl.regime_attribution_interpretation.v1"
     SIDE_THRESHOLDS = {
         "minimum_total_trades": 100,
         "minimum_trades_per_sample": 20,
@@ -94,6 +95,7 @@ class DirectionalCohortEngine:
         single_gate = None
         attribution = None
         side_attribution = None
+        regime_attribution = None
         if stage == "parameter_neighborhood":
             neighborhood = self._interpret_neighborhood(results, artifact)
             next_action = neighborhood["next_action"]
@@ -106,6 +108,9 @@ class DirectionalCohortEngine:
         elif stage == "side_attribution":
             side_attribution = self._interpret_sides(artifact)
             next_action = side_attribution["next_action"]
+        elif stage == "regime_attribution":
+            regime_attribution = self._interpret_regime(artifact)
+            next_action = regime_attribution["next_action"]
         elif advance:
             next_action = "advance_candidates_to_single_gate_stage"
         elif hold:
@@ -167,6 +172,9 @@ class DirectionalCohortEngine:
             report["decision_summary"]["selected_candidates"] = (
                 side_attribution["selected_sides"]
             )
+        if regime_attribution is not None:
+            report["regime_attribution_interpretation"] = regime_attribution
+            report["decision_summary"]["selected_candidates"] = []
         return report
 
     def _validate_artifact(self, artifact):
@@ -249,6 +257,12 @@ class DirectionalCohortEngine:
             if set(keys) != {cohort_value}:
                 raise DirectionalCohortError(
                     "Side attribution requires exactly its declared cohort"
+                )
+        if artifact.get("analysis_stage") == "regime_attribution":
+            cohort_value = artifact.get("cohort_value")
+            if set(keys) != {cohort_value}:
+                raise DirectionalCohortError(
+                    "Regime attribution requires exactly its declared cohort"
                 )
 
     def _interpret_neighborhood(self, results, artifact):
@@ -811,6 +825,149 @@ class DirectionalCohortEngine:
             "thresholds": dict(self.SIDE_THRESHOLDS),
             "next_action": next_action
         }
+
+    def _interpret_regime(self, artifact):
+        """Test a predeclared trend-alignment hypothesis without gating trades."""
+        cohort = artifact["cohorts"][0]
+        records = {item["label"]: item for item in cohort["records"]}
+        expected_labels = artifact["expected_labels"]
+        hypothesis = artifact["regime_hypothesis"]
+        annual = []
+        pooled = {
+            name: {"trades": 0.0, "wins": 0.0, "net_profit": 0.0}
+            for name in ["aligned", "counter", "not_ready"]
+        }
+        cells = {
+            f"{direction}:{regime}": {
+                "trades": 0.0, "wins": 0.0, "net_profit": 0.0
+            }
+            for direction in ["up", "down"]
+            for regime in ["positive", "nonpositive"]
+        }
+        for label in expected_labels:
+            record = records.get(label)
+            if record is None:
+                continue
+            groups = {
+                "aligned": [("up", "positive"), ("down", "nonpositive")],
+                "counter": [("up", "nonpositive"), ("down", "positive")],
+                "not_ready": [("up", "not_ready"), ("down", "not_ready")]
+            }
+            values = {}
+            for name, members in groups.items():
+                values[name] = self._sum_regime_cells(record, members)
+                for field in pooled[name]:
+                    pooled[name][field] += values[name][field]
+            for direction in ["up", "down"]:
+                side_totals = self._sum_regime_cells(record, [
+                    (direction, regime)
+                    for regime in ["positive", "nonpositive", "not_ready"]
+                ])
+                for field, side_field in [
+                    ("trades", "trades"), ("wins", "wins"),
+                    ("net_profit", "net_profit")
+                ]:
+                    if not math.isclose(
+                        side_totals[field], float(record[f"{direction}_{side_field}"])
+                    ):
+                        raise DirectionalCohortError(
+                            f"Regime cells do not conserve {direction} {field} "
+                            f"for {label}"
+                        )
+                for regime in ["positive", "nonpositive"]:
+                    cell = self._sum_regime_cells(record, [(direction, regime)])
+                    target = cells[f"{direction}:{regime}"]
+                    for field in target:
+                        target[field] += cell[field]
+            ready_trades = values["aligned"]["trades"] + values["counter"]["trades"]
+            total_trades = ready_trades + values["not_ready"]["trades"]
+            aligned_rate = self._safe_ratio(
+                values["aligned"]["wins"], values["aligned"]["trades"]
+            )
+            counter_rate = self._safe_ratio(
+                values["counter"]["wins"], values["counter"]["trades"]
+            )
+            annual.append({
+                "label": label,
+                "case_id": record["case_id"],
+                "run_id": record["run_id"],
+                "ready_ratio": self._safe_ratio(ready_trades, total_trades),
+                "aligned": values["aligned"],
+                "counter": values["counter"],
+                "not_ready": values["not_ready"],
+                "aligned_win_rate": aligned_rate,
+                "counter_win_rate": counter_rate,
+                "win_rate_edge": aligned_rate - counter_rate
+            })
+
+        for values in [*cells.values(), *pooled.values()]:
+            values["win_rate"] = self._safe_ratio(
+                values["wins"], values["trades"]
+            )
+        ready_trades = pooled["aligned"]["trades"] + pooled["counter"]["trades"]
+        all_trades = ready_trades + pooled["not_ready"]["trades"]
+        pooled_edge = (
+            pooled["aligned"]["win_rate"] - pooled["counter"]["win_rate"]
+        )
+        supporting_labels = sum(item["win_rate_edge"] > 0 for item in annual)
+        checks = {
+            "complete_coverage": len(annual) == len(expected_labels),
+            "ready_ratio_sufficient_in_every_label": all(
+                item["ready_ratio"] >= hypothesis["minimum_ready_ratio"]
+                for item in annual
+            ),
+            "every_active_cell_sufficient": all(
+                item["trades"] >= hypothesis["minimum_cell_trades"]
+                for item in cells.values()
+            ),
+            "pooled_win_rate_edge_sufficient": (
+                pooled_edge >= hypothesis["minimum_win_rate_edge"]
+            ),
+            "aligned_profit_exceeds_counter": (
+                pooled["aligned"]["net_profit"]
+                > pooled["counter"]["net_profit"]
+            ),
+            "supporting_labels_sufficient": (
+                supporting_labels >= hypothesis["minimum_supporting_labels"]
+            )
+        }
+        evidence_complete = all([
+            checks["complete_coverage"],
+            checks["ready_ratio_sufficient_in_every_label"],
+            checks["every_active_cell_sufficient"]
+        ])
+        if all(checks.values()):
+            verdict = "supported"
+            next_action = "design_forward_roc_alignment_gate"
+        elif not evidence_complete:
+            verdict = "inconclusive"
+            next_action = "repair_or_expand_regime_telemetry"
+        else:
+            verdict = "rejected"
+            next_action = "retain_unfiltered_signal_and_reject_roc_alignment"
+        return {
+            "schema_version": self.REGIME_ATTRIBUTION_VERSION,
+            "cohort_value": artifact["cohort_value"],
+            "hypothesis": hypothesis,
+            "verdict": verdict,
+            "checks": checks,
+            "annual_results": annual,
+            "cells": cells,
+            "pooled": pooled,
+            "ready_ratio": self._safe_ratio(ready_trades, all_trades),
+            "pooled_win_rate_edge": pooled_edge,
+            "supporting_labels": supporting_labels,
+            "next_action": next_action
+        }
+
+    @staticmethod
+    def _sum_regime_cells(record, members):
+        result = {"trades": 0.0, "wins": 0.0, "net_profit": 0.0}
+        for direction, regime in members:
+            prefix = f"{direction}_{regime}_regime_"
+            for field in result:
+                result[field] += float(record[prefix + field])
+        return result
 
     @staticmethod
     def _records_equivalent(first, second, fields):

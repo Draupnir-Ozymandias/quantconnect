@@ -50,6 +50,7 @@ ENTRY_MODELS = {
     "candle_streak", "ema_trend", "macd_trend", "rsi_mean_reversion"
 }
 FILTER_MODELS = {"none", "ema_trend", "adx_strength", "atr_volatility"}
+REGIME_MODELS = {"none", "roc_sign"}
 STAKE_MODES = {"flat", "martingale"}
 ALLOWED_PARAMETERS = {
     "start_year", "start_month", "start_day",
@@ -62,6 +63,7 @@ ALLOWED_PARAMETERS = {
     "rsi_period", "rsi_oversold", "rsi_overbought",
     "adx_period", "adx_threshold",
     "atr_period", "atr_min_pct", "atr_max_pct",
+    "regime_model", "regime_lookback", "regime_threshold_pct",
     "enable_plots", "plot_every_n_bars", "lab_version", "run_notes"
 }
 QCRL_STATISTICS = {
@@ -97,21 +99,24 @@ QCRL_STATISTICS = {
     "QCRL Down Signals": "down_signals",
     "QCRL Up Executed": "up_executed",
     "QCRL Down Executed": "down_executed",
-    "QCRL Up Trades": "up_trades",
-    "QCRL Up Wins": "up_wins",
-    "QCRL Up Losses": "up_losses",
-    "QCRL Up Win Rate": "up_win_rate",
-    "QCRL Up Net Profit": "up_net_profit",
-    "QCRL Up Max Drawdown": "up_max_drawdown",
-    "QCRL Up Max Loss Streak": "up_max_loss_streak",
-    "QCRL Down Trades": "down_trades",
-    "QCRL Down Wins": "down_wins",
-    "QCRL Down Losses": "down_losses",
-    "QCRL Down Win Rate": "down_win_rate",
-    "QCRL Down Net Profit": "down_net_profit",
-    "QCRL Down Max Drawdown": "down_max_drawdown",
-    "QCRL Down Max Loss Streak": "down_max_loss_streak"
 }
+for _direction in ["up", "down"]:
+    for _field in [
+        "trades", "wins", "losses", "win_rate", "net_profit",
+        "max_drawdown", "max_loss_streak"
+    ]:
+        _label = f"QCRL {_direction.title()} {_field.replace('_', ' ').title()}"
+        QCRL_STATISTICS[_label] = f"{_direction}_{_field}"
+    for _regime in ["positive", "nonpositive", "not_ready"]:
+        for _field in ["trades", "wins", "net_profit"]:
+            _label = (
+                f"QCRL {_direction.title()} "
+                f"{_regime.replace('_', ' ').title()} Regime "
+                f"{_field.replace('_', ' ').title()}"
+            )
+            QCRL_STATISTICS[_label] = (
+                f"{_direction}_{_regime}_regime_{_field}"
+            )
 
 
 class CampaignError(RuntimeError):
@@ -271,6 +276,9 @@ def validate_parameters(parameters):
         raise CampaignError(f"Unknown entry_model: {entry_model}")
     if filter_model not in FILTER_MODELS:
         raise CampaignError(f"Unknown filter_model: {filter_model}")
+    regime_model = str(parameters.get("regime_model", "none")).lower()
+    if regime_model not in REGIME_MODELS:
+        raise CampaignError(f"Unknown regime_model: {regime_model}")
     stake_mode = str(parameters.get("stake_mode", "")).lower()
     if stake_mode not in STAKE_MODES:
         raise CampaignError(f"Unknown stake_mode: {stake_mode}")
@@ -331,6 +339,9 @@ def validate_parameters(parameters):
                 "ATR thresholds must satisfy "
                 "0 <= atr_min_pct < atr_max_pct"
             )
+    if regime_model == "roc_sign":
+        if int(parameters.get("regime_lookback", 0)) < 1:
+            raise CampaignError("regime_lookback must be positive")
     if float(parameters.get("base_wager", 1)) <= 0:
         raise CampaignError("base_wager must be positive")
     if float(parameters.get("bankroll", 1)) <= 0:
@@ -1489,6 +1500,7 @@ def build_directional_cohort_artifact(manifest, state, cases):
         "cohort_value": config.get("cohort_value"),
         "evidence_role": config.get("evidence_role", "discovery"),
         "hypothesis_side": config.get("hypothesis_side"),
+        "regime_hypothesis": config.get("regime_hypothesis"),
         "candidate_values": config.get("candidate_values", []),
         "additional_metrics": config.get("additional_metrics", []),
         "expected_labels": config["expected_labels"],

@@ -15,8 +15,8 @@ from metadata_models import ExperimentMetadataBuilder
 
 
 class ResearchReport:
-    REPORT_SCHEMA_VERSION = "qcrl.research_report.v4"
-    RECORD_SCHEMA_VERSION = "qcrl.experiment_record.v3"
+    REPORT_SCHEMA_VERSION = "qcrl.research_report.v5"
+    RECORD_SCHEMA_VERSION = "qcrl.experiment_record.v4"
 
     # Storage layout remains v2 for backward compatibility.
     REPORT_PREFIX = "qcrl/v2/experiments"
@@ -195,6 +195,10 @@ class ResearchReport:
                 "atr_period": algo.atr_period,
                 "atr_min_pct": algo.atr_min_pct,
                 "atr_max_pct": algo.atr_max_pct,
+                "regime_model": algo.regime_model.name(),
+                "regime_model_type": algo.regime_model_name,
+                "regime_lookback": algo.regime_lookback,
+                "regime_threshold_pct": algo.regime_threshold_pct,
                 "base_wager": algo.base_wager,
                 "bankroll": algo.initial_bankroll,
                 "multiplier": algo.multiplier,
@@ -260,6 +264,7 @@ class ResearchReport:
                 "up_executed": stats.up_executed,
                 "down_executed": stats.down_executed,
                 "direction_stats": stats.direction_summary(),
+                "market_regime_stats": stats.market_regime_summary(),
                 "executed_wins": stats.executed_wins,
                 "executed_losses": stats.executed_losses,
                 "executed_win_rate": stats.executed_win_rate(),
@@ -426,6 +431,7 @@ class ResearchReport:
         direction_stats = analytics.get("direction_stats", {})
         up_stats = direction_stats.get("up", {})
         down_stats = direction_stats.get("down", {})
+        market_regime_stats = analytics.get("market_regime_stats", {})
         scores = report.get("scores", {})
 
         record = {
@@ -525,6 +531,12 @@ class ResearchReport:
             "atr_period": configuration.get("atr_period"),
             "atr_min_pct": configuration.get("atr_min_pct"),
             "atr_max_pct": configuration.get("atr_max_pct"),
+            "regime_model": configuration.get("regime_model"),
+            "regime_model_type": configuration.get("regime_model_type"),
+            "regime_lookback": configuration.get("regime_lookback"),
+            "regime_threshold_pct": configuration.get(
+                "regime_threshold_pct"
+            ),
             "base_wager": configuration.get("base_wager"),
             "bankroll": configuration.get("bankroll"),
             "multiplier": configuration.get("multiplier"),
@@ -621,6 +633,15 @@ class ResearchReport:
                 "tail_risk_score"
             )
         }
+
+        for direction in ["up", "down"]:
+            for regime in ["positive", "nonpositive", "not_ready"]:
+                values = market_regime_stats.get(
+                    direction, {}
+                ).get(regime, {})
+                prefix = f"{direction}_{regime}_regime"
+                for field in ["trades", "wins", "losses", "net_profit"]:
+                    record[f"{prefix}_{field}"] = values.get(field, 0)
 
         record["objectstore_report_key"] = (
             ResearchReport.object_store_report_key(report)
@@ -737,6 +758,18 @@ class ResearchReport:
             "QCRL Down Max Drawdown": "down_max_drawdown",
             "QCRL Down Max Loss Streak": "down_max_loss_streak"
         }
+
+        for direction in ["up", "down"]:
+            title_direction = direction.title()
+            for regime in ["positive", "nonpositive", "not_ready"]:
+                title_regime = regime.replace("_", " ").title()
+                for field in ["trades", "wins", "net_profit"]:
+                    label = (
+                        f"QCRL {title_direction} {title_regime} "
+                        f"Regime {field.replace('_', ' ').title()}"
+                    )
+                    key = f"{direction}_{regime}_regime_{field}"
+                    fields[label] = key
 
         return {
             label: record.get(field)

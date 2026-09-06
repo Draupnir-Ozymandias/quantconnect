@@ -25,6 +25,12 @@ class LabConfig:
     ATR_MIN_PCT = 1
     ATR_MAX_PCT = 10
 
+    # Observational only: records prior-state market context without gating.
+    # none, roc_sign
+    REGIME_MODEL = "none"
+    REGIME_LOOKBACK = 20
+    REGIME_THRESHOLD_PCT = 0
+
     # fixed_bias, previous_candle, previous_candle_reverse, candle_streak,
     # ema_trend, macd_trend, rsi_mean_reversion
     ENTRY_MODEL = "candle_streak"

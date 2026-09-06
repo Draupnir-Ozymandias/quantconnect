@@ -36,6 +36,13 @@ class StatsTracker:
             "up": self._new_direction_stats(),
             "down": self._new_direction_stats()
         }
+        self.market_regime_stats = {
+            direction: {
+                regime: self._new_market_regime_stats()
+                for regime in ["positive", "nonpositive", "not_ready"]
+            }
+            for direction in ["up", "down"]
+        }
 
     @staticmethod
     def _new_direction_stats():
@@ -50,6 +57,10 @@ class StatsTracker:
             "current_loss_streak": 0,
             "max_loss_streak": 0
         }
+
+    @staticmethod
+    def _new_market_regime_stats():
+        return {"trades": 0, "wins": 0, "losses": 0, "net_profit": 0}
 
     def record_bar(self):
         self.bars_seen += 1
@@ -98,7 +109,8 @@ class StatsTracker:
         won,
         wager,
         recovery_level,
-        regime
+        regime,
+        market_regime="unobserved"
     ):
         if won:
             self.executed_wins += 1
@@ -130,6 +142,16 @@ class StatsTracker:
             side["max_drawdown"],
             side["peak_profit"] - side["net_profit"]
         )
+
+        if market_regime in self.market_regime_stats[direction]:
+            context = self.market_regime_stats[direction][market_regime]
+            context["trades"] += 1
+            if won:
+                context["wins"] += 1
+                context["net_profit"] += wager
+            else:
+                context["losses"] += 1
+                context["net_profit"] -= wager
 
         self.recovery_level_counts[recovery_level] = (
             self.recovery_level_counts.get(recovery_level, 0) + 1
@@ -226,6 +248,15 @@ class StatsTracker:
                 "max_loss_streak": side["max_loss_streak"]
             }
         return summary
+
+    def market_regime_summary(self):
+        return {
+            direction: {
+                regime: dict(values)
+                for regime, values in regimes.items()
+            }
+            for direction, regimes in self.market_regime_stats.items()
+        }
 
     def recovery_level_text(self):
         if len(self.recovery_level_counts) == 0:

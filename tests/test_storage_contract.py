@@ -80,6 +80,10 @@ def sample_report(run_id="run-2025-flat"):
             "atr_period": 14,
             "atr_min_pct": 1,
             "atr_max_pct": 10,
+            "regime_model": "roc_sign_20_0",
+            "regime_model_type": "roc_sign",
+            "regime_lookback": 20,
+            "regime_threshold_pct": 0,
             "base_wager": 10,
             "bankroll": 100000,
             "multiplier": 2,
@@ -155,6 +159,36 @@ def sample_report(run_id="run-2025-flat"):
                     "max_drawdown": 40,
                     "max_loss_streak": 4
                 }
+            },
+            "market_regime_stats": {
+                "up": {
+                    "positive": {
+                        "trades": 20, "wins": 14,
+                        "losses": 6, "net_profit": 80
+                    },
+                    "nonpositive": {
+                        "trades": 8, "wins": 4,
+                        "losses": 4, "net_profit": 0
+                    },
+                    "not_ready": {
+                        "trades": 2, "wins": 1,
+                        "losses": 1, "net_profit": 0
+                    }
+                },
+                "down": {
+                    "positive": {
+                        "trades": 10, "wins": 5,
+                        "losses": 5, "net_profit": 0
+                    },
+                    "nonpositive": {
+                        "trades": 16, "wins": 10,
+                        "losses": 6, "net_profit": 40
+                    },
+                    "not_ready": {
+                        "trades": 2, "wins": 1,
+                        "losses": 1, "net_profit": 0
+                    }
+                }
             }
         },
         "scores": {
@@ -203,6 +237,12 @@ class StorageContractTests(unittest.TestCase):
         self.assertEqual(80, statistics["QCRL Up Net Profit"])
         self.assertEqual(16, statistics["QCRL Down Wins"])
         self.assertEqual(4, statistics["QCRL Down Max Loss Streak"])
+        self.assertEqual(
+            20, statistics["QCRL Up Positive Regime Trades"]
+        )
+        self.assertEqual(
+            40, statistics["QCRL Down Nonpositive Regime Net Profit"]
+        )
         self.assertEqual("run-2025-flat", statistics["QCRL Run Id"])
 
     def test_explicit_save_failure_is_truthful(self):
