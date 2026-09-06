@@ -80,6 +80,8 @@ QCRL_STATISTICS = {
     "QCRL Tail Risk Score": "tail_risk_score",
     "QCRL Signals Generated": "signals_generated",
     "QCRL Signals Executed": "signals_executed",
+    "QCRL Filter Not Ready": "skipped_filter_not_ready",
+    "QCRL Filter Rejected": "skipped_filter_rejected",
     "QCRL Up Signals": "up_signals",
     "QCRL Down Signals": "down_signals",
     "QCRL Up Executed": "up_executed",
@@ -175,6 +177,19 @@ def validate_directional_analysis(manifest):
         raise CampaignError(
             "directional_analysis limitations must be an array of strings"
         )
+    additional_metrics = analysis.get("additional_metrics", [])
+    if not isinstance(additional_metrics, list) or any(
+        not isinstance(value, str) for value in additional_metrics
+    ):
+        raise CampaignError(
+            "directional_analysis additional_metrics must be an array of strings"
+        )
+    unknown_metrics = set(additional_metrics) - set(QCRL_STATISTICS.values())
+    if unknown_metrics:
+        raise CampaignError(
+            "Unknown directional additional_metrics: "
+            + ", ".join(sorted(unknown_metrics))
+        )
     stage = analysis.get("analysis_stage", "generator_screen")
     if stage not in {
         "generator_screen", "parameter_neighborhood", "single_gate"
@@ -199,6 +214,15 @@ def validate_directional_analysis(manifest):
             raise CampaignError("candidate_value must be in core_values")
         if set(core_values) & set(tail_values):
             raise CampaignError("core_values and tail_values cannot overlap")
+    if stage == "single_gate":
+        for field in ["control_value", "candidate_values"]:
+            if field not in analysis:
+                raise CampaignError(f"single_gate analysis requires {field}")
+        candidates = analysis["candidate_values"]
+        if not isinstance(candidates, list) or not candidates:
+            raise CampaignError("candidate_values must be a non-empty array")
+        if analysis["control_value"] in candidates:
+            raise CampaignError("control_value cannot be a candidate_value")
 
 
 def validate_cohort_rankings(manifest):
@@ -754,6 +778,9 @@ def required_metric_fields(manifest):
         fields.update(PAIR_COMPARISON_FIELDS)
     if manifest.get("directional_analysis"):
         fields.update(DIRECTIONAL_COHORT_FIELDS)
+        fields.update(
+            manifest["directional_analysis"].get("additional_metrics", [])
+        )
     return fields
 
 
@@ -1463,7 +1490,7 @@ def build_directional_cohort_artifact(manifest, state, cases):
                 f"{group_key} contains duplicate label {label}"
             )
             continue
-        records[label] = {
+        record = {
             "label": label,
             "case_id": run["case_id"],
             "run_id": metrics["run_id"],
@@ -1482,6 +1509,9 @@ def build_directional_cohort_artifact(manifest, state, cases):
                 run["parameters"].get("base_wager")
             )
         }
+        for field in config.get("additional_metrics", []):
+            record[field] = metrics[field]
+        records[label] = record
 
     cohorts = []
     for group_key in sorted(groups, key=str):
@@ -1506,6 +1536,9 @@ def build_directional_cohort_artifact(manifest, state, cases):
         "candidate_value": config.get("candidate_value"),
         "core_values": config.get("core_values", []),
         "tail_values": config.get("tail_values", []),
+        "control_value": config.get("control_value"),
+        "candidate_values": config.get("candidate_values", []),
+        "additional_metrics": config.get("additional_metrics", []),
         "expected_labels": config["expected_labels"],
         "required_parameters": required_parameters,
         "limitations": config.get("limitations", []),
@@ -1567,6 +1600,22 @@ def run_directional_analysis(manifest, cases):
             f"value={neighborhood['selected_value']} "
             f"support={neighborhood['supporting_values']}"
         )
+    single_gate = report.get("single_gate_interpretation")
+    if single_gate:
+        print("Single-gate control comparison:")
+        for comparison in single_gate["comparisons"]:
+            print(
+                f"  {comparison['candidate_value']}: "
+                f"decision={comparison['decision']} "
+                f"profit_delta={comparison['total_net_profit_delta']:+g} "
+                f"win_rate_delta="
+                f"{comparison['weighted_win_rate_delta']:+.2%} "
+                f"trade_retention="
+                f"{comparison['total_trade_retention_ratio']:.2%} "
+                f"improved_labels="
+                f"{comparison['profit_improved_labels']}/"
+                f"{comparison['paired_label_count']}"
+            )
     print(f"Next action: {summary['next_action']}")
     print(f"Directional evidence: {artifact_path}")
     print(f"Directional report:   {report_path}")

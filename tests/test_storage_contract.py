@@ -115,6 +115,8 @@ def sample_report(run_id="run-2025-flat"):
             "signals_executed": 58,
             "execution_rate": 0.58,
             "filter_rate": 0.42,
+            "skipped_filter_not_ready": 14,
+            "skipped_filter_rejected": 28,
             "executed_win_rate": 35 / 58,
             "total_wagered": 580,
             "average_wager": 10,
@@ -161,6 +163,8 @@ class StorageContractTests(unittest.TestCase):
         self.assertEqual(120, statistics["QCRL Net Profit"])
         self.assertEqual(0.39, statistics["QCRL Risk Adjusted Score"])
         self.assertEqual(52, statistics["QCRL Up Signals"])
+        self.assertEqual(14, statistics["QCRL Filter Not Ready"])
+        self.assertEqual(28, statistics["QCRL Filter Rejected"])
         self.assertEqual("run-2025-flat", statistics["QCRL Run Id"])
 
     def test_explicit_save_failure_is_truthful(self):

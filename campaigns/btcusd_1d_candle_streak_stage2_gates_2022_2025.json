@@ -109,6 +109,11 @@
     "analysis_stage": "single_gate",
     "group_field": "filter_model",
     "label_field": "start_year",
+    "control_value": "none",
+    "candidate_values": [
+      "adx_strength",
+      "atr_volatility"
+    ],
     "expected_labels": [
       2022,
       2023,

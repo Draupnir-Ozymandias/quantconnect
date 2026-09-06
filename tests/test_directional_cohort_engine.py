@@ -108,6 +108,70 @@ def neighborhood_artifact():
     }
 
 
+def single_gate_artifact():
+    source = directional_artifact()["cohorts"][0]["records"]
+    settings = {
+        "none": {
+            "profits": [120, 70, 90, 210],
+            "wins": [95, 86, 88, 100],
+            "trades": [178, 165, 167, 179],
+            "drawdowns": [150, 80, 130, 50],
+            "loss_streaks": [6, 6, 6, 5]
+        },
+        "adx_strength": {
+            "profits": [-20, 60, 40, 130],
+            "wins": [35, 52, 35, 45],
+            "trades": [72, 98, 66, 77],
+            "drawdowns": [100, 60, 50, 30],
+            "loss_streaks": [5, 5, 4, 3]
+        },
+        "atr_volatility": {
+            "profits": [130, 120, 70, 240],
+            "wins": [92, 84, 85, 97],
+            "trades": [171, 156, 163, 170],
+            "drawdowns": [150, 60, 130, 50],
+            "loss_streaks": [6, 6, 6, 5]
+        }
+    }
+    cohorts = []
+    for gate, values in settings.items():
+        records = copy.deepcopy(source)
+        for index, record in enumerate(records):
+            trades = values["trades"][index]
+            wins = values["wins"][index]
+            drawdown = values["drawdowns"][index]
+            record.update({
+                "case_id": f"{record['label']}-{gate}",
+                "run_id": f"run-{record['label']}-{gate}",
+                "net_profit": values["profits"][index],
+                "wins": wins,
+                "trades": trades,
+                "win_rate": wins / trades,
+                "max_drawdown": drawdown,
+                "drawdown_in_base_wagers": drawdown / 10,
+                "max_loss_streak": values["loss_streaks"][index],
+                "skipped_filter_not_ready": 0 if gate == "none" else 7,
+                "skipped_filter_rejected": 0 if gate == "none" else 3
+            })
+        cohorts.append({"group_key": gate, "records": records})
+    return {
+        "schema_version": "qcrl.directional_cohort.v1",
+        "campaign_id": "single-gate",
+        "case_set_hash": "gate123",
+        "analysis_stage": "single_gate",
+        "group_field": "filter_model",
+        "label_field": "start_year",
+        "control_value": "none",
+        "candidate_values": ["adx_strength", "atr_volatility"],
+        "additional_metrics": [
+            "skipped_filter_not_ready", "skipped_filter_rejected"
+        ],
+        "expected_labels": [2022, 2023, 2024, 2025],
+        "validation": {"valid": True, "issue_count": 0, "issues": []},
+        "cohorts": cohorts
+    }
+
+
 class DirectionalCohortEngineTests(unittest.TestCase):
     def test_real_stage1_shape_produces_family_decisions(self):
         report = DirectionalCohortEngine().analyze(directional_artifact())
@@ -216,15 +280,26 @@ class DirectionalCohortEngineTests(unittest.TestCase):
         )
 
     def test_single_gate_stage_requires_control_comparison(self):
-        artifact = directional_artifact()
-        artifact["analysis_stage"] = "single_gate"
-
-        report = DirectionalCohortEngine().analyze(artifact)
+        report = DirectionalCohortEngine().analyze(single_gate_artifact())
+        interpretation = report["single_gate_interpretation"]
+        comparisons = {
+            item["candidate_value"]: item
+            for item in interpretation["comparisons"]
+        }
 
         self.assertEqual(
-            "compare_single_gate_cohorts_to_unfiltered_control",
+            "run_selected_gate_parameter_neighborhood",
             report["decision_summary"]["next_action"]
         )
+        self.assertEqual(["atr_volatility"], interpretation["selected_candidates"])
+        self.assertEqual("advance", comparisons["atr_volatility"]["decision"])
+        self.assertEqual(70, comparisons["atr_volatility"]["total_net_profit_delta"])
+        self.assertEqual(
+            7,
+            comparisons["atr_volatility"]["paired_labels"][0]
+            ["additional_metrics"]["skipped_filter_not_ready"]["candidate"]
+        )
+        self.assertEqual("reject", comparisons["adx_strength"]["decision"])
 
 
 if __name__ == "__main__":

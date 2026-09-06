@@ -217,6 +217,31 @@ trio; executed trades may differ because filtering is the factor under test.
 EMA and composite filters, filter-parameter optimization, and recovery sizing
 remain outside this campaign.
 
+Stage 2 completed with 12/12 authoritative API results and no pair issues. The
+versioned `qcrl.single_gate_interpretation.v1` comparison selected ATR and
+rejected ADX at the tested defaults. Relative to the unfiltered control, ATR
+added 70 units of aggregate profit, improved weighted win rate by 0.69
+percentage points, retained 95.79% of trades, improved profit in three of four
+years, and did not increase worst drawdown. ADX lost 280 units relative to the
+control and retained only 45.43% of trades.
+
+Before tuning ATR thresholds, run the attribution campaign:
+
+```bash
+./synch.sh campaign plan campaigns/btcusd_1d_atr_gate_attribution_2022_2025.json
+./synch.sh campaign run campaigns/btcusd_1d_atr_gate_attribution_2022_2025.json --execute --limit 1
+./synch.sh campaign run campaigns/btcusd_1d_atr_gate_attribution_2022_2025.json --execute
+./synch.sh campaign collect campaigns/btcusd_1d_atr_gate_attribution_2022_2025.json
+./synch.sh campaign validate campaigns/btcusd_1d_atr_gate_attribution_2022_2025.json
+./synch.sh campaign directional campaigns/btcusd_1d_atr_gate_attribution_2022_2025.json
+```
+
+Its 20 cases separate the unfiltered control, ATR warmup only, lower bound
+only, upper bound only, and the default 1%–10% band across all four years. New
+summary metrics distinguish signals skipped while ATR was not ready from those
+actually rejected by its bounds. This determines which component, if any,
+deserves a parameter neighborhood.
+
 When `pair_comparison` is present, validation also writes a structured artifact
 to `.qcrl/campaigns/{campaign_id}/paired_comparison.json`. Each pair contains:
 

@@ -1,7 +1,7 @@
 # QCRL Sync Log
 
 **Updated:** 2026-09-05
-**Sync version:** 2026-09-05 Neighborhood Decision and Stage 2 Gate
+**Sync version:** 2026-09-05 Stage 2 Gate and ATR Attribution
 **QCRL baseline:** 2.2.0  
 **Status:** Active research
 
@@ -1302,6 +1302,36 @@ It tests each gate independently against the unfiltered control and validates
 that generated UP/DOWN signal counts are unchanged. Composite gates, parameter
 optimization, and recovery sizing remain gated.
 
+## 2026-09-05 Stage 2 result and attribution gate
+
+The 12-case Stage 2 campaign is fully API-collected and valid. The versioned
+`qcrl.single_gate_interpretation.v1` layer compares each gate with the
+same-year unfiltered control under predeclared evidence thresholds.
+
+```text
+ATR: advance | profit delta +70 | weighted win-rate delta +0.69 pp
+             | trade retention 95.79% | improved years 3/4
+ADX: reject  | profit delta -280 | weighted win-rate delta -0.20 pp
+             | trade retention 45.43% | improved years 0/4
+```
+
+ATR did not increase worst drawdown, but its final cohort score remained nearly
+equal to the control because win-rate consistency was slightly lower. The gate
+therefore advances only to attribution and parameter-neighborhood research.
+
+The default ATR band removed 29 of 689 control trades. The current 22-metric
+API surface cannot tell how many were unavailable during the 14-bar indicator
+warmup versus rejected by the 1%–10% band. The report/API contract now adds:
+
+```text
+QCRL Filter Not Ready
+QCRL Filter Rejected
+```
+
+The 20-case attribution campaign compares control, warmup-only, lower-only,
+upper-only, and default-band profiles across 2022–2025. This prevents a warmup
+artifact from being mistaken for a volatility edge before threshold tuning.
+
 Canonical storage contracts are extended to preserve every active directional
 and gate parameter:
 
@@ -1338,8 +1368,9 @@ Directional Cohort Engine v1 implemented
 Candle streak held; RSI, MACD, and EMA defaults rejected
 Candle-streak lengths 1–6 neighborhood campaign complete (24/24 API-collected)
 Length 2 selected with two-sided core-neighborhood support
-Stage 2 isolated ADX/ATR gate campaign ready (12 cases)
-Next: commit and synchronize the Stage 2 manifest, then run one integration case
+Stage 2 complete: ATR advanced; ADX default rejected
+ATR component-attribution campaign ready (20 cases)
+Next: synchronize the metric extension, then run one attribution integration case
 ```
 
 ## Synchronization rule
@@ -1361,4 +1392,4 @@ next coding target
 
 # One-Sentence State
 
-> QCRL 2.3.0 selected length-2 candle-streak reversal from a fully API-collected 24-case neighborhood and is ready for a 12-case flat-sizing Stage 2 that isolates ADX and ATR eligibility gates against yearly unfiltered controls.
+> QCRL 2.3.0 advances the ATR gate—but not ADX—from a fully collected Stage 2 and is ready to distinguish ATR warmup effects from lower- and upper-volatility exclusions before any threshold optimization.

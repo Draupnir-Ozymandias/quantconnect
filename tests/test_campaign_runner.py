@@ -155,6 +155,39 @@ class CampaignRunnerTests(unittest.TestCase):
             ["signals_generated", "up_signals", "down_signals"],
             manifest["pair_validation"]["invariants"]
         )
+        self.assertEqual(
+            "none", manifest["directional_analysis"]["control_value"]
+        )
+        self.assertEqual(
+            ["adx_strength", "atr_volatility"],
+            manifest["directional_analysis"]["candidate_values"]
+        )
+
+    def test_atr_attribution_manifest_isolates_warmup_and_bounds(self):
+        manifest = qcrl_campaign.load_manifest(
+            Path(__file__).parents[1]
+            / "campaigns"
+            / "btcusd_1d_atr_gate_attribution_2022_2025.json"
+        )
+        cases = qcrl_campaign.expand_cases(manifest)
+        expected_profiles = {
+            "control",
+            "atr_warmup_only",
+            "atr_lower_only",
+            "atr_upper_only",
+            "atr_default_1_10"
+        }
+
+        self.assertEqual(20, len(cases))
+        for year in [2022, 2023, 2024, 2025]:
+            profiles = {
+                case["parameters"]["run_notes"] for case in cases
+                if case["parameters"]["start_year"] == year
+            }
+            self.assertEqual(expected_profiles, profiles)
+        required = qcrl_campaign.required_metric_fields(manifest)
+        self.assertIn("skipped_filter_not_ready", required)
+        self.assertIn("skipped_filter_rejected", required)
 
     def test_baseline_manifest_expands_to_four_pairs(self):
         self.assertEqual(8, len(self.cases))

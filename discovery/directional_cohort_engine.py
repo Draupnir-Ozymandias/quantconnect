@@ -16,6 +16,11 @@ class DirectionalCohortEngine:
     REPORT_SCHEMA_VERSION = "qcrl.directional_cohort_report.v1"
     SCORE_VERSION = "qcrl.directional_cohort_score.v2"
     NEIGHBORHOOD_VERSION = "qcrl.directional_neighborhood_interpretation.v1"
+    SINGLE_GATE_VERSION = "qcrl.single_gate_interpretation.v1"
+    SINGLE_GATE_THRESHOLDS = {
+        "minimum_trade_retention_ratio": 0.50,
+        "minimum_profit_improvement_ratio": 0.75
+    }
     SCORE_WEIGHTS = {
         "profitable_sample_ratio": 0.30,
         "nonnegative_sample_ratio": 0.20,
@@ -79,11 +84,13 @@ class DirectionalCohortEngine:
         ]
         stage = artifact.get("analysis_stage", "generator_screen")
         neighborhood = None
+        single_gate = None
         if stage == "parameter_neighborhood":
             neighborhood = self._interpret_neighborhood(results, artifact)
             next_action = neighborhood["next_action"]
         elif stage == "single_gate":
-            next_action = "compare_single_gate_cohorts_to_unfiltered_control"
+            single_gate = self._interpret_single_gates(results, artifact)
+            next_action = single_gate["next_action"]
         elif advance:
             next_action = "advance_candidates_to_single_gate_stage"
         elif hold:
@@ -130,6 +137,11 @@ class DirectionalCohortEngine:
                 if neighborhood["decision"] == "advance"
                 else []
             )
+        if single_gate is not None:
+            report["single_gate_interpretation"] = single_gate
+            report["decision_summary"]["selected_candidates"] = (
+                single_gate["selected_candidates"]
+            )
         return report
 
     def _validate_artifact(self, artifact):
@@ -173,6 +185,21 @@ class DirectionalCohortEngine:
             if set(keys) != declared:
                 raise DirectionalCohortError(
                     "Neighborhood cohorts must exactly match core and tail values"
+                )
+        if artifact.get("analysis_stage") == "single_gate":
+            control = artifact.get("control_value")
+            candidates = artifact.get("candidate_values")
+            if not isinstance(candidates, list) or not candidates:
+                raise DirectionalCohortError(
+                    "Single-gate analysis requires candidate_values"
+                )
+            if control in candidates:
+                raise DirectionalCohortError(
+                    "Single-gate control cannot also be a candidate"
+                )
+            if set(keys) != {control, *candidates}:
+                raise DirectionalCohortError(
+                    "Single-gate cohorts must exactly match control and candidates"
                 )
 
     def _interpret_neighborhood(self, results, artifact):
@@ -275,6 +302,164 @@ class DirectionalCohortEngine:
                 "advance_selected_candidate_to_single_gate_stage"
                 if advance
                 else "refine_parameter_neighborhood_evidence"
+            )
+        }
+
+    def _interpret_single_gates(self, results, artifact):
+        """Compare each isolated gate with the same-label unfiltered control."""
+        by_key = {result["group_key"]: result for result in results}
+        control_value = artifact["control_value"]
+        control = by_key[control_value]
+        cohort_records = {
+            cohort["group_key"]: {
+                record["label"]: record for record in cohort["records"]
+            }
+            for cohort in artifact["cohorts"]
+        }
+        control_records = cohort_records[control_value]
+        minimum_improved_labels = math.ceil(
+            len(artifact["expected_labels"])
+            * self.SINGLE_GATE_THRESHOLDS[
+                "minimum_profit_improvement_ratio"
+            ]
+        )
+        comparisons = []
+        for candidate_value in artifact["candidate_values"]:
+            candidate = by_key[candidate_value]
+            paired_labels = []
+            improved_labels = 0
+            for label in artifact["expected_labels"]:
+                baseline = control_records.get(label)
+                compared = cohort_records[candidate_value].get(label)
+                if baseline is None or compared is None:
+                    continue
+                profit_delta = (
+                    float(compared["net_profit"])
+                    - float(baseline["net_profit"])
+                )
+                if profit_delta > 0:
+                    improved_labels += 1
+                paired = {
+                    "label": label,
+                    "control_case_id": baseline["case_id"],
+                    "candidate_case_id": compared["case_id"],
+                    "net_profit_delta": profit_delta,
+                    "win_rate_delta": (
+                        float(compared["win_rate"])
+                        - float(baseline["win_rate"])
+                    ),
+                    "trade_retention_ratio": self._safe_ratio(
+                        compared["trades"], baseline["trades"]
+                    ),
+                    "max_drawdown_delta": (
+                        float(compared["max_drawdown"])
+                        - float(baseline["max_drawdown"])
+                    ),
+                    "max_loss_streak_delta": (
+                        float(compared["max_loss_streak"])
+                        - float(baseline["max_loss_streak"])
+                    )
+                }
+                paired["additional_metrics"] = {
+                    field: {
+                        "control": baseline[field],
+                        "candidate": compared[field],
+                        "delta": (
+                            float(compared[field]) - float(baseline[field])
+                        )
+                    }
+                    for field in artifact.get("additional_metrics", [])
+                }
+                paired_labels.append(paired)
+
+            total_profit_delta = (
+                candidate["total_net_profit"] - control["total_net_profit"]
+            )
+            win_rate_delta = (
+                candidate["weighted_win_rate"] - control["weighted_win_rate"]
+            )
+            trade_retention = self._safe_ratio(
+                candidate["total_trades"], control["total_trades"]
+            )
+            checks = {
+                "complete_and_sufficient_evidence": (
+                    candidate["coverage"]["coverage_ratio"] == 1
+                    and candidate["sample_size_sufficient"]
+                ),
+                "no_ruin": candidate["ruined_samples"] == 0,
+                "profitable_in_every_label": (
+                    candidate["profitable_samples"]
+                    == candidate["run_count"]
+                ),
+                "aggregate_profit_improved": total_profit_delta > 0,
+                "weighted_win_rate_improved": win_rate_delta > 0,
+                "profit_improved_in_required_labels": (
+                    improved_labels >= minimum_improved_labels
+                ),
+                "trade_retention_sufficient": (
+                    trade_retention
+                    >= self.SINGLE_GATE_THRESHOLDS[
+                        "minimum_trade_retention_ratio"
+                    ]
+                ),
+                "worst_drawdown_not_increased": (
+                    candidate["worst_max_drawdown"]
+                    <= control["worst_max_drawdown"]
+                )
+            }
+            if all(checks.values()):
+                decision = "advance"
+                next_action = "run_gate_parameter_neighborhood"
+            elif not checks["complete_and_sufficient_evidence"]:
+                decision = "hold"
+                next_action = "complete_single_gate_evidence"
+            elif (
+                total_profit_delta <= 0
+                or improved_labels < 2
+                or candidate["profitable_samples"] < 3
+            ):
+                decision = "reject"
+                next_action = "reject_tested_gate_default"
+            else:
+                decision = "hold"
+                next_action = "expand_single_gate_evidence"
+            comparisons.append({
+                "candidate_value": candidate_value,
+                "decision": decision,
+                "next_action": next_action,
+                "checks": checks,
+                "paired_label_count": len(paired_labels),
+                "profit_improved_labels": improved_labels,
+                "required_profit_improved_labels": minimum_improved_labels,
+                "total_net_profit_delta": total_profit_delta,
+                "weighted_win_rate_delta": win_rate_delta,
+                "total_trade_retention_ratio": trade_retention,
+                "worst_max_drawdown_delta": (
+                    candidate["worst_max_drawdown"]
+                    - control["worst_max_drawdown"]
+                ),
+                "final_score_delta": (
+                    candidate["final_score"] - control["final_score"]
+                ),
+                "paired_labels": paired_labels,
+                "supporting_case_ids": candidate["supporting_case_ids"],
+                "supporting_run_ids": candidate["supporting_run_ids"]
+            })
+
+        selected = [
+            item["candidate_value"] for item in comparisons
+            if item["decision"] == "advance"
+        ]
+        return {
+            "schema_version": self.SINGLE_GATE_VERSION,
+            "control_value": control_value,
+            "selected_candidates": selected,
+            "comparisons": comparisons,
+            "thresholds": dict(self.SINGLE_GATE_THRESHOLDS),
+            "next_action": (
+                "run_selected_gate_parameter_neighborhood"
+                if selected
+                else "retain_unfiltered_signal_and_reject_tested_gates"
             )
         }
 
@@ -479,6 +664,13 @@ class DirectionalCohortEngine:
         if math.isclose(mean, 0):
             return 0
         return statistics.pstdev(values) / abs(mean)
+
+    @staticmethod
+    def _safe_ratio(numerator, denominator):
+        denominator = float(denominator)
+        if math.isclose(denominator, 0):
+            return 0
+        return float(numerator) / denominator
 
     @staticmethod
     def _balance_score(values):

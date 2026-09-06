@@ -557,6 +557,12 @@ class ResearchReport:
             "signals_executed": analytics.get(
                 "signals_executed"
             ),
+            "skipped_filter_not_ready": analytics.get(
+                "skipped_filter_not_ready"
+            ),
+            "skipped_filter_rejected": analytics.get(
+                "skipped_filter_rejected"
+            ),
             "execution_rate": analytics.get(
                 "execution_rate"
             ),
@@ -670,6 +676,8 @@ class ResearchReport:
             "QCRL Tail Risk Score": "tail_risk_score",
             "QCRL Signals Generated": "signals_generated",
             "QCRL Signals Executed": "signals_executed",
+            "QCRL Filter Not Ready": "skipped_filter_not_ready",
+            "QCRL Filter Rejected": "skipped_filter_rejected",
             "QCRL Up Signals": "up_signals",
             "QCRL Down Signals": "down_signals",
             "QCRL Up Executed": "up_executed",
