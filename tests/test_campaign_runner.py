@@ -268,6 +268,41 @@ class CampaignRunnerTests(unittest.TestCase):
             analysis["limitations"]
         )
 
+    def test_side_attribution_manifest_is_unfiltered_and_flat(self):
+        manifest = qcrl_campaign.load_manifest(
+            Path(__file__).parents[1]
+            / "campaigns"
+            / "btcusd_1d_candle_streak_side_attribution_2022_2025.json"
+        )
+        cases = qcrl_campaign.expand_cases(manifest)
+
+        self.assertEqual(4, len(cases))
+        self.assertEqual(
+            {2022, 2023, 2024, 2025},
+            {case["parameters"]["start_year"] for case in cases}
+        )
+        self.assertEqual(
+            {("none", "flat", 2)},
+            {
+                (
+                    case["parameters"]["filter_model"],
+                    case["parameters"]["stake_mode"],
+                    case["parameters"]["streak_length"]
+                )
+                for case in cases
+            }
+        )
+        analysis = manifest["directional_analysis"]
+        self.assertEqual("side_attribution", analysis["analysis_stage"])
+        self.assertEqual("side_attribution", analysis["cohort_value"])
+        required = qcrl_campaign.required_metric_fields(manifest)
+        for side in ["up", "down"]:
+            for field in [
+                "trades", "wins", "losses", "win_rate", "net_profit",
+                "max_drawdown", "max_loss_streak"
+            ]:
+                self.assertIn(f"{side}_{field}", required)
+
     def test_baseline_manifest_expands_to_four_pairs(self):
         self.assertEqual(8, len(self.cases))
         years = {case["parameters"]["start_year"] for case in self.cases}

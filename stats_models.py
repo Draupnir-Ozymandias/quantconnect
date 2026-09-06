@@ -32,6 +32,24 @@ class StatsTracker:
 
         self.regime_stats = {}
         self.filter_signal_values = []
+        self.direction_stats = {
+            "up": self._new_direction_stats(),
+            "down": self._new_direction_stats()
+        }
+
+    @staticmethod
+    def _new_direction_stats():
+        return {
+            "trades": 0,
+            "wins": 0,
+            "losses": 0,
+            "total_wagered": 0,
+            "net_profit": 0,
+            "peak_profit": 0,
+            "max_drawdown": 0,
+            "current_loss_streak": 0,
+            "max_loss_streak": 0
+        }
 
     def record_bar(self):
         self.bars_seen += 1
@@ -89,6 +107,29 @@ class StatsTracker:
 
         self.total_wagered += wager
         self.max_wager_seen = max(self.max_wager_seen, wager)
+
+        side = self.direction_stats[direction]
+        side["trades"] += 1
+        side["total_wagered"] += wager
+        if won:
+            side["wins"] += 1
+            side["net_profit"] += wager
+            side["current_loss_streak"] = 0
+        else:
+            side["losses"] += 1
+            side["net_profit"] -= wager
+            side["current_loss_streak"] += 1
+            side["max_loss_streak"] = max(
+                side["max_loss_streak"],
+                side["current_loss_streak"]
+            )
+        side["peak_profit"] = max(
+            side["peak_profit"], side["net_profit"]
+        )
+        side["max_drawdown"] = max(
+            side["max_drawdown"],
+            side["peak_profit"] - side["net_profit"]
+        )
 
         self.recovery_level_counts[recovery_level] = (
             self.recovery_level_counts.get(recovery_level, 0) + 1
@@ -168,6 +209,23 @@ class StatsTracker:
             "p90": self.filter_signal_value_quantile(0.90),
             "max": self.filter_signal_value_quantile(1)
         }
+
+    def direction_summary(self):
+        summary = {}
+        for direction in ["up", "down"]:
+            side = self.direction_stats[direction]
+            trades = side["trades"]
+            summary[direction] = {
+                "trades": trades,
+                "wins": side["wins"],
+                "losses": side["losses"],
+                "win_rate": side["wins"] / trades if trades else 0,
+                "total_wagered": side["total_wagered"],
+                "net_profit": side["net_profit"],
+                "max_drawdown": side["max_drawdown"],
+                "max_loss_streak": side["max_loss_streak"]
+            }
+        return summary
 
     def recovery_level_text(self):
         if len(self.recovery_level_counts) == 0:

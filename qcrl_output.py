@@ -65,6 +65,23 @@ def print_directional_report(report, artifact_path, report_path):
                 f"{comparison['weighted_win_rate_delta']:+.2%}"
             )
 
+    side_attribution = report.get("side_attribution_interpretation")
+    if side_attribution:
+        print(
+            "Directional-side attribution: "
+            f"verdict={side_attribution['verdict']}"
+        )
+        for side in side_attribution["sides"]:
+            print(
+                f"  {side['direction']}: "
+                f"decision={side['disposition']} "
+                f"profit={side['total_net_profit']:+g} "
+                f"win_rate={side['weighted_win_rate']:.2%} "
+                f"trades={side['total_trades']:g} "
+                f"profitable={side['profitable_samples']}/"
+                f"{side['run_count']}"
+            )
+
     print(f"Next action: {report['decision_summary']['next_action']}")
     print(f"Directional evidence: {artifact_path}")
     print(f"Directional report:   {report_path}")

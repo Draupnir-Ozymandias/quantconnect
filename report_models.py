@@ -259,6 +259,7 @@ class ResearchReport:
                 "down_signals": stats.down_signals,
                 "up_executed": stats.up_executed,
                 "down_executed": stats.down_executed,
+                "direction_stats": stats.direction_summary(),
                 "executed_wins": stats.executed_wins,
                 "executed_losses": stats.executed_losses,
                 "executed_win_rate": stats.executed_win_rate(),
@@ -422,6 +423,9 @@ class ResearchReport:
         filter_value_summary = analytics.get(
             "filter_signal_value_summary", {}
         )
+        direction_stats = analytics.get("direction_stats", {})
+        up_stats = direction_stats.get("up", {})
+        down_stats = direction_stats.get("down", {})
         scores = report.get("scores", {})
 
         record = {
@@ -586,6 +590,20 @@ class ResearchReport:
             "down_signals": analytics.get("down_signals"),
             "up_executed": analytics.get("up_executed"),
             "down_executed": analytics.get("down_executed"),
+            "up_trades": up_stats.get("trades"),
+            "up_wins": up_stats.get("wins"),
+            "up_losses": up_stats.get("losses"),
+            "up_win_rate": up_stats.get("win_rate"),
+            "up_net_profit": up_stats.get("net_profit"),
+            "up_max_drawdown": up_stats.get("max_drawdown"),
+            "up_max_loss_streak": up_stats.get("max_loss_streak"),
+            "down_trades": down_stats.get("trades"),
+            "down_wins": down_stats.get("wins"),
+            "down_losses": down_stats.get("losses"),
+            "down_win_rate": down_stats.get("win_rate"),
+            "down_net_profit": down_stats.get("net_profit"),
+            "down_max_drawdown": down_stats.get("max_drawdown"),
+            "down_max_loss_streak": down_stats.get("max_loss_streak"),
             "filter_value_count": filter_value_summary.get("count"),
             "filter_value_min": filter_value_summary.get("min"),
             "filter_value_p10": filter_value_summary.get("p10"),
@@ -703,7 +721,21 @@ class ResearchReport:
             "QCRL Up Signals": "up_signals",
             "QCRL Down Signals": "down_signals",
             "QCRL Up Executed": "up_executed",
-            "QCRL Down Executed": "down_executed"
+            "QCRL Down Executed": "down_executed",
+            "QCRL Up Trades": "up_trades",
+            "QCRL Up Wins": "up_wins",
+            "QCRL Up Losses": "up_losses",
+            "QCRL Up Win Rate": "up_win_rate",
+            "QCRL Up Net Profit": "up_net_profit",
+            "QCRL Up Max Drawdown": "up_max_drawdown",
+            "QCRL Up Max Loss Streak": "up_max_loss_streak",
+            "QCRL Down Trades": "down_trades",
+            "QCRL Down Wins": "down_wins",
+            "QCRL Down Losses": "down_losses",
+            "QCRL Down Win Rate": "down_win_rate",
+            "QCRL Down Net Profit": "down_net_profit",
+            "QCRL Down Max Drawdown": "down_max_drawdown",
+            "QCRL Down Max Loss Streak": "down_max_loss_streak"
         }
 
         return {

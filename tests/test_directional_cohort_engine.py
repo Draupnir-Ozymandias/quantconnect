@@ -216,6 +216,51 @@ def attribution_artifact():
     }
 
 
+def side_attribution_artifact():
+    records = []
+    for year in [2022, 2023, 2024, 2025]:
+        records.append({
+            "label": year,
+            "case_id": f"{year}-side",
+            "run_id": f"run-{year}-side",
+            "net_profit": 60,
+            "win_rate": 0.53,
+            "trades": 100,
+            "wins": 53,
+            "max_drawdown": 50,
+            "max_loss_streak": 5,
+            "ruined": False,
+            "base_wager": 10,
+            "drawdown_in_base_wagers": 5,
+            "up_trades": 50,
+            "up_wins": 27,
+            "up_losses": 23,
+            "up_win_rate": 0.54,
+            "up_net_profit": 40,
+            "up_max_drawdown": 30,
+            "up_max_loss_streak": 4,
+            "down_trades": 50,
+            "down_wins": 26,
+            "down_losses": 24,
+            "down_win_rate": 0.52,
+            "down_net_profit": 20,
+            "down_max_drawdown": 40,
+            "down_max_loss_streak": 5
+        })
+    return {
+        "schema_version": "qcrl.directional_cohort.v1",
+        "campaign_id": "side-attribution",
+        "case_set_hash": "side123",
+        "analysis_stage": "side_attribution",
+        "group_field": "run_notes",
+        "cohort_value": "side_attribution",
+        "label_field": "start_year",
+        "expected_labels": [2022, 2023, 2024, 2025],
+        "validation": {"valid": True, "issue_count": 0, "issues": []},
+        "cohorts": [{"group_key": "side_attribution", "records": records}]
+    }
+
+
 class DirectionalCohortEngineTests(unittest.TestCase):
     def test_real_stage1_shape_produces_family_decisions(self):
         report = DirectionalCohortEngine().analyze(directional_artifact())
@@ -406,6 +451,42 @@ class DirectionalCohortEngineTests(unittest.TestCase):
         self.assertEqual(
             "reject_tested_active_gate_bounds",
             report["decision_summary"]["next_action"]
+        )
+
+    def test_side_attribution_recognizes_two_sided_support(self):
+        report = DirectionalCohortEngine().analyze(
+            side_attribution_artifact()
+        )
+        interpretation = report["side_attribution_interpretation"]
+
+        self.assertEqual(
+            "qcrl.side_attribution_interpretation.v1",
+            interpretation["schema_version"]
+        )
+        self.assertEqual("two_sided", interpretation["verdict"])
+        self.assertEqual(["up", "down"], interpretation["selected_sides"])
+        self.assertTrue(interpretation["profit_conservation"]["valid"])
+
+    def test_side_attribution_identifies_up_dominance(self):
+        artifact = side_attribution_artifact()
+        for record in artifact["cohorts"][0]["records"]:
+            record["down_wins"] = 24
+            record["down_losses"] = 26
+            record["down_win_rate"] = 0.48
+            record["down_net_profit"] = -20
+            record["net_profit"] = 20
+            record["wins"] = 51
+            record["win_rate"] = 0.51
+
+        interpretation = DirectionalCohortEngine().analyze(artifact)[
+            "side_attribution_interpretation"
+        ]
+
+        self.assertEqual("up_dominant", interpretation["verdict"])
+        self.assertEqual(["up"], interpretation["selected_sides"])
+        self.assertEqual(
+            "validate_direction_restriction_out_of_sample",
+            interpretation["next_action"]
         )
 
 

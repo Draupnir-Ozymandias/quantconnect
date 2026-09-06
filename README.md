@@ -293,6 +293,29 @@ No absolute ATR bound advances. Combined ATR bands and ATR threshold
 optimization are closed unless new independent evidence justifies reopening
 the hypothesis.
 
+### Candle-streak directional-side attribution
+
+The next campaign decomposes the surviving unfiltered length-2 reversal signal
+without changing its trades:
+
+```bash
+./synch.sh campaign plan campaigns/btcusd_1d_candle_streak_side_attribution_2022_2025.json
+./synch.sh campaign run campaigns/btcusd_1d_candle_streak_side_attribution_2022_2025.json --execute --limit 1
+./synch.sh campaign run campaigns/btcusd_1d_candle_streak_side_attribution_2022_2025.json --execute
+./synch.sh campaign collect campaigns/btcusd_1d_candle_streak_side_attribution_2022_2025.json
+./synch.sh campaign validate campaigns/btcusd_1d_candle_streak_side_attribution_2022_2025.json
+./synch.sh campaign directional campaigns/btcusd_1d_candle_streak_side_attribution_2022_2025.json
+```
+
+Each of the four annual runs exports trades, wins, losses, win rate, flat net
+profit, side-specific drawdown, and side-specific loss streak for both UP and
+DOWN forecasts. Here, UP means predicting a bullish reversal after a red
+streak; DOWN means predicting a bearish reversal after a green streak. The
+versioned verdict distinguishes two-sided support from side dominance or
+unstable evidence. Any same-period side restriction requires out-of-sample
+validation. Side drawdown is measured on each side's independent flat-profit
+curve and is not a decomposition of portfolio drawdown.
+
 When `pair_comparison` is present, validation also writes a structured artifact
 to `.qcrl/campaigns/{campaign_id}/paired_comparison.json`. Each pair contains:
 

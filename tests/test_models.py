@@ -185,6 +185,24 @@ class ModelTests(unittest.TestCase):
         self.assertAlmostEqual(4.6, summary["p90"])
         self.assertEqual(5, summary["max"])
 
+    def test_direction_summary_tracks_profit_drawdown_and_loss_streak(self):
+        stats = StatsTracker()
+        stats.record_trade_result("up", True, 10, 0, "none")
+        stats.record_trade_result("up", False, 20, 0, "none")
+        stats.record_trade_result("up", False, 5, 0, "none")
+        stats.record_trade_result("down", False, 10, 0, "none")
+        stats.record_trade_result("down", True, 10, 0, "none")
+
+        summary = stats.direction_summary()
+
+        self.assertEqual(3, summary["up"]["trades"])
+        self.assertEqual(1 / 3, summary["up"]["win_rate"])
+        self.assertEqual(-15, summary["up"]["net_profit"])
+        self.assertEqual(25, summary["up"]["max_drawdown"])
+        self.assertEqual(2, summary["up"]["max_loss_streak"])
+        self.assertEqual(0, summary["down"]["net_profit"])
+        self.assertEqual(10, summary["down"]["max_drawdown"])
+
     def test_metadata_ignores_inactive_parameters(self):
         first = AlgorithmConfiguration()
         second = AlgorithmConfiguration()

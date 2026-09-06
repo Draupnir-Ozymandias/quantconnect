@@ -1,7 +1,7 @@
 # QCRL Sync Log
 
 **Updated:** 2026-09-05
-**Sync version:** 2026-09-06 ATR Attribution Verdict and Telemetry
+**Sync version:** 2026-09-06 Directional-Side Attribution
 **QCRL baseline:** 2.2.0  
 **Status:** Active research
 
@@ -1378,6 +1378,21 @@ upper 6.0%: profit  -40 | weighted win rate -0.04 pp | rejected 42
 The attribution verdict is `reject_tested_active_gate_bounds`. No absolute ATR
 bound, combined ATR band, or ATR threshold optimizer advances from this branch.
 
+Directional-side attribution is the next isolated signal diagnostic. The
+four-case `btcusd_1d_candle_streak_side_attribution_2022_2025.json` campaign
+keeps the length-2 reverse signal, no filter, and flat sizing fixed while each
+run exports separate UP and DOWN trades, wins, losses, win rate, net profit,
+drawdown, and loss streak. UP denotes a bullish reversal forecast after a red
+streak; DOWN denotes a bearish reversal forecast after a green streak.
+
+The `qcrl.side_attribution_interpretation.v1` analyzer enforces annual
+accounting conservation between side metrics and total run results, then emits
+`two_sided`, `up_dominant`, `down_dominant`, `unresolved`, or
+`no_supported_side`. A direction selected from the same 2022–2025 evidence
+cannot advance without out-of-sample validation. Side-specific drawdown is an
+independent side equity-curve statistic, not an additive decomposition of the
+combined portfolio drawdown.
+
 Canonical storage contracts are extended to preserve every active directional
 and gate parameter:
 
@@ -1420,7 +1435,9 @@ Attribution-aware verdict v1 implemented
 ATR telemetry complete: 4/4 API-collected, 660 signal-time values
 Active ATR bound screen complete: 24/24 API-collected, all candidates rejected
 Attribution candidates are judged incrementally against warmup-only
-Next: close absolute ATR gating and select the next isolated signal hypothesis
+Directional-side accounting and versioned verdict implemented
+Side-attribution campaign ready: four unfiltered flat annual cases
+Next: synchronize side telemetry, then run one integration case
 ```
 
 ## Synchronization rule
@@ -1442,4 +1459,4 @@ next coding target
 
 # One-Sentence State
 
-> QCRL 2.3.0 has rejected all tested absolute ATR bounds against warmup-only evidence and closes this filter branch before selecting the next isolated signal hypothesis.
+> QCRL 2.3.0 has closed absolute ATR gating and is ready to determine whether the surviving length-2 reversal evidence is genuinely two-sided or concentrated in one forecast direction.

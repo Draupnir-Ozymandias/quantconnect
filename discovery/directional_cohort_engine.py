@@ -18,6 +18,12 @@ class DirectionalCohortEngine:
     NEIGHBORHOOD_VERSION = "qcrl.directional_neighborhood_interpretation.v1"
     SINGLE_GATE_VERSION = "qcrl.single_gate_interpretation.v1"
     ATTRIBUTION_VERSION = "qcrl.gate_attribution_interpretation.v1"
+    SIDE_ATTRIBUTION_VERSION = "qcrl.side_attribution_interpretation.v1"
+    SIDE_THRESHOLDS = {
+        "minimum_total_trades": 100,
+        "minimum_trades_per_sample": 20,
+        "minimum_profitable_samples": 3
+    }
     SINGLE_GATE_THRESHOLDS = {
         "minimum_trade_retention_ratio": 0.50,
         "minimum_profit_improvement_ratio": 0.75
@@ -87,6 +93,7 @@ class DirectionalCohortEngine:
         neighborhood = None
         single_gate = None
         attribution = None
+        side_attribution = None
         if stage == "parameter_neighborhood":
             neighborhood = self._interpret_neighborhood(results, artifact)
             next_action = neighborhood["next_action"]
@@ -96,6 +103,9 @@ class DirectionalCohortEngine:
         elif stage == "gate_attribution":
             attribution = self._interpret_gate_attribution(results, artifact)
             next_action = attribution["next_action"]
+        elif stage == "side_attribution":
+            side_attribution = self._interpret_sides(artifact)
+            next_action = side_attribution["next_action"]
         elif advance:
             next_action = "advance_candidates_to_single_gate_stage"
         elif hold:
@@ -151,6 +161,11 @@ class DirectionalCohortEngine:
             report["gate_attribution_interpretation"] = attribution
             report["decision_summary"]["selected_candidates"] = (
                 attribution["selected_candidates"]
+            )
+        if side_attribution is not None:
+            report["side_attribution_interpretation"] = side_attribution
+            report["decision_summary"]["selected_candidates"] = (
+                side_attribution["selected_sides"]
             )
         return report
 
@@ -228,6 +243,12 @@ class DirectionalCohortEngine:
                 raise DirectionalCohortError(
                     "Attribution cohorts must match control, diagnostic, "
                     "and candidates"
+                )
+        if artifact.get("analysis_stage") == "side_attribution":
+            cohort_value = artifact.get("cohort_value")
+            if set(keys) != {cohort_value}:
+                raise DirectionalCohortError(
+                    "Side attribution requires exactly its declared cohort"
                 )
 
     def _interpret_neighborhood(self, results, artifact):
@@ -613,6 +634,162 @@ class DirectionalCohortEngine:
                     )
                 )
             )
+        }
+
+    def _interpret_sides(self, artifact):
+        """Attribute flat signal performance between UP and DOWN forecasts."""
+        cohort = next(
+            item for item in artifact["cohorts"]
+            if item["group_key"] == artifact["cohort_value"]
+        )
+        records = {
+            record["label"]: record for record in cohort["records"]
+        }
+        expected_labels = artifact["expected_labels"]
+        for label, record in records.items():
+            side_trades = sum(
+                float(record[f"{side}_trades"])
+                for side in ["up", "down"]
+            )
+            side_wins = sum(
+                float(record[f"{side}_wins"])
+                for side in ["up", "down"]
+            )
+            side_losses = sum(
+                float(record[f"{side}_losses"])
+                for side in ["up", "down"]
+            )
+            side_profit = sum(
+                float(record[f"{side}_net_profit"])
+                for side in ["up", "down"]
+            )
+            if not all([
+                math.isclose(side_trades, float(record["trades"])),
+                math.isclose(side_wins, float(record["wins"])),
+                math.isclose(
+                    side_losses,
+                    float(record["trades"]) - float(record["wins"])
+                ),
+                math.isclose(side_profit, float(record["net_profit"]))
+            ]):
+                raise DirectionalCohortError(
+                    f"UP and DOWN accounting does not conserve {label} totals"
+                )
+        sides = []
+        for direction in ["up", "down"]:
+            annual = []
+            for label in expected_labels:
+                record = records.get(label)
+                if record is None:
+                    continue
+                prefix = f"{direction}_"
+                annual.append({
+                    "label": label,
+                    "case_id": record["case_id"],
+                    "run_id": record["run_id"],
+                    "trades": record[prefix + "trades"],
+                    "wins": record[prefix + "wins"],
+                    "losses": record[prefix + "losses"],
+                    "win_rate": record[prefix + "win_rate"],
+                    "net_profit": record[prefix + "net_profit"],
+                    "max_drawdown": record[prefix + "max_drawdown"],
+                    "max_loss_streak": record[
+                        prefix + "max_loss_streak"
+                    ]
+                })
+            total_trades = sum(float(item["trades"]) for item in annual)
+            total_wins = sum(float(item["wins"]) for item in annual)
+            total_profit = sum(float(item["net_profit"]) for item in annual)
+            profitable = sum(
+                float(item["net_profit"]) > 0 for item in annual
+            )
+            minimum_per_sample = min(
+                [float(item["trades"]) for item in annual] or [0]
+            )
+            weighted_win_rate = self._safe_ratio(total_wins, total_trades)
+            checks = {
+                "complete_coverage": len(annual) == len(expected_labels),
+                "sufficient_total_trades": (
+                    total_trades
+                    >= self.SIDE_THRESHOLDS["minimum_total_trades"]
+                ),
+                "sufficient_trades_per_sample": (
+                    minimum_per_sample
+                    >= self.SIDE_THRESHOLDS["minimum_trades_per_sample"]
+                ),
+                "aggregate_profit_positive": total_profit > 0,
+                "weighted_win_rate_above_half": weighted_win_rate > 0.5,
+                "profitable_in_required_samples": (
+                    profitable
+                    >= self.SIDE_THRESHOLDS["minimum_profitable_samples"]
+                )
+            }
+            if all(checks.values()):
+                disposition = "supported"
+            elif (
+                total_profit <= 0
+                or weighted_win_rate <= 0.5
+                or profitable <= 1
+            ):
+                disposition = "reject"
+            else:
+                disposition = "hold"
+            sides.append({
+                "direction": direction,
+                "disposition": disposition,
+                "checks": checks,
+                "run_count": len(annual),
+                "total_trades": total_trades,
+                "total_wins": total_wins,
+                "weighted_win_rate": weighted_win_rate,
+                "total_net_profit": total_profit,
+                "profitable_samples": profitable,
+                "worst_max_drawdown": max(
+                    [float(item["max_drawdown"]) for item in annual] or [0]
+                ),
+                "worst_max_loss_streak": max(
+                    [float(item["max_loss_streak"]) for item in annual] or [0]
+                ),
+                "annual_results": annual
+            })
+
+        total_side_profit = sum(item["total_net_profit"] for item in sides)
+        reported_profit = sum(
+            float(record["net_profit"]) for record in records.values()
+        )
+        if not math.isclose(total_side_profit, reported_profit):
+            raise DirectionalCohortError(
+                "UP and DOWN profits do not conserve total cohort profit"
+            )
+        selected = [
+            item["direction"] for item in sides
+            if item["disposition"] == "supported"
+        ]
+        if len(selected) == 2:
+            verdict = "two_sided"
+            next_action = "preserve_two_sided_signal_and_test_next_hypothesis"
+        elif len(selected) == 1:
+            verdict = f"{selected[0]}_dominant"
+            next_action = "validate_direction_restriction_out_of_sample"
+        elif any(item["disposition"] == "hold" for item in sides):
+            verdict = "unresolved"
+            next_action = "expand_directional_side_evidence"
+        else:
+            verdict = "no_supported_side"
+            next_action = "redesign_directional_signal"
+        return {
+            "schema_version": self.SIDE_ATTRIBUTION_VERSION,
+            "cohort_value": artifact["cohort_value"],
+            "verdict": verdict,
+            "selected_sides": selected,
+            "sides": sides,
+            "profit_conservation": {
+                "side_total": total_side_profit,
+                "cohort_total": reported_profit,
+                "valid": True
+            },
+            "thresholds": dict(self.SIDE_THRESHOLDS),
+            "next_action": next_action
         }
 
     @staticmethod

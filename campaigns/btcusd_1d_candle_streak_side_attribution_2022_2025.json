@@ -1,0 +1,130 @@
+{
+  "schema_version": "qcrl.campaign.v1",
+  "campaign_id": "btcusd-1d-candle-streak-side-attribution-2022-2025-v1",
+  "project_id": 33239307,
+  "description": "Attribute the unfiltered length-2 flat candle-streak reversal edge between UP forecasts after red streaks and DOWN forecasts after green streaks.",
+  "backtest_name_prefix": "QCRL-2.3.0-BTCUSD-1D-Streak-Side",
+  "case_name_fields": [
+    "start_year",
+    "run_notes"
+  ],
+  "base_parameters": {
+    "start_month": 1,
+    "start_day": 1,
+    "end_month": 12,
+    "end_day": 31,
+    "coin": "BTCUSD",
+    "timeframe": "1d",
+    "entry_model": "candle_streak",
+    "streak_length": 2,
+    "streak_mode": "reverse",
+    "filter_model": "none",
+    "ema_fast": 5,
+    "ema_slow": 10,
+    "macd_fast": 12,
+    "macd_slow": 26,
+    "macd_signal": 9,
+    "rsi_period": 14,
+    "rsi_oversold": 30,
+    "rsi_overbought": 70,
+    "adx_period": 14,
+    "adx_threshold": 25,
+    "atr_period": 14,
+    "atr_min_pct": 1,
+    "atr_max_pct": 10,
+    "stake_mode": "flat",
+    "base_wager": 10,
+    "bankroll": 100000,
+    "multiplier": 2,
+    "max_steps": 10,
+    "enable_plots": false,
+    "lab_version": "QCRL-2.3.0",
+    "run_notes": "side_attribution"
+  },
+  "variants": [
+    {
+      "start_year": 2022,
+      "end_year": 2022
+    },
+    {
+      "start_year": 2023,
+      "end_year": 2023
+    },
+    {
+      "start_year": 2024,
+      "end_year": 2024
+    },
+    {
+      "start_year": 2025,
+      "end_year": 2025
+    }
+  ],
+  "cohort_rankings": [
+    {
+      "name": "Candle-streak side attribution",
+      "filters": {
+        "run_notes": "side_attribution"
+      },
+      "score_model": "flat_profit_drawdown",
+      "direction": "max",
+      "display_fields": [
+        "up_trades",
+        "up_wins",
+        "up_win_rate",
+        "up_net_profit",
+        "up_max_drawdown",
+        "up_max_loss_streak",
+        "down_trades",
+        "down_wins",
+        "down_win_rate",
+        "down_net_profit",
+        "down_max_drawdown",
+        "down_max_loss_streak"
+      ]
+    }
+  ],
+  "directional_analysis": {
+    "analysis_stage": "side_attribution",
+    "group_field": "run_notes",
+    "cohort_value": "side_attribution",
+    "label_field": "start_year",
+    "additional_metrics": [
+      "up_trades",
+      "up_wins",
+      "up_losses",
+      "up_win_rate",
+      "up_net_profit",
+      "up_max_drawdown",
+      "up_max_loss_streak",
+      "down_trades",
+      "down_wins",
+      "down_losses",
+      "down_win_rate",
+      "down_net_profit",
+      "down_max_drawdown",
+      "down_max_loss_streak"
+    ],
+    "expected_labels": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "required_parameters": {
+      "entry_model": "candle_streak",
+      "streak_length": 2,
+      "streak_mode": "reverse",
+      "filter_model": "none",
+      "stake_mode": "flat"
+    },
+    "limitations": [
+      "side_attribution_is_descriptive_not_live_authorization",
+      "up_means_reversal_after_a_red_streak",
+      "down_means_reversal_after_a_green_streak",
+      "same_period_direction_selection_requires_out_of_sample_validation",
+      "overlapping_streak_signals_are_not_independent_events",
+      "transaction_costs_are_not_modeled",
+      "recovery_sizing_remains_out_of_scope"
+    ]
+  }
+}

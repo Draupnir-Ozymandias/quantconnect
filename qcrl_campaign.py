@@ -96,7 +96,21 @@ QCRL_STATISTICS = {
     "QCRL Up Signals": "up_signals",
     "QCRL Down Signals": "down_signals",
     "QCRL Up Executed": "up_executed",
-    "QCRL Down Executed": "down_executed"
+    "QCRL Down Executed": "down_executed",
+    "QCRL Up Trades": "up_trades",
+    "QCRL Up Wins": "up_wins",
+    "QCRL Up Losses": "up_losses",
+    "QCRL Up Win Rate": "up_win_rate",
+    "QCRL Up Net Profit": "up_net_profit",
+    "QCRL Up Max Drawdown": "up_max_drawdown",
+    "QCRL Up Max Loss Streak": "up_max_loss_streak",
+    "QCRL Down Trades": "down_trades",
+    "QCRL Down Wins": "down_wins",
+    "QCRL Down Losses": "down_losses",
+    "QCRL Down Win Rate": "down_win_rate",
+    "QCRL Down Net Profit": "down_net_profit",
+    "QCRL Down Max Drawdown": "down_max_drawdown",
+    "QCRL Down Max Loss Streak": "down_max_loss_streak"
 }
 
 
@@ -1472,6 +1486,7 @@ def build_directional_cohort_artifact(manifest, state, cases):
         "tail_values": config.get("tail_values", []),
         "control_value": config.get("control_value"),
         "diagnostic_value": config.get("diagnostic_value"),
+        "cohort_value": config.get("cohort_value"),
         "candidate_values": config.get("candidate_values", []),
         "additional_metrics": config.get("additional_metrics", []),
         "expected_labels": config["expected_labels"],

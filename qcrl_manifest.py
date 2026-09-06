@@ -48,11 +48,12 @@ def validate_directional_analysis(manifest, metric_fields, error_type):
     stage = analysis.get("analysis_stage", "generator_screen")
     if stage not in {
         "generator_screen", "parameter_neighborhood", "single_gate",
-        "gate_attribution"
+        "gate_attribution", "side_attribution"
     }:
         raise error_type(
             "directional_analysis analysis_stage must be generator_screen, "
-            "parameter_neighborhood, single_gate, or gate_attribution"
+            "parameter_neighborhood, single_gate, gate_attribution, or "
+            "side_attribution"
         )
     if stage == "parameter_neighborhood":
         _validate_parameter_neighborhood(analysis, error_type)
@@ -60,6 +61,8 @@ def validate_directional_analysis(manifest, metric_fields, error_type):
         _validate_single_gate(analysis, error_type)
     if stage == "gate_attribution":
         _validate_gate_attribution(analysis, error_type)
+    if stage == "side_attribution":
+        _validate_side_attribution(analysis, error_type)
 
 
 def _validate_parameter_neighborhood(analysis, error_type):
@@ -109,4 +112,23 @@ def _validate_gate_attribution(analysis, error_type):
     if not required_metrics.issubset(analysis.get("additional_metrics", [])):
         raise error_type(
             "gate_attribution requires filter readiness and rejection metrics"
+        )
+
+
+def _validate_side_attribution(analysis, error_type):
+    if "cohort_value" not in analysis:
+        raise error_type("side_attribution analysis requires cohort_value")
+    required = {
+        f"{side}_{field}"
+        for side in ["up", "down"]
+        for field in [
+            "trades", "wins", "losses", "win_rate", "net_profit",
+            "max_drawdown", "max_loss_streak"
+        ]
+    }
+    missing = required - set(analysis.get("additional_metrics", []))
+    if missing:
+        raise error_type(
+            "side_attribution requires metrics: "
+            + ", ".join(sorted(missing))
         )

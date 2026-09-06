@@ -133,7 +133,29 @@ def sample_report(run_id="run-2025-flat"):
             "up_signals": 52,
             "down_signals": 48,
             "up_executed": 30,
-            "down_executed": 28
+            "down_executed": 28,
+            "direction_stats": {
+                "up": {
+                    "trades": 30,
+                    "wins": 19,
+                    "losses": 11,
+                    "win_rate": 19 / 30,
+                    "total_wagered": 300,
+                    "net_profit": 80,
+                    "max_drawdown": 30,
+                    "max_loss_streak": 3
+                },
+                "down": {
+                    "trades": 28,
+                    "wins": 16,
+                    "losses": 12,
+                    "win_rate": 16 / 28,
+                    "total_wagered": 280,
+                    "net_profit": 40,
+                    "max_drawdown": 40,
+                    "max_loss_streak": 4
+                }
+            }
         },
         "scores": {
             "survival_score": 1,
@@ -178,6 +200,9 @@ class StorageContractTests(unittest.TestCase):
         self.assertEqual(86, statistics["QCRL Filter Value Count"])
         self.assertEqual(3.2, statistics["QCRL Filter Value P50"])
         self.assertEqual(8.9, statistics["QCRL Filter Value Max"])
+        self.assertEqual(80, statistics["QCRL Up Net Profit"])
+        self.assertEqual(16, statistics["QCRL Down Wins"])
+        self.assertEqual(4, statistics["QCRL Down Max Loss Streak"])
         self.assertEqual("run-2025-flat", statistics["QCRL Run Id"])
 
     def test_explicit_save_failure_is_truthful(self):
