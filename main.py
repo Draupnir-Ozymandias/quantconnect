@@ -399,6 +399,7 @@ class QuantConnectResearchLab(QCAlgorithm):
         # bar. This prevents current-close look-ahead bias.
         filter_ready = self.filter_model.is_ready()
         filter_regime = self.filter_model.regime()
+        filter_telemetry_value = self.filter_model.telemetry_value()
 
         filter_allowed = False
 
@@ -415,6 +416,7 @@ class QuantConnectResearchLab(QCAlgorithm):
             return
 
         self.stats.record_signal(direction)
+        self.stats.record_filter_signal_value(filter_telemetry_value)
 
         if not filter_ready:
             self.stats.record_filter_not_ready()

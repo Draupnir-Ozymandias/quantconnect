@@ -250,6 +250,9 @@ class ResearchReport:
                 "skipped_filter_rejected": (
                     stats.signals_skipped_filter_rejected
                 ),
+                "filter_signal_value_summary": (
+                    stats.filter_signal_value_summary()
+                ),
                 "skipped_tie": stats.signals_skipped_tie,
                 "skipped_ruined": stats.signals_skipped_ruined,
                 "up_signals": stats.up_signals,
@@ -416,6 +419,9 @@ class ResearchReport:
         performance = report.get("performance", {})
         risk = report.get("risk", {})
         analytics = report.get("analytics", {})
+        filter_value_summary = analytics.get(
+            "filter_signal_value_summary", {}
+        )
         scores = report.get("scores", {})
 
         record = {
@@ -580,6 +586,14 @@ class ResearchReport:
             "down_signals": analytics.get("down_signals"),
             "up_executed": analytics.get("up_executed"),
             "down_executed": analytics.get("down_executed"),
+            "filter_value_count": filter_value_summary.get("count"),
+            "filter_value_min": filter_value_summary.get("min"),
+            "filter_value_p10": filter_value_summary.get("p10"),
+            "filter_value_p25": filter_value_summary.get("p25"),
+            "filter_value_p50": filter_value_summary.get("p50"),
+            "filter_value_p75": filter_value_summary.get("p75"),
+            "filter_value_p90": filter_value_summary.get("p90"),
+            "filter_value_max": filter_value_summary.get("max"),
 
             "survival_score": scores.get("survival_score"),
             "risk_adjusted_score": scores.get(
@@ -678,6 +692,14 @@ class ResearchReport:
             "QCRL Signals Executed": "signals_executed",
             "QCRL Filter Not Ready": "skipped_filter_not_ready",
             "QCRL Filter Rejected": "skipped_filter_rejected",
+            "QCRL Filter Value Count": "filter_value_count",
+            "QCRL Filter Value Min": "filter_value_min",
+            "QCRL Filter Value P10": "filter_value_p10",
+            "QCRL Filter Value P25": "filter_value_p25",
+            "QCRL Filter Value P50": "filter_value_p50",
+            "QCRL Filter Value P75": "filter_value_p75",
+            "QCRL Filter Value P90": "filter_value_p90",
+            "QCRL Filter Value Max": "filter_value_max",
             "QCRL Up Signals": "up_signals",
             "QCRL Down Signals": "down_signals",
             "QCRL Up Executed": "up_executed",

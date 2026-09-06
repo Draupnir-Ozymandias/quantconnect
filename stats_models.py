@@ -31,6 +31,7 @@ class StatsTracker:
         self.recovery_level_counts = {}
 
         self.regime_stats = {}
+        self.filter_signal_values = []
 
     def record_bar(self):
         self.bars_seen += 1
@@ -54,6 +55,13 @@ class StatsTracker:
 
     def record_filter_rejected(self):
         self.signals_skipped_filter_rejected += 1
+
+    def record_filter_signal_value(self, value):
+        if value is None:
+            return
+        numeric = float(value)
+        if numeric == numeric:
+            self.filter_signal_values.append(numeric)
 
     def record_executed(self, direction):
         self.signals_executed += 1
@@ -138,6 +146,28 @@ class StatsTracker:
             return 0
 
         return self.total_wagered / self.signals_executed
+
+    def filter_signal_value_quantile(self, probability):
+        if not self.filter_signal_values:
+            return None
+        values = sorted(self.filter_signal_values)
+        position = (len(values) - 1) * float(probability)
+        lower = int(position)
+        upper = min(lower + 1, len(values) - 1)
+        fraction = position - lower
+        return values[lower] + (values[upper] - values[lower]) * fraction
+
+    def filter_signal_value_summary(self):
+        return {
+            "count": len(self.filter_signal_values),
+            "min": self.filter_signal_value_quantile(0),
+            "p10": self.filter_signal_value_quantile(0.10),
+            "p25": self.filter_signal_value_quantile(0.25),
+            "p50": self.filter_signal_value_quantile(0.50),
+            "p75": self.filter_signal_value_quantile(0.75),
+            "p90": self.filter_signal_value_quantile(0.90),
+            "max": self.filter_signal_value_quantile(1)
+        }
 
     def recovery_level_text(self):
         if len(self.recovery_level_counts) == 0:

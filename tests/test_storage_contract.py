@@ -117,6 +117,16 @@ def sample_report(run_id="run-2025-flat"):
             "filter_rate": 0.42,
             "skipped_filter_not_ready": 14,
             "skipped_filter_rejected": 28,
+            "filter_signal_value_summary": {
+                "count": 86,
+                "min": 1.1,
+                "p10": 1.8,
+                "p25": 2.4,
+                "p50": 3.2,
+                "p75": 4.3,
+                "p90": 5.7,
+                "max": 8.9
+            },
             "executed_win_rate": 35 / 58,
             "total_wagered": 580,
             "average_wager": 10,
@@ -165,6 +175,9 @@ class StorageContractTests(unittest.TestCase):
         self.assertEqual(52, statistics["QCRL Up Signals"])
         self.assertEqual(14, statistics["QCRL Filter Not Ready"])
         self.assertEqual(28, statistics["QCRL Filter Rejected"])
+        self.assertEqual(86, statistics["QCRL Filter Value Count"])
+        self.assertEqual(3.2, statistics["QCRL Filter Value P50"])
+        self.assertEqual(8.9, statistics["QCRL Filter Value Max"])
         self.assertEqual("run-2025-flat", statistics["QCRL Run Id"])
 
     def test_explicit_save_failure_is_truthful(self):

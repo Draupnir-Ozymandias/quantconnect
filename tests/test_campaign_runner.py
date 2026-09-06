@@ -188,6 +188,49 @@ class CampaignRunnerTests(unittest.TestCase):
         required = qcrl_campaign.required_metric_fields(manifest)
         self.assertIn("skipped_filter_not_ready", required)
         self.assertIn("skipped_filter_rejected", required)
+        analysis = manifest["directional_analysis"]
+        self.assertEqual("gate_attribution", analysis["analysis_stage"])
+        self.assertEqual("control", analysis["control_value"])
+        self.assertEqual("atr_warmup_only", analysis["diagnostic_value"])
+        self.assertEqual(
+            ["atr_lower_only", "atr_upper_only", "atr_default_1_10"],
+            analysis["candidate_values"]
+        )
+
+    def test_atr_telemetry_manifest_collects_signal_time_distribution(self):
+        manifest = qcrl_campaign.load_manifest(
+            Path(__file__).parents[1]
+            / "campaigns"
+            / "btcusd_1d_atr_signal_telemetry_2022_2025.json"
+        )
+        cases = qcrl_campaign.expand_cases(manifest)
+
+        self.assertEqual(4, len(cases))
+        self.assertEqual(
+            {2022, 2023, 2024, 2025},
+            {case["parameters"]["start_year"] for case in cases}
+        )
+        self.assertEqual(
+            {"atr_volatility"},
+            {case["parameters"]["filter_model"] for case in cases}
+        )
+        self.assertEqual(
+            {(0, 100)},
+            {
+                (
+                    case["parameters"]["atr_min_pct"],
+                    case["parameters"]["atr_max_pct"]
+                )
+                for case in cases
+            }
+        )
+        required = qcrl_campaign.required_metric_fields(manifest)
+        for field in [
+            "filter_value_count", "filter_value_min", "filter_value_p10",
+            "filter_value_p25", "filter_value_p50", "filter_value_p75",
+            "filter_value_p90", "filter_value_max"
+        ]:
+            self.assertIn(field, required)
 
     def test_baseline_manifest_expands_to_four_pairs(self):
         self.assertEqual(8, len(self.cases))

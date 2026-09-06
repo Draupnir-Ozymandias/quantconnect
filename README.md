@@ -225,7 +225,7 @@ percentage points, retained 95.79% of trades, improved profit in three of four
 years, and did not increase worst drawdown. ADX lost 280 units relative to the
 control and retained only 45.43% of trades.
 
-Before tuning ATR thresholds, run the attribution campaign:
+The follow-up attribution campaign is:
 
 ```bash
 ./synch.sh campaign plan campaigns/btcusd_1d_atr_gate_attribution_2022_2025.json
@@ -237,10 +237,27 @@ Before tuning ATR thresholds, run the attribution campaign:
 ```
 
 Its 20 cases separate the unfiltered control, ATR warmup only, lower bound
-only, upper bound only, and the default 1%–10% band across all four years. New
-summary metrics distinguish signals skipped while ATR was not ready from those
-actually rejected by its bounds. This determines which component, if any,
-deserves a parameter neighborhood.
+only, upper bound only, and the default 1%–10% band across all four years. The
+completed attribution verdict found all three bound profiles exactly identical
+to the warmup-only diagnostic. ATR skipped 29 signals while not ready and zero
+signals because of its bounds. The apparent Stage 2 improvement is therefore a
+warmup exclusion effect, not evidence for the 1%–10% volatility gate; threshold
+tuning is blocked.
+
+The next four-case campaign observes the prior-state ATR percentage only when
+the length-2 signal fires. Its 0%–100% band is deliberately nonrestrictive:
+
+```bash
+./synch.sh campaign plan campaigns/btcusd_1d_atr_signal_telemetry_2022_2025.json
+./synch.sh campaign run campaigns/btcusd_1d_atr_signal_telemetry_2022_2025.json --execute --limit 1
+./synch.sh campaign run campaigns/btcusd_1d_atr_signal_telemetry_2022_2025.json --execute
+./synch.sh campaign collect campaigns/btcusd_1d_atr_signal_telemetry_2022_2025.json
+./synch.sh campaign validate campaigns/btcusd_1d_atr_signal_telemetry_2022_2025.json
+```
+
+Each result exports count, minimum, p10, p25, p50, p75, p90, and maximum ATR
+percentage. Use those yearly distributions to predeclare a small, interpretable
+bound neighborhood; do not launch a broad threshold optimizer yet.
 
 When `pair_comparison` is present, validation also writes a structured artifact
 to `.qcrl/campaigns/{campaign_id}/paired_comparison.json`. Each pair contains:

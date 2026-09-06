@@ -84,6 +84,14 @@ QCRL_STATISTICS = {
     "QCRL Signals Executed": "signals_executed",
     "QCRL Filter Not Ready": "skipped_filter_not_ready",
     "QCRL Filter Rejected": "skipped_filter_rejected",
+    "QCRL Filter Value Count": "filter_value_count",
+    "QCRL Filter Value Min": "filter_value_min",
+    "QCRL Filter Value P10": "filter_value_p10",
+    "QCRL Filter Value P25": "filter_value_p25",
+    "QCRL Filter Value P50": "filter_value_p50",
+    "QCRL Filter Value P75": "filter_value_p75",
+    "QCRL Filter Value P90": "filter_value_p90",
+    "QCRL Filter Value Max": "filter_value_max",
     "QCRL Up Signals": "up_signals",
     "QCRL Down Signals": "down_signals",
     "QCRL Up Executed": "up_executed",
@@ -1462,6 +1470,7 @@ def build_directional_cohort_artifact(manifest, state, cases):
         "core_values": config.get("core_values", []),
         "tail_values": config.get("tail_values", []),
         "control_value": config.get("control_value"),
+        "diagnostic_value": config.get("diagnostic_value"),
         "candidate_values": config.get("candidate_values", []),
         "additional_metrics": config.get("additional_metrics", []),
         "expected_labels": config["expected_labels"],
@@ -1540,6 +1549,22 @@ def run_directional_analysis(manifest, cases):
                 f"improved_labels="
                 f"{comparison['profit_improved_labels']}/"
                 f"{comparison['paired_label_count']}"
+            )
+    attribution = report.get("gate_attribution_interpretation")
+    if attribution:
+        print("Gate attribution verdict:")
+        print(
+            f"  diagnostic={attribution['diagnostic_value']} "
+            f"not_ready={attribution['diagnostic_not_ready_total']} "
+            f"rejected={attribution['diagnostic_rejected_total']}"
+        )
+        for candidate in attribution["candidates"]:
+            print(
+                f"  {candidate['candidate_value']}: "
+                f"decision={candidate['decision']} "
+                f"equivalent_to_diagnostic="
+                f"{candidate['equivalent_to_diagnostic']} "
+                f"rejected={candidate['rejected_signal_total']}"
             )
     print(f"Next action: {summary['next_action']}")
     print(f"Directional evidence: {artifact_path}")

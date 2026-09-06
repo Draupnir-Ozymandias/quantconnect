@@ -17,6 +17,7 @@ class DirectionalCohortEngine:
     SCORE_VERSION = "qcrl.directional_cohort_score.v2"
     NEIGHBORHOOD_VERSION = "qcrl.directional_neighborhood_interpretation.v1"
     SINGLE_GATE_VERSION = "qcrl.single_gate_interpretation.v1"
+    ATTRIBUTION_VERSION = "qcrl.gate_attribution_interpretation.v1"
     SINGLE_GATE_THRESHOLDS = {
         "minimum_trade_retention_ratio": 0.50,
         "minimum_profit_improvement_ratio": 0.75
@@ -85,12 +86,16 @@ class DirectionalCohortEngine:
         stage = artifact.get("analysis_stage", "generator_screen")
         neighborhood = None
         single_gate = None
+        attribution = None
         if stage == "parameter_neighborhood":
             neighborhood = self._interpret_neighborhood(results, artifact)
             next_action = neighborhood["next_action"]
         elif stage == "single_gate":
             single_gate = self._interpret_single_gates(results, artifact)
             next_action = single_gate["next_action"]
+        elif stage == "gate_attribution":
+            attribution = self._interpret_gate_attribution(results, artifact)
+            next_action = attribution["next_action"]
         elif advance:
             next_action = "advance_candidates_to_single_gate_stage"
         elif hold:
@@ -141,6 +146,11 @@ class DirectionalCohortEngine:
             report["single_gate_interpretation"] = single_gate
             report["decision_summary"]["selected_candidates"] = (
                 single_gate["selected_candidates"]
+            )
+        if attribution is not None:
+            report["gate_attribution_interpretation"] = attribution
+            report["decision_summary"]["selected_candidates"] = (
+                attribution["selected_candidates"]
             )
         return report
 
@@ -200,6 +210,24 @@ class DirectionalCohortEngine:
             if set(keys) != {control, *candidates}:
                 raise DirectionalCohortError(
                     "Single-gate cohorts must exactly match control and candidates"
+                )
+        if artifact.get("analysis_stage") == "gate_attribution":
+            control = artifact.get("control_value")
+            diagnostic = artifact.get("diagnostic_value")
+            candidates = artifact.get("candidate_values")
+            if not isinstance(candidates, list) or not candidates:
+                raise DirectionalCohortError(
+                    "Gate attribution requires candidate_values"
+                )
+            declared = {control, diagnostic, *candidates}
+            if len(declared) != len(candidates) + 2:
+                raise DirectionalCohortError(
+                    "Attribution control, diagnostic, and candidates must differ"
+                )
+            if set(keys) != declared:
+                raise DirectionalCohortError(
+                    "Attribution cohorts must match control, diagnostic, "
+                    "and candidates"
                 )
 
     def _interpret_neighborhood(self, results, artifact):
@@ -462,6 +490,129 @@ class DirectionalCohortEngine:
                 else "retain_unfiltered_signal_and_reject_tested_gates"
             )
         }
+
+    def _interpret_gate_attribution(self, results, artifact):
+        """Separate indicator-readiness effects from active gate effects."""
+        diagnostic_value = artifact["diagnostic_value"]
+        comparison_artifact = dict(artifact)
+        comparison_artifact["candidate_values"] = [
+            diagnostic_value, *artifact["candidate_values"]
+        ]
+        control_comparison = self._interpret_single_gates(
+            results, comparison_artifact
+        )
+        comparisons = {
+            item["candidate_value"]: item
+            for item in control_comparison["comparisons"]
+        }
+        records = {
+            cohort["group_key"]: {
+                record["label"]: record for record in cohort["records"]
+            }
+            for cohort in artifact["cohorts"]
+        }
+        diagnostic_records = records[diagnostic_value]
+        not_ready_field = "skipped_filter_not_ready"
+        rejected_field = "skipped_filter_rejected"
+        diagnostic_not_ready = sum(
+            float(record.get(not_ready_field, 0))
+            for record in diagnostic_records.values()
+        )
+        diagnostic_rejected = sum(
+            float(record.get(rejected_field, 0))
+            for record in diagnostic_records.values()
+        )
+        outcome_fields = [
+            "net_profit", "win_rate", "trades", "wins", "max_drawdown",
+            "max_loss_streak", "ruined", not_ready_field, rejected_field
+        ]
+        candidate_results = []
+        for candidate_value in artifact["candidate_values"]:
+            candidate_records = records[candidate_value]
+            equivalent = all(
+                self._records_equivalent(
+                    diagnostic_records.get(label),
+                    candidate_records.get(label),
+                    outcome_fields
+                )
+                for label in artifact["expected_labels"]
+            )
+            rejected_total = sum(
+                float(record.get(rejected_field, 0))
+                for record in candidate_records.values()
+            )
+            base_decision = comparisons[candidate_value]["decision"]
+            if equivalent:
+                decision = "no_incremental_effect"
+                next_action = "do_not_tune_inert_gate_bounds"
+            elif rejected_total <= 0:
+                decision = "no_active_gate_evidence"
+                next_action = "collect_signal_time_filter_telemetry"
+            elif base_decision == "advance":
+                decision = "advance"
+                next_action = "run_active_component_parameter_neighborhood"
+            elif base_decision == "reject":
+                decision = "reject"
+                next_action = "reject_tested_component"
+            else:
+                decision = "hold"
+                next_action = "expand_component_attribution_evidence"
+            candidate_results.append({
+                "candidate_value": candidate_value,
+                "decision": decision,
+                "next_action": next_action,
+                "equivalent_to_diagnostic": equivalent,
+                "rejected_signal_total": rejected_total,
+                "control_comparison": comparisons[candidate_value]
+            })
+
+        selected = [
+            item["candidate_value"] for item in candidate_results
+            if item["decision"] == "advance"
+        ]
+        all_inert = all(
+            item["decision"] in {
+                "no_incremental_effect", "no_active_gate_evidence"
+            }
+            for item in candidate_results
+        )
+        return {
+            "schema_version": self.ATTRIBUTION_VERSION,
+            "control_value": artifact["control_value"],
+            "diagnostic_value": diagnostic_value,
+            "diagnostic_decision": "diagnostic_only",
+            "diagnostic_not_ready_total": diagnostic_not_ready,
+            "diagnostic_rejected_total": diagnostic_rejected,
+            "diagnostic_control_comparison": comparisons[diagnostic_value],
+            "candidates": candidate_results,
+            "selected_candidates": selected,
+            "next_action": (
+                "collect_signal_time_filter_telemetry"
+                if all_inert
+                else (
+                    "run_selected_component_parameter_neighborhood"
+                    if selected
+                    else "review_mixed_gate_attribution"
+                )
+            )
+        }
+
+    @staticmethod
+    def _records_equivalent(first, second, fields):
+        if first is None or second is None:
+            return False
+        for field in fields:
+            left = first.get(field)
+            right = second.get(field)
+            if isinstance(left, bool) or isinstance(right, bool):
+                if left is not right:
+                    return False
+            elif left is None or right is None:
+                if left != right:
+                    return False
+            elif not math.isclose(float(left), float(right)):
+                return False
+        return True
 
     def _analyze_cohort(self, cohort, expected_labels):
         records = cohort.get("records", [])

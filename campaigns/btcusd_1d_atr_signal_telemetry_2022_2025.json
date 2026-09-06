@@ -1,0 +1,84 @@
+{
+  "schema_version": "qcrl.campaign.v1",
+  "campaign_id": "btcusd-1d-atr-signal-telemetry-2022-2025-v1",
+  "project_id": 33239307,
+  "description": "Observe prior-state ATR percentages at length-2 candle-streak signals without active volatility-bound rejection.",
+  "backtest_name_prefix": "QCRL-2.3.0-BTCUSD-1D-ATR-Telemetry",
+  "case_name_fields": [
+    "start_year",
+    "run_notes"
+  ],
+  "base_parameters": {
+    "start_month": 1,
+    "start_day": 1,
+    "end_month": 12,
+    "end_day": 31,
+    "coin": "BTCUSD",
+    "timeframe": "1d",
+    "entry_model": "candle_streak",
+    "streak_length": 2,
+    "streak_mode": "reverse",
+    "filter_model": "atr_volatility",
+    "ema_fast": 5,
+    "ema_slow": 10,
+    "macd_fast": 12,
+    "macd_slow": 26,
+    "macd_signal": 9,
+    "rsi_period": 14,
+    "rsi_oversold": 30,
+    "rsi_overbought": 70,
+    "adx_period": 14,
+    "adx_threshold": 25,
+    "atr_period": 14,
+    "atr_min_pct": 0,
+    "atr_max_pct": 100,
+    "stake_mode": "flat",
+    "base_wager": 10,
+    "bankroll": 100000,
+    "multiplier": 2,
+    "max_steps": 10,
+    "enable_plots": false,
+    "lab_version": "QCRL-2.3.0",
+    "run_notes": "atr_signal_telemetry"
+  },
+  "variants": [
+    {
+      "start_year": 2022,
+      "end_year": 2022
+    },
+    {
+      "start_year": 2023,
+      "end_year": 2023
+    },
+    {
+      "start_year": 2024,
+      "end_year": 2024
+    },
+    {
+      "start_year": 2025,
+      "end_year": 2025
+    }
+  ],
+  "cohort_rankings": [
+    {
+      "name": "ATR signal-time telemetry",
+      "filters": {
+        "run_notes": "atr_signal_telemetry"
+      },
+      "score_model": "flat_profit_drawdown",
+      "direction": "max",
+      "display_fields": [
+        "filter_value_count",
+        "filter_value_min",
+        "filter_value_p10",
+        "filter_value_p25",
+        "filter_value_p50",
+        "filter_value_p75",
+        "filter_value_p90",
+        "filter_value_max",
+        "skipped_filter_not_ready",
+        "skipped_filter_rejected"
+      ]
+    }
+  ]
+}

@@ -229,12 +229,12 @@
     ]
   },
   "directional_analysis": {
-    "analysis_stage": "single_gate",
+    "analysis_stage": "gate_attribution",
     "group_field": "run_notes",
     "label_field": "start_year",
     "control_value": "control",
+    "diagnostic_value": "atr_warmup_only",
     "candidate_values": [
-      "atr_warmup_only",
       "atr_lower_only",
       "atr_upper_only",
       "atr_default_1_10"

@@ -23,6 +23,9 @@ class NoFilterModel:
     def regime(self):
         return "none"
 
+    def telemetry_value(self):
+        return None
+
 
 class EmaTrendFilterModel:
     def __init__(self, fast_period, slow_period):
@@ -98,6 +101,9 @@ class EmaTrendFilterModel:
             return "bearish"
 
         return "neutral"
+
+    def telemetry_value(self):
+        return None
 
 
 class AdxStrengthFilterModel:
@@ -207,6 +213,9 @@ class AdxStrengthFilterModel:
             return "not_ready"
         return "trend" if self.adx_value >= self.threshold else "range"
 
+    def telemetry_value(self):
+        return None
+
 
 class AtrVolatilityFilterModel:
     def __init__(self, period, minimum_percent, maximum_percent):
@@ -270,6 +279,9 @@ class AtrVolatilityFilterModel:
         if self.atr_percent >= self.maximum_percent:
             return "high_volatility"
         return "eligible_volatility"
+
+    def telemetry_value(self):
+        return self.atr_percent
 
 
 class FilterModelFactory:

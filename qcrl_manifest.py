@@ -47,16 +47,19 @@ def validate_directional_analysis(manifest, metric_fields, error_type):
 
     stage = analysis.get("analysis_stage", "generator_screen")
     if stage not in {
-        "generator_screen", "parameter_neighborhood", "single_gate"
+        "generator_screen", "parameter_neighborhood", "single_gate",
+        "gate_attribution"
     }:
         raise error_type(
             "directional_analysis analysis_stage must be generator_screen, "
-            "parameter_neighborhood, or single_gate"
+            "parameter_neighborhood, single_gate, or gate_attribution"
         )
     if stage == "parameter_neighborhood":
         _validate_parameter_neighborhood(analysis, error_type)
     if stage == "single_gate":
         _validate_single_gate(analysis, error_type)
+    if stage == "gate_attribution":
+        _validate_gate_attribution(analysis, error_type)
 
 
 def _validate_parameter_neighborhood(analysis, error_type):
@@ -86,3 +89,17 @@ def _validate_single_gate(analysis, error_type):
         raise error_type("candidate_values must be a non-empty array")
     if analysis["control_value"] in candidates:
         raise error_type("control_value cannot be a candidate_value")
+
+
+def _validate_gate_attribution(analysis, error_type):
+    for field in ["control_value", "diagnostic_value", "candidate_values"]:
+        if field not in analysis:
+            raise error_type(f"gate_attribution analysis requires {field}")
+    candidates = analysis["candidate_values"]
+    if not isinstance(candidates, list) or not candidates:
+        raise error_type("candidate_values must be a non-empty array")
+    reserved = {analysis["control_value"], analysis["diagnostic_value"]}
+    if len(reserved) != 2 or reserved & set(candidates):
+        raise error_type(
+            "gate attribution control, diagnostic, and candidates must differ"
+        )

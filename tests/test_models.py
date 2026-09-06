@@ -127,13 +127,16 @@ class ModelTests(unittest.TestCase):
     def test_atr_filter_uses_normalized_prior_volatility(self):
         model = AtrVolatilityFilterModel(2, 1, 10)
 
+        self.assertIsNone(model.telemetry_value())
         model.update(Bar(99, 100, 102, 98))
         model.update(Bar(100, 101, 103, 99))
         self.assertFalse(model.is_ready())
+        self.assertIsNone(model.telemetry_value())
         model.update(Bar(101, 102, 104, 100))
         self.assertTrue(model.is_ready())
         self.assertEqual("eligible_volatility", model.regime())
         self.assertTrue(model.allow_trade("down"))
+        self.assertAlmostEqual(400 / 102, model.telemetry_value())
 
     def test_martingale_recovery_cycle_earns_one_base_wager(self):
         risk = RiskTracker(100000, max_steps=10)
@@ -164,6 +167,23 @@ class ModelTests(unittest.TestCase):
         self.assertEqual(1.0, stats.execution_rate())
         self.assertEqual(20, stats.total_wagered)
         self.assertEqual(1, stats.regime_stats["bearish"]["wins"])
+
+    def test_filter_signal_value_summary_uses_interpolated_quantiles(self):
+        stats = StatsTracker()
+        for value in [1, 2, 3, 4, 5]:
+            stats.record_filter_signal_value(value)
+        stats.record_filter_signal_value(None)
+
+        summary = stats.filter_signal_value_summary()
+
+        self.assertEqual(5, summary["count"])
+        self.assertEqual(1, summary["min"])
+        self.assertAlmostEqual(1.4, summary["p10"])
+        self.assertEqual(2, summary["p25"])
+        self.assertEqual(3, summary["p50"])
+        self.assertEqual(4, summary["p75"])
+        self.assertAlmostEqual(4.6, summary["p90"])
+        self.assertEqual(5, summary["max"])
 
     def test_metadata_ignores_inactive_parameters(self):
         first = AlgorithmConfiguration()

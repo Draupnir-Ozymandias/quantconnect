@@ -172,6 +172,50 @@ def single_gate_artifact():
     }
 
 
+def attribution_artifact():
+    source = single_gate_artifact()
+    by_key = {
+        cohort["group_key"]: cohort for cohort in source["cohorts"]
+    }
+    control = copy.deepcopy(by_key["none"])
+    diagnostic = copy.deepcopy(by_key["atr_volatility"])
+    diagnostic["group_key"] = "atr_warmup_only"
+    candidates = []
+    for name in ["atr_lower_only", "atr_upper_only", "atr_default_1_10"]:
+        cohort = copy.deepcopy(diagnostic)
+        cohort["group_key"] = name
+        for record in cohort["records"]:
+            year = record["label"]
+            record["case_id"] = f"{year}-{name}"
+            record["run_id"] = f"run-{year}-{name}"
+            record["skipped_filter_rejected"] = 0
+        candidates.append(cohort)
+    for record in diagnostic["records"]:
+        year = record["label"]
+        record["case_id"] = f"{year}-atr-warmup-only"
+        record["run_id"] = f"run-{year}-atr-warmup-only"
+        record["skipped_filter_rejected"] = 0
+    return {
+        "schema_version": "qcrl.directional_cohort.v1",
+        "campaign_id": "atr-attribution",
+        "case_set_hash": "attribution123",
+        "analysis_stage": "gate_attribution",
+        "group_field": "run_notes",
+        "label_field": "start_year",
+        "control_value": "none",
+        "diagnostic_value": "atr_warmup_only",
+        "candidate_values": [
+            "atr_lower_only", "atr_upper_only", "atr_default_1_10"
+        ],
+        "additional_metrics": [
+            "skipped_filter_not_ready", "skipped_filter_rejected"
+        ],
+        "expected_labels": [2022, 2023, 2024, 2025],
+        "validation": {"valid": True, "issue_count": 0, "issues": []},
+        "cohorts": [control, diagnostic, *candidates]
+    }
+
+
 class DirectionalCohortEngineTests(unittest.TestCase):
     def test_real_stage1_shape_produces_family_decisions(self):
         report = DirectionalCohortEngine().analyze(directional_artifact())
@@ -300,6 +344,26 @@ class DirectionalCohortEngineTests(unittest.TestCase):
             ["additional_metrics"]["skipped_filter_not_ready"]["candidate"]
         )
         self.assertEqual("reject", comparisons["adx_strength"]["decision"])
+
+    def test_attribution_rejects_inert_bounds_and_requests_telemetry(self):
+        report = DirectionalCohortEngine().analyze(attribution_artifact())
+        interpretation = report["gate_attribution_interpretation"]
+
+        self.assertEqual(
+            "qcrl.gate_attribution_interpretation.v1",
+            interpretation["schema_version"]
+        )
+        self.assertEqual(28, interpretation["diagnostic_not_ready_total"])
+        self.assertEqual(0, interpretation["diagnostic_rejected_total"])
+        self.assertEqual([], interpretation["selected_candidates"])
+        self.assertEqual(
+            "collect_signal_time_filter_telemetry",
+            report["decision_summary"]["next_action"]
+        )
+        for candidate in interpretation["candidates"]:
+            self.assertEqual("no_incremental_effect", candidate["decision"])
+            self.assertTrue(candidate["equivalent_to_diagnostic"])
+            self.assertEqual(0, candidate["rejected_signal_total"])
 
 
 if __name__ == "__main__":

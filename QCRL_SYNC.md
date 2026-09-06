@@ -1,7 +1,7 @@
 # QCRL Sync Log
 
 **Updated:** 2026-09-05
-**Sync version:** 2026-09-05 Stage 2 Gate and ATR Attribution
+**Sync version:** 2026-09-06 ATR Attribution Verdict and Telemetry
 **QCRL baseline:** 2.2.0  
 **Status:** Active research
 
@@ -1319,18 +1319,42 @@ ATR did not increase worst drawdown, but its final cohort score remained nearly
 equal to the control because win-rate consistency was slightly lower. The gate
 therefore advances only to attribution and parameter-neighborhood research.
 
-The default ATR band removed 29 of 689 control trades. The current 22-metric
-API surface cannot tell how many were unavailable during the 14-bar indicator
-warmup versus rejected by the 1%–10% band. The report/API contract now adds:
+The default ATR profile removed 29 of 689 control trades. The report/API
+contract distinguishes indicator warmup from active gate rejection with:
 
 ```text
 QCRL Filter Not Ready
 QCRL Filter Rejected
 ```
 
-The 20-case attribution campaign compares control, warmup-only, lower-only,
-upper-only, and default-band profiles across 2022–2025. This prevents a warmup
-artifact from being mistaken for a volatility edge before threshold tuning.
+The 20-case attribution campaign is fully API-collected and valid. Warmup-only,
+lower-only, upper-only, and default-band profiles produced identical outcomes
+in every year. Across 2022–2025, each ATR profile recorded 29 not-ready skips
+and zero bound-rejected signals. The versioned
+`qcrl.gate_attribution_interpretation.v1` verdict therefore classifies all
+three bound profiles as `no_incremental_effect` and blocks threshold tuning.
+The apparent +70 aggregate profit and +0.69 percentage-point weighted win-rate
+change are attributable entirely to excluding signals during ATR warmup.
+
+Signal-time ATR telemetry is now part of the canonical report/API surface:
+
+```text
+QCRL Filter Value Count
+QCRL Filter Value Min
+QCRL Filter Value P10
+QCRL Filter Value P25
+QCRL Filter Value P50
+QCRL Filter Value P75
+QCRL Filter Value P90
+QCRL Filter Value Max
+```
+
+The values are prior-state ATR percentages captured only when a directional
+signal is generated, preserving lookahead-free decision ordering. The next
+campaign is `btcusd_1d_atr_signal_telemetry_2022_2025.json`: four annual cases,
+ATR period 14, flat sizing, and a deliberately nonrestrictive 0%–100% band.
+After collection, yearly quantiles will support a predeclared compact gate
+neighborhood. Broad optimization remains gated.
 
 Canonical storage contracts are extended to preserve every active directional
 and gate parameter:
@@ -1368,9 +1392,11 @@ Directional Cohort Engine v1 implemented
 Candle streak held; RSI, MACD, and EMA defaults rejected
 Candle-streak lengths 1–6 neighborhood campaign complete (24/24 API-collected)
 Length 2 selected with two-sided core-neighborhood support
-Stage 2 complete: ATR advanced; ADX default rejected
-ATR component-attribution campaign ready (20 cases)
-Next: synchronize the metric extension, then run one attribution integration case
+Stage 2 complete: ATR advanced provisionally; ADX default rejected
+ATR attribution complete: 20/20 API-collected, all bounds inert
+Attribution-aware verdict v1 implemented
+Prior-state ATR signal telemetry implemented and covered by a four-case manifest
+Next: synchronize the telemetry extension, then run one telemetry integration case
 ```
 
 ## Synchronization rule
@@ -1392,4 +1418,4 @@ next coding target
 
 # One-Sentence State
 
-> QCRL 2.3.0 advances the ATR gate—but not ADX—from a fully collected Stage 2 and is ready to distinguish ATR warmup effects from lower- and upper-volatility exclusions before any threshold optimization.
+> QCRL 2.3.0 has attributed the apparent ATR improvement entirely to indicator warmup, rejected the tested bounds as inert, and is ready to measure signal-time ATR distributions before declaring a compact threshold neighborhood.
