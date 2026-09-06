@@ -39,6 +39,21 @@ class QuantConnectResearchLab(QCAlgorithm):
             self.Param("start_day", LabConfig.START_DAY)
         )
 
+        self.evaluation_start_year = int(self.Param(
+            "evaluation_start_year", self.start_year
+        ))
+        self.evaluation_start_month = int(self.Param(
+            "evaluation_start_month", self.start_month
+        ))
+        self.evaluation_start_day = int(self.Param(
+            "evaluation_start_day", self.start_day
+        ))
+        self.evaluation_start = (
+            self.evaluation_start_year,
+            self.evaluation_start_month,
+            self.evaluation_start_day
+        )
+
         self.end_year = int(
             self.Param("end_year", LabConfig.END_YEAR)
         )
@@ -404,6 +419,12 @@ class QuantConnectResearchLab(QCAlgorithm):
         )
 
     def OnPolymarketBar(self, sender, bar):
+        if (bar.Time.year, bar.Time.month, bar.Time.day) < self.evaluation_start:
+            self.entry_model.get_direction(bar)
+            self.filter_model.update(bar)
+            self.regime_model.update(bar)
+            return
+
         self.stats.record_bar()
         self.PlotStateIfDue()
 

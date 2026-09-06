@@ -1590,9 +1590,45 @@ Both directions retained in the daily signal
 ROC-sign observer and regime-attribution verdict implemented
 2018–2025 trend-alignment hypothesis rejected at 5/8 supporting years
 Post-hoc nonpositive-state advantage isolated and labeled discovery-only
-Frozen January–August 2026 forward-validation campaign declared
-Next: synchronize and execute the single 2026 forward case
+Frozen January–August 2026 forward-validation campaign rejected
+Quarterly temporal-persistence gate declared across 2018Q1–2025Q4
+Next: synchronize and execute the 2018Q1 boundary-integration case
 ```
+
+## 2026-09-06 quarterly temporal-persistence gate
+
+The locked January–August 2026 ROC-state hypothesis was rejected. All evidence
+and sample-size checks passed, but the nonpositive state produced no pooled
+win-rate or profit advantage; UP contradicted the hypothesis while DOWN alone
+supported it. This closes that feature path without re-tuning the observer.
+
+The next gate asks a more fundamental question: whether the untouched,
+two-sided length-2 daily reversal signal is temporally persistent enough to
+deserve more feature engineering. The new campaign declares 32 non-overlapping
+quarters from 2018Q1 through 2025Q4. Each LEAN run begins two daily bars before
+its evaluation quarter so entry memory crosses the artificial boundary, while
+the algorithm explicitly excludes those seed bars from statistics, signals,
+risk, and profit.
+
+`qcrl.temporal_audit.v1` requires authoritative API collection and verifies
+flat-payout accounting before `qcrl.temporal_stability_report.v1` measures
+quarterly profitability, weighted win rate, dispersion, 29 rolling four-quarter
+windows, maximum loss streak, break-even constant friction, and top-four profit
+concentration. All thresholds are frozen in the manifest before collection.
+`bars_seen` is also exported as an API metric so the first cloud case can verify
+that pre-evaluation seed bars do not leak into the scored quarter.
+The v6/v5 report contracts add `evaluation_start`; existing experiments retain
+their identity when it equals the engine start.
+
+Files created or changed: temporal campaign declaration, temporal artifact and
+stability engines, campaign/manifest routing, algorithm evaluation boundary,
+metadata/report contracts, tests, and research documentation. No new Workstream
+A request exists beyond preserving the additive v6/v5 date field. Tests
+completed: 88 deterministic tests, 32-case manifest expansion, Python
+compilation, and whitespace validation.
+
+Next coding target: none until the first 2018Q1 cloud case confirms the seeded
+quarter boundary and authoritative metric collection.
 
 ## Synchronization rule
 
@@ -1613,4 +1649,4 @@ next coding target
 
 # One-Sentence State
 
-> QCRL 2.3.0 rejected 20-day trend alignment, isolated a post-hoc nonpositive-state advantage on both forecast sides, and has locked that hypothesis for one untouched January–August 2026 forward test without filtering any trades.
+> QCRL 2.4.0 rejected the forward ROC-state hypothesis and now requires the untouched daily signal to pass a predeclared 32-quarter persistence and friction-capacity gate before any further feature work.

@@ -14,7 +14,7 @@ import sys
 import time
 from urllib import error, request
 
-from qcrl_manifest import validate_directional_analysis
+from qcrl_manifest import validate_directional_analysis, validate_temporal_analysis
 from qcrl_output import print_directional_report
 
 
@@ -54,6 +54,7 @@ REGIME_MODELS = {"none", "roc_sign"}
 STAKE_MODES = {"flat", "martingale"}
 ALLOWED_PARAMETERS = {
     "start_year", "start_month", "start_day",
+    "evaluation_start_year", "evaluation_start_month", "evaluation_start_day",
     "end_year", "end_month", "end_day",
     "coin", "timeframe", "entry_model", "bias",
     "streak_length", "streak_mode", "stake_mode",
@@ -83,6 +84,7 @@ QCRL_STATISTICS = {
     "QCRL Max Recovery Depth": "max_recovery_depth",
     "QCRL Risk Adjusted Score": "risk_adjusted_score",
     "QCRL Tail Risk Score": "tail_risk_score",
+    "QCRL Bars Seen": "bars_seen",
     "QCRL Signals Generated": "signals_generated",
     "QCRL Signals Executed": "signals_executed",
     "QCRL Filter Not Ready": "skipped_filter_not_ready",
@@ -175,6 +177,7 @@ def load_manifest(path):
     validate_directional_analysis(
         manifest, QCRL_STATISTICS.values(), CampaignError
     )
+    validate_temporal_analysis(manifest, CampaignError)
     return manifest
 
 
@@ -297,6 +300,11 @@ def validate_parameters(parameters):
         parameters.get("end_year", 9999)
     ):
         raise CampaignError("start_year cannot be later than end_year")
+    start = tuple(int(parameters.get(f"start_{part}", 1)) for part in ["year", "month", "day"])
+    evaluation = tuple(int(parameters.get(f"evaluation_start_{part}", start[i])) for i, part in enumerate(["year", "month", "day"]))
+    end = tuple(int(parameters.get(f"end_{part}", 9999)) for part in ["year", "month", "day"])
+    if not start <= evaluation <= end:
+        raise CampaignError("evaluation_start must be within the engine date range")
     if parameters.get("filter_model") == "ema_trend":
         ema_fast = int(parameters.get("ema_fast", 0))
         ema_slow = int(parameters.get("ema_slow", 0))
@@ -1616,7 +1624,8 @@ def build_parser():
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
     for command in [
-        "plan", "status", "collect", "validate", "stability", "directional"
+        "plan", "status", "collect", "validate", "stability", "directional",
+        "temporal"
     ]:
         child = subparsers.add_parser(command)
         child.add_argument("manifest", type=Path)
@@ -1681,6 +1690,15 @@ def main(arguments=None):
             return run_stability(manifest, cases)
         if args.command == "directional":
             return run_directional_analysis(manifest, cases)
+        if args.command == "temporal":
+            from qcrl_temporal import QcrlTemporalError, run_temporal_analysis
+            try:
+                return run_temporal_analysis(
+                    manifest, cases, load_state(manifest, cases),
+                    state_path(manifest).parent
+                )
+            except QcrlTemporalError as exc:
+                raise CampaignError(str(exc)) from exc
         return show_status(manifest, cases)
     except CampaignError as exc:
         print(f"Campaign error: {exc}", file=sys.stderr)

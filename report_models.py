@@ -15,8 +15,8 @@ from metadata_models import ExperimentMetadataBuilder
 
 
 class ResearchReport:
-    REPORT_SCHEMA_VERSION = "qcrl.research_report.v5"
-    RECORD_SCHEMA_VERSION = "qcrl.experiment_record.v4"
+    REPORT_SCHEMA_VERSION = "qcrl.research_report.v6"
+    RECORD_SCHEMA_VERSION = "qcrl.experiment_record.v5"
 
     # Storage layout remains v2 for backward compatibility.
     REPORT_PREFIX = "qcrl/v2/experiments"
@@ -137,6 +137,12 @@ class ResearchReport:
             algo.end_day
         )
 
+        evaluation_start = ResearchReport.date_text(
+            getattr(algo, "evaluation_start_year", algo.start_year),
+            getattr(algo, "evaluation_start_month", algo.start_month),
+            getattr(algo, "evaluation_start_day", algo.start_day)
+        )
+
         dynamic_metadata = getattr(
             algo,
             "experiment_metadata",
@@ -204,6 +210,7 @@ class ResearchReport:
                 "multiplier": algo.multiplier,
                 "max_steps": algo.max_steps,
                 "start": start,
+                "evaluation_start": evaluation_start,
                 "end": end
             },
 
@@ -504,6 +511,9 @@ class ResearchReport:
             "timeframe": configuration.get("timeframe"),
             "year": ResearchReport.report_year(report),
             "start": configuration.get("start"),
+            "evaluation_start": configuration.get(
+                "evaluation_start", configuration.get("start")
+            ),
             "end": configuration.get("end"),
 
             "entry_model": configuration.get("entry_model"),
@@ -727,6 +737,7 @@ class ResearchReport:
             "QCRL Max Recovery Depth": "max_recovery_depth",
             "QCRL Risk Adjusted Score": "risk_adjusted_score",
             "QCRL Tail Risk Score": "tail_risk_score",
+            "QCRL Bars Seen": "bars_seen",
             "QCRL Signals Generated": "signals_generated",
             "QCRL Signals Executed": "signals_executed",
             "QCRL Filter Not Ready": "skipped_filter_not_ready",

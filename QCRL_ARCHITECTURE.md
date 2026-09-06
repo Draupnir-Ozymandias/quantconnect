@@ -400,7 +400,7 @@ This enables filtering, auditing, comparison, and reproducibility.
 
 ## Current
 
-* ROC Regime Temporal Forward Validation
+* Quarterly Temporal Persistence Gate
 * Audit Database
 * Experiment Registry
 

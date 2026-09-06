@@ -1,6 +1,48 @@
 """Validation helpers for versioned QCRL campaign manifests."""
 
 
+def validate_temporal_analysis(manifest, error_type):
+    analysis = manifest.get("temporal_analysis")
+    if analysis is None:
+        return
+    if not isinstance(analysis, dict):
+        raise error_type("temporal_analysis must be an object")
+    for field in [
+        "sample_field", "expected_samples", "required_parameters",
+        "base_wager", "friction_grid_base_wager_pct", "thresholds",
+        "limitations"
+    ]:
+        if field not in analysis:
+            raise error_type(f"temporal_analysis requires {field}")
+    samples = analysis["expected_samples"]
+    if not isinstance(samples, list) or not samples:
+        raise error_type("temporal_analysis expected_samples must be non-empty")
+    if len(samples) != len(set(samples)):
+        raise error_type("temporal_analysis expected_samples must be unique")
+    if not isinstance(analysis["required_parameters"], dict):
+        raise error_type("temporal_analysis required_parameters must be an object")
+    if float(analysis["base_wager"]) <= 0:
+        raise error_type("temporal_analysis base_wager must be positive")
+    grid = analysis["friction_grid_base_wager_pct"]
+    if not isinstance(grid, list) or not grid or any(float(x) < 0 for x in grid):
+        raise error_type("temporal friction grid must contain nonnegative values")
+    thresholds = analysis["thresholds"]
+    required = {
+        "minimum_samples", "minimum_trades_per_sample",
+        "minimum_profitable_sample_ratio", "minimum_weighted_win_rate",
+        "maximum_win_rate_std", "minimum_positive_rolling_four_quarter_ratio",
+        "minimum_break_even_cost_base_wager_pct", "maximum_loss_streak",
+        "maximum_top_four_positive_profit_share"
+    }
+    if not isinstance(thresholds, dict) or required - set(thresholds):
+        raise error_type("temporal_analysis thresholds are incomplete")
+    limitations = analysis["limitations"]
+    if not isinstance(limitations, list) or any(
+        not isinstance(value, str) or not value.strip() for value in limitations
+    ):
+        raise error_type("temporal_analysis limitations must be strings")
+
+
 def validate_directional_analysis(manifest, metric_fields, error_type):
     analysis = manifest.get("directional_analysis")
     if analysis is None:

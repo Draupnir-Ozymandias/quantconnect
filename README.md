@@ -406,6 +406,33 @@ nonpositive-state profit, and a positive advantage independently for both UP
 and DOWN. One supported partial-year result is corroboration, not completion;
 the frozen hypothesis would still require additional forward evidence.
 
+That forward hypothesis failed: the pooled regime edge was zero and only the
+DOWN side favored the nonpositive state. Before any further indicator or
+parameter work, run the predeclared temporal-persistence gate on the untouched
+signal:
+
+```bash
+./synch.sh campaign plan campaigns/btcusd_1d_candle_streak_temporal_audit_2018_2025.json
+./synch.sh campaign run campaigns/btcusd_1d_candle_streak_temporal_audit_2018_2025.json --execute --limit 1
+./synch.sh campaign collect campaigns/btcusd_1d_candle_streak_temporal_audit_2018_2025.json
+./synch.sh campaign status campaigns/btcusd_1d_candle_streak_temporal_audit_2018_2025.json
+```
+
+After the first case confirms boundary behavior, run and collect the remaining
+31 cases, then execute:
+
+```bash
+./synch.sh campaign validate campaigns/btcusd_1d_candle_streak_temporal_audit_2018_2025.json
+./synch.sh campaign temporal campaigns/btcusd_1d_candle_streak_temporal_audit_2018_2025.json
+```
+
+The 32
+non-overlapping quarters span 2018–2025. Two earlier daily bars seed the
+length-2 entry state but remain outside scoring. The gate evaluates quarterly
+coverage, rolling four-quarter persistence, win-rate dispersion, loss streaks,
+profit concentration, and constant per-wager friction capacity. Passing does
+not erase the failed 2026 forward result or authorize feature optimization.
+
 When `pair_comparison` is present, validation also writes a structured artifact
 to `.qcrl/campaigns/{campaign_id}/paired_comparison.json`. Each pair contains:
 

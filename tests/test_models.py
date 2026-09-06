@@ -77,6 +77,19 @@ class AlgorithmConfiguration:
 
 
 class ModelTests(unittest.TestCase):
+    def test_evaluation_start_only_changes_identity_when_seeded(self):
+        baseline = ExperimentMetadataBuilder.identity_configuration(
+            AlgorithmConfiguration()
+        )
+        self.assertNotIn("evaluation_start", baseline)
+
+        configured = AlgorithmConfiguration()
+        configured.evaluation_start_year = 2025
+        configured.evaluation_start_month = 1
+        configured.evaluation_start_day = 3
+        seeded = ExperimentMetadataBuilder.identity_configuration(configured)
+        self.assertEqual("2025-01-03", seeded["evaluation_start"])
+
     def test_roc_regime_uses_only_prior_completed_bars(self):
         model = RocSignRegimeModel(2)
         for close in [100, 90, 110]:

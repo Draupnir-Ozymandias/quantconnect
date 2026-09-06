@@ -170,6 +170,14 @@ class ExperimentMetadataBuilder:
             )
         }
 
+        evaluation_start = ExperimentMetadataBuilder._date_text(
+            getattr(algo, "evaluation_start_year", getattr(algo, "start_year", 0)),
+            getattr(algo, "evaluation_start_month", getattr(algo, "start_month", 0)),
+            getattr(algo, "evaluation_start_day", getattr(algo, "start_day", 0))
+        )
+        if evaluation_start != identity["start"]:
+            identity["evaluation_start"] = evaluation_start
+
         if entry_model == "fixed_bias":
             identity["bias"] = str(
                 getattr(algo, "bias", "up")
