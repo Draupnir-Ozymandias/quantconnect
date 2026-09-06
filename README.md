@@ -280,6 +280,19 @@ remain isolated; combined bands and broad optimization are still gated. Since
 the thresholds were selected from telemetry over these same years, this is an
 exploratory screen rather than out-of-sample confirmation.
 
+The completed screen rejected every active bound relative to warmup-only:
+
+```text
+lower 2.5%: profit -140 | weighted win rate -0.78 pp | 54 rejected signals
+lower 3.0%: profit -160 | weighted win rate -0.40 pp | 140 rejected signals
+upper 5.0%: profit -110 | weighted win rate -0.07 pp | 121 rejected signals
+upper 6.0%: profit  -40 | weighted win rate -0.04 pp | 42 rejected signals
+```
+
+No absolute ATR bound advances. Combined ATR bands and ATR threshold
+optimization are closed unless new independent evidence justifies reopening
+the hypothesis.
+
 When `pair_comparison` is present, validation also writes a structured artifact
 to `.qcrl/campaigns/{campaign_id}/paired_comparison.json`. Each pair contains:
 

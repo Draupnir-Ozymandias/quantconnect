@@ -587,6 +587,9 @@ class DirectionalCohortEngine:
             }
             for item in candidate_results
         )
+        all_rejected = all(
+            item["decision"] == "reject" for item in candidate_results
+        )
         return {
             "schema_version": self.ATTRIBUTION_VERSION,
             "control_value": artifact["control_value"],
@@ -603,7 +606,11 @@ class DirectionalCohortEngine:
                 else (
                     "validate_selected_active_gate_out_of_sample"
                     if selected
-                    else "review_mixed_gate_attribution"
+                    else (
+                        "reject_tested_active_gate_bounds"
+                        if all_rejected
+                        else "review_mixed_gate_attribution"
+                    )
                 )
             )
         }

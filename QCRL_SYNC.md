@@ -1365,6 +1365,19 @@ isolated. Because these thresholds were selected from 2022–2025 telemetry,
 same-period results are exploratory; any survivor requires out-of-sample
 validation. Broad optimization remains gated.
 
+The screen completed 24/24 with authoritative API metrics and no pair issues.
+Every active bound underperformed warmup-only in aggregate:
+
+```text
+lower 2.5%: profit -140 | weighted win rate -0.78 pp | rejected 54
+lower 3.0%: profit -160 | weighted win rate -0.40 pp | rejected 140
+upper 5.0%: profit -110 | weighted win rate -0.07 pp | rejected 121
+upper 6.0%: profit  -40 | weighted win rate -0.04 pp | rejected 42
+```
+
+The attribution verdict is `reject_tested_active_gate_bounds`. No absolute ATR
+bound, combined ATR band, or ATR threshold optimizer advances from this branch.
+
 Canonical storage contracts are extended to preserve every active directional
 and gate parameter:
 
@@ -1405,9 +1418,9 @@ Stage 2 complete: ATR advanced provisionally; ADX default rejected
 ATR attribution complete: 20/20 API-collected, all bounds inert
 Attribution-aware verdict v1 implemented
 ATR telemetry complete: 4/4 API-collected, 660 signal-time values
-Active ATR bound screen ready: 24 cases at lower 2.5/3.0 and upper 5.0/6.0
+Active ATR bound screen complete: 24/24 API-collected, all candidates rejected
 Attribution candidates are judged incrementally against warmup-only
-Next: synchronize the active-bound campaign, then run one integration case
+Next: close absolute ATR gating and select the next isolated signal hypothesis
 ```
 
 ## Synchronization rule
@@ -1429,4 +1442,4 @@ next coding target
 
 # One-Sentence State
 
-> QCRL 2.3.0 has used completed signal-time telemetry to declare a component-isolated ATR bound screen whose candidates are judged against warmup-only and require out-of-sample validation before advancement.
+> QCRL 2.3.0 has rejected all tested absolute ATR bounds against warmup-only evidence and closes this filter branch before selecting the next isolated signal hypothesis.

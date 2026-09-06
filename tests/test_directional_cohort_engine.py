@@ -391,6 +391,23 @@ class DirectionalCohortEngineTests(unittest.TestCase):
         )
         self.assertEqual(4, result["rejected_signal_delta"])
 
+    def test_attribution_rejects_an_all_rejected_candidate_field(self):
+        artifact = attribution_artifact()
+        for cohort in artifact["cohorts"]:
+            if cohort["group_key"] in {
+                "control", "atr_warmup_only"
+            }:
+                continue
+            for record in cohort["records"]:
+                record["skipped_filter_rejected"] = 1
+
+        report = DirectionalCohortEngine().analyze(artifact)
+
+        self.assertEqual(
+            "reject_tested_active_gate_bounds",
+            report["decision_summary"]["next_action"]
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
