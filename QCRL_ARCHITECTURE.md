@@ -379,12 +379,14 @@ This enables filtering, auditing, comparison, and reproducibility.
 * Heatmaps
 * Plateau Analysis
 * Correlation Dashboard
+* Versioned Directional Cohort Analysis
+* Versioned Cross-Regime Side Synthesis
 
 ---
 
 ## Current
 
-* Research Cohorts
+* Prior-State Regime Hypotheses
 * Audit Database
 * Experiment Registry
 

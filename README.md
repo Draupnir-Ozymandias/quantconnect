@@ -338,6 +338,25 @@ out-of-sample validation. QuantConnect documents Coinbase crypto coverage from
 January 2015, but the one-case integration run remains the authoritative check
 for project access and usable bars.
 
+The two completed eras can be combined without launching another backtest:
+
+```bash
+./synch.sh campaign synthesize syntheses/btcusd_1d_candle_streak_cross_regime_sides.json
+```
+
+The versioned cross-regime analyzer first verifies identical signal parameters,
+non-overlapping periods, matching evidence revisions, and complete UP/DOWN
+attribution. The 2018–2021 `up_dominant` result and 2022–2025 `down_dominant`
+result constitute a leadership flip. Pooled descriptive accounting is +600 UP
+and +550 DOWN, with +1,150 combined over 1,347 trades and seven profitable
+annual samples out of eight. The decision is `retain_both_directions`: neither
+side may be statically removed, and the leadership flip is evidence for a
+future prior-state regime hypothesis—not itself a tradable classifier.
+
+Synthesis artifacts are written under
+`.qcrl/syntheses/btcusd-1d-candle-streak-cross-regime-sides-v1/` and remain
+local, reproducible derivatives of the authoritative campaign evidence.
+
 When `pair_comparison` is present, validation also writes a structured artifact
 to `.qcrl/campaigns/{campaign_id}/paired_comparison.json`. Each pair contains:
 

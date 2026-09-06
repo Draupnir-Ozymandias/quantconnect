@@ -1,0 +1,23 @@
+{
+  "schema_version": "qcrl.cross_regime_side_synthesis_spec.v1",
+  "synthesis_id": "btcusd-1d-candle-streak-cross-regime-sides-v1",
+  "sources": [
+    {
+      "label": "early_adoption_2018_2021",
+      "campaign_id": "btcusd-1d-candle-streak-side-stress-2018-2021-v1"
+    },
+    {
+      "label": "maturing_market_2022_2025",
+      "campaign_id": "btcusd-1d-candle-streak-side-attribution-2022-2025-v1"
+    }
+  ],
+  "limitations": [
+    "regime_labels_are_descriptive_period_names_not_causal_features",
+    "pooled_statistics_do_not_imply_stationarity",
+    "leadership_flip_does_not_identify_a_tradable_regime_classifier",
+    "side_specific_drawdowns_are_not_additive",
+    "transaction_costs_are_not_modeled",
+    "overlapping_streak_signals_are_not_independent_events",
+    "research_result_is_not_live_authorization"
+  ]
+}

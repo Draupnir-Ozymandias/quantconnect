@@ -16,7 +16,7 @@ Commands:
   pull                Pull the linked QuantConnect project after a clean-tree check.
   push                Push committed local files to QuantConnect after confirmation.
   backtest [args...]  Run a cloud backtest without implicitly pushing local changes.
-  campaign [args...]  Plan, run, collect, or validate a QCRL campaign.
+  campaign [args...]  Run QCRL campaigns, analyses, and evidence syntheses.
 
 The local Git checkout is the source of truth. Pull and push intentionally
 refuse to run while the working tree contains uncommitted changes.

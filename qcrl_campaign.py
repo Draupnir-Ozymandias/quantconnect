@@ -1607,6 +1607,8 @@ def build_parser():
     ]:
         child = subparsers.add_parser(command)
         child.add_argument("manifest", type=Path)
+    synthesis_parser = subparsers.add_parser("synthesize")
+    synthesis_parser.add_argument("spec", type=Path)
     run_parser = subparsers.add_parser("run")
     run_parser.add_argument("manifest", type=Path)
     run_parser.add_argument(
@@ -1631,6 +1633,18 @@ def build_parser():
 def main(arguments=None):
     args = build_parser().parse_args(arguments)
     try:
+        if args.command == "synthesize":
+            from qcrl_synthesis import (
+                QcrlSynthesisError,
+                run_cross_regime_side_synthesis
+            )
+            try:
+                run_cross_regime_side_synthesis(
+                    args.spec.resolve(), project_root()
+                )
+            except QcrlSynthesisError as exc:
+                raise CampaignError(str(exc)) from exc
+            return 0
         manifest = load_manifest(args.manifest.resolve())
         cases = expand_cases(manifest)
         if args.command == "plan":

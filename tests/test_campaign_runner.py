@@ -21,6 +21,13 @@ class CampaignRunnerTests(unittest.TestCase):
         self.manifest = qcrl_campaign.load_manifest(MANIFEST_PATH)
         self.cases = qcrl_campaign.expand_cases(self.manifest)
 
+    def test_parser_accepts_cross_regime_synthesis_spec(self):
+        args = qcrl_campaign.build_parser().parse_args([
+            "synthesize", "syntheses/example.json"
+        ])
+        self.assertEqual("synthesize", args.command)
+        self.assertEqual(Path("syntheses/example.json"), args.spec)
+
     def test_directional_stage1_manifest_is_flat_and_factor_isolated(self):
         manifest = qcrl_campaign.load_manifest(
             Path(__file__).parents[1]

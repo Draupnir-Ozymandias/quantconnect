@@ -1,7 +1,7 @@
 # QCRL Sync Log
 
-**Updated:** 2026-09-05
-**Sync version:** 2026-09-06 Directional-Side Attribution
+**Updated:** 2026-09-06
+**Sync version:** 2026-09-06 Cross-Regime Side Synthesis
 **QCRL baseline:** 2.2.0  
 **Status:** Active research
 
@@ -1420,6 +1420,50 @@ qcrl.experiment_record.v3
 The existing QCRL 2.2.0 baseline campaign remains reproducible because its
 manifest pins `lab_version=QCRL-2.2.0` and the legacy model path is unchanged.
 
+## 2026-09-06 cross-regime side synthesis
+
+Files created or changed:
+
+- `discovery/cross_regime_side_engine.py`
+- `qcrl_synthesis.py`
+- `syntheses/btcusd_1d_candle_streak_cross_regime_sides.json`
+- `qcrl_campaign.py`, `synch.sh`, `README.md`, and this sync log
+- deterministic engine and command-parser tests
+
+The `qcrl.cross_regime_side_evidence.v1` input contract consumes two or more
+completed `qcrl.side_attribution_interpretation.v1` reports. Before pooling, it
+requires identical signal parameters, unique regime labels, non-overlapping
+period labels, both directional sides, and matching campaign evidence hashes.
+The analyzer emits `qcrl.cross_regime_side_report.v1`; the new command is:
+
+```bash
+./synch.sh campaign synthesize syntheses/btcusd_1d_candle_streak_cross_regime_sides.json
+```
+
+No QuantConnect backtest is required. The source campaigns remain authoritative
+and the ignored `.qcrl/syntheses/` output is a reproducible local derivative.
+
+The completed synthesis found:
+
+```text
+2018–2021: UP dominant
+2022–2025: DOWN dominant
+pooled UP:   +600 | 54.66% | 644 trades | profitable 5/8
+pooled DOWN: +550 | 53.91% | 703 trades | profitable 5/8
+combined:  +1,150 | 54.27% | 1,347 trades | profitable 7/8
+```
+
+The directional leadership flip rejects a static UP-only or DOWN-only rule.
+Both directions remain in the daily signal. The next coding target is to define
+small, predeclared hypotheses using information known before the signal that
+might explain the era-dependent leadership; the historical labels themselves
+must not become features. This result does not establish stationarity, a regime
+classifier, cost-adjusted profitability, or live-trading authorization.
+
+Tests completed: 71 deterministic unit tests, Python compilation, diff
+whitespace validation, and a successful synthesis against both authoritative
+local campaign reports.
+
 ## Workstream A exports
 
 - QCRL 2.2.0 validated baseline reports
@@ -1452,8 +1496,11 @@ ATR telemetry complete: 4/4 API-collected, 660 signal-time values
 Active ATR bound screen complete: 24/24 API-collected, all candidates rejected
 Attribution candidates are judged incrementally against warmup-only
 Directional-side result: DOWN supported, UP rejected over 2022–2025
-Earlier-regime DOWN hypothesis manifest ready for 2018–2021
-Next: synchronize the stress-test declaration, then run the 2018 integration case
+Earlier-regime stress complete: UP supported, DOWN held over 2018–2021
+Cross-regime side synthesis v1 implemented
+Directional leadership flips by era; static side restriction rejected
+Both directions retained in the daily signal
+Next: define prior-state regime hypotheses without direction restriction
 ```
 
 ## Synchronization rule
@@ -1475,4 +1522,4 @@ next coding target
 
 # One-Sentence State
 
-> QCRL 2.3.0 found DOWN-dominant length-2 reversal evidence in 2022–2025 and is ready to stress that predeclared hypothesis against the structurally earlier 2018–2021 Bitcoin regime.
+> QCRL 2.3.0 retains both sides of the daily length-2 reversal signal after directional leadership flipped between 2018–2021 and 2022–2025; the next target is a predeclared, prior-state regime hypothesis rather than a static side restriction.
