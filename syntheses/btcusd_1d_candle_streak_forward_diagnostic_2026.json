@@ -1,0 +1,41 @@
+{
+  "schema_version": "qcrl.forward_diagnostic_synthesis_spec.v1",
+  "synthesis_id": "btcusd-1d-candle-streak-forward-diagnostic-2026-v1",
+  "diagnostic_campaign_id": "btcusd-1d-candle-streak-forward-diagnostic-2026-v1",
+  "locked_forward_campaign_id": "btcusd-1d-candle-streak-roc-regime-forward-2026-v1",
+  "sample_field": "run_notes",
+  "expected_samples": [
+    "2026Q1_DIAGNOSTIC",
+    "2026Q2_DIAGNOSTIC",
+    "2026JUL_AUG_DIAGNOSTIC"
+  ],
+  "required_signal_parameters": {
+    "entry_model": "candle_streak",
+    "streak_length": 2,
+    "streak_mode": "reverse",
+    "filter_model": "none",
+    "regime_model": "none",
+    "stake_mode": "flat",
+    "base_wager": 10
+  },
+  "required_locked_signal_parameters": {
+    "entry_model": "candle_streak",
+    "streak_length": 2,
+    "streak_mode": "reverse",
+    "filter_model": "none",
+    "stake_mode": "flat"
+  },
+  "thresholds": {
+    "maximum_absolute_trade_count_drift": 3
+  },
+  "limitations": [
+    "segments_were_declared_after_the_january_august_aggregate_was_observed",
+    "segment_results_can_localize_but_cannot_confirm_or_promote_a_hypothesis",
+    "normalized_two_bar_state_seeding_can_change_boundary_trade_eligibility",
+    "july_august_is_a_two_month_partial_quarter",
+    "monotonic_recovery_is_descriptive_and_was_not_predeclared",
+    "prospective_2026q4_remains_the_only_admissible_next_signal_evidence",
+    "transaction_costs_are_not_directly_modeled",
+    "research_result_is_not_live_authorization"
+  ]
+}

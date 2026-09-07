@@ -108,6 +108,9 @@ def run_synthesis(spec_path, project_root):
         return run_cross_regime_side_synthesis(spec_path, project_root)
     if spec.get("schema_version") == TEMPORAL_SPEC_SCHEMA_VERSION:
         return run_temporal_bridge_synthesis(spec, project_root)
+    if spec.get("schema_version") == "qcrl.forward_diagnostic_synthesis_spec.v1":
+        from qcrl_diagnostic import run_forward_diagnostic_synthesis
+        return run_forward_diagnostic_synthesis(spec, project_root)
     raise QcrlSynthesisError("Unsupported synthesis spec schema")
 
 

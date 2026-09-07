@@ -450,7 +450,13 @@ degradation. These three cases are explicitly post-hoc diagnostics:
 ./synch.sh campaign run campaigns/btcusd_1d_candle_streak_forward_diagnostic_2026.json --execute
 ./synch.sh campaign collect campaigns/btcusd_1d_candle_streak_forward_diagnostic_2026.json
 ./synch.sh campaign validate campaigns/btcusd_1d_candle_streak_forward_diagnostic_2026.json
+./synch.sh campaign synthesize syntheses/btcusd_1d_candle_streak_forward_diagnostic_2026.json
 ```
+
+The completed diagnostic localizes the loss in Q1: −$120 at 38.46%, followed
+by −$20 at 47.92% in Q2 and +$50 at 58.62% in July–August. Both directional
+sides improved across the segments. This monotonic recovery description is
+post-hoc and cannot promote a regime rule or reverse the forward-degraded gate.
 
 `btcusd_1d_candle_streak_prospective_2026q4.json` locks the next untouched
 baseline before Q4 begins. Synchronize it now, but do not run it, change its

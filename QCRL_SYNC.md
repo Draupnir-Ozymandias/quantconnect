@@ -1664,6 +1664,32 @@ whitespace validation.
 Next coding target: none until the three post-hoc 2026 diagnostic cases are
 collected; the prospective Q4 declaration remains frozen.
 
+## 2026-09-06 forward-degradation localization result
+
+The post-hoc diagnostic campaign completed 3/3 with authoritative API evidence
+and exact boundary bar counts. Q1 produced -120 at 38.46% over 52 trades, Q2
+produced -20 at 47.92% over 48 trades, and July–August produced +50 at 58.62%
+over 29 trades. Q1 losses were symmetric across UP and DOWN (-60 each); Q2 was
+mixed (UP -40, DOWN +20); both sides were positive in July–August (UP +20,
+DOWN +30).
+
+`qcrl.forward_diagnostic_report.v1` records the increasing win-rate and profit
+path as `early_2026_loss_concentration_with_later_recovery`, but fixes its role
+as post-hoc localization. The normalized segment total differs from the locked
+January–August run by one trade, one win, and 10 profit because each segment
+receives the declared two-bar boundary seed; this is within the predeclared
+three-trade reconciliation tolerance. The decision remains
+`diagnostic_only_hold_feature_optimization`.
+
+Files created or changed: forward diagnostic evidence engine, synthesis
+builder and specification, deterministic tests, and result documentation. No
+algorithm, campaign parameters, prospective Q4 declaration, or metric schema
+changed. Tests completed: 96 deterministic tests, authoritative synthesis,
+Python compilation, and whitespace validation.
+
+Next coding target: none. Preserve the locked 2026Q4 prospective baseline
+without partial execution or parameter changes until after December 31, 2026.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:
