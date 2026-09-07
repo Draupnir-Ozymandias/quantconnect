@@ -36,6 +36,10 @@ class ExecutionTruthContractTests(unittest.TestCase):
         self.assertEqual("5", contract["constraints"]["minimum_order_size"])
         self.assertEqual("0.01", contract["constraints"]["minimum_tick_size"])
         self.assertEqual("0.02", contract["constraints"]["fee_curve"]["rate"])
+        self.assertEqual(
+            "2026-05-04T23:51:00Z",
+            contract["terms"]["event_start_at_utc"],
+        )
         self.assertEqual(64, len(contract["contract_sha256"]))
 
     def test_contract_hash_is_deterministic_across_mapping_order(self):
@@ -57,6 +61,14 @@ class ExecutionTruthContractTests(unittest.TestCase):
                 fixture("gamma_market.json"), clob, OBSERVED_AT
             )
 
+    def test_market_contract_rejects_condition_identity_drift(self):
+        clob = fixture("clob_market_info.json")
+        clob["c"] = "foreign-condition"
+        with self.assertRaisesRegex(ContractError, "condition ids disagree"):
+            normalize_market_contract(
+                fixture("gamma_market.json"), clob, OBSERVED_AT
+            )
+
     def test_market_contract_rejects_outcome_mapping_drift(self):
         clob = fixture("clob_market_info.json")
         clob["t"].reverse()
@@ -71,6 +83,14 @@ class ExecutionTruthContractTests(unittest.TestCase):
         gamma = fixture("gamma_market.json")
         gamma["resolutionSource"] = ""
         with self.assertRaisesRegex(ContractError, "resolutionSource is required"):
+            normalize_market_contract(
+                gamma, fixture("clob_market_info.json"), OBSERVED_AT
+            )
+
+    def test_market_contract_requires_explicit_event_start(self):
+        gamma = fixture("gamma_market.json")
+        del gamma["eventStartTime"]
+        with self.assertRaisesRegex(ContractError, "eventStartTime is required"):
             normalize_market_contract(
                 gamma, fixture("clob_market_info.json"), OBSERVED_AT
             )

@@ -12,8 +12,10 @@
 | Campaign state | `qcrl.campaign_state.v1` | `qcrl_campaign.py` | runner, collector, validator, analyzers | ignored `.qcrl/` state |
 | Methodology | `qcrl.methodology.lookahead_free.v1` | runtime metadata | validators and analysts | embedded in report/record |
 | Synthesis specifications | type-specific `*.v1` schemas | human-authored JSON | `qcrl_synthesis.py`, specialized engines | version controlled |
-| Polymarket market contract | `qcrl.polymarket_market_contract.v1` | `execution_truth/contracts.py` | order-book normalization; future timing/replay layers | derived, content-addressed observation |
+| Polymarket market contract | `qcrl.polymarket_market_contract.v2` | `execution_truth/contracts.py` | order-book normalization; future timing/replay layers | derived, content-addressed observation |
 | Polymarket order book | `qcrl.polymarket_order_book.v1` | `execution_truth/contracts.py` | future replay and shadow-decision layers | derived, content-addressed observation |
+| Polymarket raw bundle | `qcrl.polymarket_raw_bundle.v1` | `execution_truth/acquisition.py` | offline normalization and audit | content-addressed raw observation |
+| Polymarket normalized bundle | `qcrl.polymarket_normalized_bundle.v1` | `execution_truth/bundle.py` | future timing/replay layers | derived, content-addressed observation |
 
 The QCRL engine version and schema versions are different concerns. The clean
 baseline pins engine 2.2.0, most directional campaigns pin 2.3.0, and temporal
@@ -29,9 +31,11 @@ checks condition ID, token ID, tick size, and minimum order size. Both retain
 canonical source hashes and normalized artifact hashes.
 
 These contracts are deliberately pure and read-only. The current producer
-accepts already-acquired mappings; it contains no HTTP, credentials, signing,
-or order path. Checked-in fixtures are derived from public documentation and
-test compatibility only. They are not live market evidence. See
+accepts already-acquired mappings. The separate acquisition adapter contains
+public GET requests but no credentials, signing, or order path. Checked-in
+fixtures are derived from public documentation and test compatibility only.
+They are not live market evidence. Market contract v1 is superseded because it
+conflated Gamma `startDate` with `eventStartTime`; no reader supports v1. See
 `docs/EXECUTION_TRUTH.md` for acquisition and evidence requirements.
 
 ## Research report contract

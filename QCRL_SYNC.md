@@ -1806,6 +1806,45 @@ Next coding target: an unauthenticated acquisition adapter with injected
 transport and clock, followed by one immutable current BTC Up/Down market bundle
 and offline replay through the new contracts.
 
+## 2026-09-07 public acquisition and live contract correction
+
+The public-only acquisition boundary is now implemented with an injectable
+transport and clock, fixed Gamma/CLOB GET routes, per-response timestamps and
+hashes, and no credential, signing, account, position, or order capability. Raw
+bundles are content-addressed and refuse conflicting overwrite; offline replay
+revalidates the bundle and both outcome books before producing a normalized
+bundle.
+
+A live probe of Gamma market `4309046` exposed and corrected a material timing
+assumption. Gamma `startDate` reflected an earlier market lifecycle time, not
+the five-minute outcome window. `eventStartTime` named the actual
+`20:50:00Z`–`20:55:00Z` interval. Market contract v1 is therefore superseded by
+`qcrl.polymarket_market_contract.v2`, which preserves both values separately and
+uses only `event_start_at_utc` for the outcome window. Live terms also establish
+Chainlink BTC/USD 60-second TWAP as the resolution source and equality as an Up
+outcome; Coinbase is not resolution truth.
+
+The first complete live raw bundle is stored locally under ignored
+`.qcrl/execution_truth/raw/` with SHA-256
+`a9c40ee7c38a6dad0f3482b4c0c9676dd4865bc26f7042f713b080bf141fc912`.
+Its normalized bundle hash is
+`bd7b59542b8b93d94c7525b255d567ba09e5175e6a3e6b287940663c86d3a6a6`.
+The raw file is immutable locally but is not yet Git-synchronized.
+
+Files created or changed: acquisition and bundle modules, contract v2,
+deterministic fixtures/tests, execution-truth/status/schema/architecture
+documentation, and this sync record. Interfaces added:
+`PublicPolymarketAcquirer.acquire_market_bundle()`, `normalize_bundle()`, and
+`store_raw_bundle()`. Record fields consumed: none. Assumptions introduced:
+Gamma and CLOB public endpoints are independently observed evidence; only an
+explicit event-start field may anchor the outcome interval. Limitations: market
+ID discovery is not yet contract-driven, the live bundle is ignored local
+state, and no signal binding, fill replay, or settlement reconciliation exists.
+New requests for Workstream A: none. Tests completed: 114 deterministic tests.
+
+Next coding target: contract-driven discovery, a deliberate durable live-fixture
+workflow, and the signal-to-market timing/eligibility contract.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

@@ -412,8 +412,8 @@ itself, a production module.
 
 ## Current engineering lane
 
-* Read-only Polymarket market and order-book contracts (kernel implemented)
-* Market discovery, order-book fixtures, replay, and reconciliation
+* Read-only Polymarket market/order-book contracts and acquisition (implemented)
+* Market discovery, signal binding, execution replay, and reconciliation
 * Documentation-backed experiment and decision registry
 * Locked prospective 2026Q4 baseline (preservation only until window end)
 

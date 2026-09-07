@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 
 
-MARKET_CONTRACT_SCHEMA = "qcrl.polymarket_market_contract.v1"
+MARKET_CONTRACT_SCHEMA = "qcrl.polymarket_market_contract.v2"
 ORDER_BOOK_SCHEMA = "qcrl.polymarket_order_book.v1"
 
 GAMMA_MARKET_ENDPOINT = "https://gamma-api.polymarket.com/markets/{id}"
@@ -144,10 +144,25 @@ def normalize_market_contract(gamma_payload, clob_payload, observed_at_utc):
         if gamma_label.casefold() != clob_by_token[token_id].casefold():
             raise ContractError("Gamma and CLOB outcome labels disagree")
 
-    start_at = _utc_text(_required(gamma_payload, "startDate", "gamma"), "gamma.startDate")
+    clob_condition_id = str(
+        _required(clob_payload, "c", "clob_market")
+    )
+    gamma_condition_id = str(
+        _required(gamma_payload, "conditionId", "gamma")
+    )
+    if clob_condition_id != gamma_condition_id:
+        raise ContractError("Gamma and CLOB condition ids disagree")
+
+    listed_at = _utc_text(_required(gamma_payload, "startDate", "gamma"), "gamma.startDate")
+    event_start_at = _utc_text(
+        _required(gamma_payload, "eventStartTime", "gamma"),
+        "gamma.eventStartTime",
+    )
     end_at = _utc_text(_required(gamma_payload, "endDate", "gamma"), "gamma.endDate")
-    if _utc_datetime(end_at) <= _utc_datetime(start_at):
-        raise ContractError("market end must be after market start")
+    if _utc_datetime(end_at) <= _utc_datetime(event_start_at):
+        raise ContractError("market end must be after event start")
+    if _utc_datetime(event_start_at) < _utc_datetime(listed_at):
+        raise ContractError("event start must not precede Gamma startDate")
 
     fee = _required(clob_payload, "fd", "clob_market")
     if not isinstance(fee, dict):
@@ -158,9 +173,7 @@ def normalize_market_contract(gamma_payload, clob_payload, observed_at_utc):
         "observed_at_utc": _utc_text(observed_at_utc, "observed_at_utc"),
         "identity": {
             "market_id": str(_required(gamma_payload, "id", "gamma")),
-            "condition_id": str(
-                _required(gamma_payload, "conditionId", "gamma")
-            ),
+            "condition_id": gamma_condition_id,
             "question_id": str(
                 _required(gamma_payload, "questionID", "gamma")
             ),
@@ -174,7 +187,8 @@ def normalize_market_contract(gamma_payload, clob_payload, observed_at_utc):
             "resolution_source": str(
                 _required(gamma_payload, "resolutionSource", "gamma")
             ),
-            "start_at_utc": start_at,
+            "gamma_start_at_utc": listed_at,
+            "event_start_at_utc": event_start_at,
             "end_at_utc": end_at,
         },
         "state": {

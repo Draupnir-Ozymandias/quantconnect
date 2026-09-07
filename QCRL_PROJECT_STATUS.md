@@ -36,8 +36,8 @@ evidence.
 | Normalized record schema | `qcrl.experiment_record.v5` |
 | Campaign manifest/state | `qcrl.campaign.v1` / `qcrl.campaign_state.v1` |
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
-| Execution-truth schemas | `qcrl.polymarket_market_contract.v1` / `qcrl.polymarket_order_book.v1` |
-| Test suite | 107 deterministic tests passing |
+| Execution-truth schemas | market v2 / order book v1 / raw and normalized bundle v1 |
+| Test suite | 114 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
@@ -286,8 +286,9 @@ weak explanations and dangerous sizing have been rejected before deployment.
 ## Known Gaps and Risks
 
 1. No actual Polymarket market discovery, trade, or settlement data is ingested.
-   Pure market and order-book normalizers now exist, but their checked-in
-   fixtures are documentation-derived rather than captured live evidence.
+   Public market and order-book acquisition and normalizers now exist. One live
+   bundle is stored as ignored local evidence; checked-in fixtures remain
+   documentation-derived rather than live evidence.
 2. No bid/ask spread, entry price, market depth, partial fill, no-fill, dynamic
    fee, or latency model exists.
 3. The research callback evaluates a completed bar while notionally assigning
@@ -315,13 +316,12 @@ weak explanations and dangerous sizing have been rejected before deployment.
 ## Recommended Next Development
 
 Continue the read-only Polymarket execution-truth foundation while keeping
-signal research frozen. The versioned market and order-book contract kernel is
-implemented; remaining work is:
+signal research frozen. Public acquisition, immutable local raw storage, and
+offline normalization are implemented; remaining work is:
 
-1. Add an unauthenticated market-discovery and CLOB acquisition adapter with
-   injected transport and clock.
-2. Capture one immutable live-market bundle and normalize both outcome books,
-   ticks, minimum sizes, depths, fee parameters, and resolution terms.
+1. Add contract-driven market discovery without trusting slug grammar.
+2. Promote selected irreplaceable live bundles into an explicit
+   Git-synchronized fixture workflow.
 3. Define the versioned timing/binding contract: signal timestamp, eligible
    market, entry cutoff, outcome mapping, and resolution.
 4. Build a replay-only execution model for maker/taker prices, fees, partial

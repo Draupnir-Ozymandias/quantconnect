@@ -1,0 +1,105 @@
+"""Public-only acquisition for Polymarket execution-truth evidence."""
+
+import json
+from datetime import datetime, timezone
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
+
+from .contracts import normalize_market_contract, payload_hash
+
+
+RAW_BUNDLE_SCHEMA = "qcrl.polymarket_raw_bundle.v1"
+GAMMA_BASE = "https://gamma-api.polymarket.com"
+CLOB_BASE = "https://clob.polymarket.com"
+
+
+class AcquisitionError(RuntimeError):
+    """Raised when public evidence cannot be acquired completely."""
+
+
+def utc_now():
+    return datetime.now(timezone.utc)
+
+
+def utc_text(value):
+    if value.tzinfo is None:
+        raise AcquisitionError("clock must return a timezone-aware datetime")
+    return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+class UrllibJsonTransport:
+    """Minimal unauthenticated JSON transport with no mutable session state."""
+
+    def __init__(self, timeout_seconds=20):
+        self.timeout_seconds = timeout_seconds
+
+    def get_json(self, url, params=None):
+        if params:
+            url = f"{url}?{urlencode(params)}"
+        request = Request(url, headers={"User-Agent": "QCRL-execution-truth/1"})
+        try:
+            with urlopen(request, timeout=self.timeout_seconds) as response:
+                charset = response.headers.get_content_charset() or "utf-8"
+                payload = json.loads(response.read().decode(charset))
+        except (HTTPError, URLError, TimeoutError, json.JSONDecodeError) as exc:
+            raise AcquisitionError(f"public GET failed: {url}: {exc}") from exc
+        if not isinstance(payload, dict):
+            raise AcquisitionError(f"public GET did not return an object: {url}")
+        return payload
+
+
+class PublicPolymarketAcquirer:
+    """Acquire one complete market bundle from fixed public GET endpoints."""
+
+    def __init__(self, transport=None, clock=None):
+        self.transport = transport or UrllibJsonTransport()
+        self.clock = clock or utc_now
+
+    def _observe(self, url, params=None):
+        payload = self.transport.get_json(url, params=params)
+        return {
+            "observed_at_utc": utc_text(self.clock()),
+            "endpoint": url,
+            "params": dict(params or {}),
+            "payload_sha256": payload_hash(payload),
+            "payload": payload,
+        }
+
+    def acquire_market_bundle(self, market_id):
+        market_id = str(market_id).strip()
+        if not market_id:
+            raise AcquisitionError("market_id is required")
+
+        acquired_at = utc_text(self.clock())
+        gamma = self._observe(f"{GAMMA_BASE}/markets/{market_id}")
+        if str(gamma["payload"].get("id")) != market_id:
+            raise AcquisitionError("Gamma returned a different market id")
+        condition_id = str(gamma["payload"].get("conditionId") or "").strip()
+        if not condition_id:
+            raise AcquisitionError("Gamma market has no conditionId")
+
+        clob = self._observe(f"{CLOB_BASE}/clob-markets/{condition_id}")
+        contract = normalize_market_contract(
+            gamma["payload"], clob["payload"], clob["observed_at_utc"]
+        )
+
+        books = []
+        for outcome in contract["outcomes"]:
+            books.append(self._observe(
+                f"{CLOB_BASE}/book",
+                params={"token_id": outcome["token_id"]},
+            ))
+
+        bundle = {
+            "schema_version": RAW_BUNDLE_SCHEMA,
+            "acquired_at_utc": acquired_at,
+            "market_id_requested": market_id,
+            "observations": {
+                "gamma_market": gamma,
+                "clob_market": clob,
+                "order_books": books,
+            },
+        }
+        bundle["bundle_sha256"] = payload_hash(bundle)
+        return bundle
