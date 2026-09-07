@@ -1,7 +1,7 @@
 # QCRL Sync Log
 
-**Updated:** 2026-09-06
-**Latest checkpoint:** 2026-09-06 Documentation Architecture
+**Updated:** 2026-09-07
+**Latest checkpoint:** 2026-09-07 QuantConnect Push Preflight
 **QCRL baseline:** 2.2.0  
 **Status:** Active research
 
@@ -1752,6 +1752,29 @@ expansion audit, Markdown link audit, and whitespace validation.
 Next documentation target: keep the registries synchronized with every new
 declaration and verdict. Next engineering target remains the independent,
 read-only Polymarket execution-truth foundation.
+
+## 2026-09-07 QuantConnect push preflight
+
+Inspection of the installed LEAN CLI established that cloud push already
+selects only `.py`, `.cs`, `.ipynb`, `.css`, and `.html` source files.
+Markdown documentation was never part of the QuantConnect upload set; the
+earlier 64,000-character rejection came from an eligible source file rather
+than the documentation layer.
+
+`./synch.sh push-plan` now provides a read-only inventory of tracked eligible
+files and their character counts without contacting QuantConnect. The guarded
+`push` path runs the same preflight before confirmation and refuses locally if
+any eligible file exceeds QuantConnect's 64,000-character per-file limit. This
+currently catches a material margin risk: `qcrl_campaign.py` is less than 400
+characters below the limit.
+
+Files changed: synchronization guard, operator documentation, status, sync log,
+and one deterministic sync-contract test. No algorithm behavior, campaign,
+synthesis, evidence, schema, or prospective declaration changed. Tests
+completed: 97 deterministic tests, shell syntax, and whitespace validation.
+
+Next engineering target: the independent, read-only Polymarket execution-truth
+foundation.
 
 ## Synchronization rule
 

@@ -6,7 +6,7 @@ measurements authorize.
 
 | ID | Decision | State | Evidence | Consequence |
 |---|---|---|---|---|
-| D-001 | Local Git is source of truth; QuantConnect is execution/data infrastructure. | accepted | guarded sync integration | Test and commit before cloud push; avoid dual editing. |
+| D-001 | Local Git is source of truth; QuantConnect is execution/data infrastructure. | accepted | guarded sync integration | Test, commit, and inspect `push-plan` before cloud push; avoid dual editing. |
 | D-002 | QuantConnect API metrics are authoritative for campaign collection. | accepted | campaign runner integration | CLI tables are preview only; validate collected custom metrics. |
 | D-003 | Analyze signal quality separately from capital recovery. | accepted | baseline paired cohorts | Flat and martingale results cannot be pooled. |
 | D-004 | Do not optimize or deploy martingale sizing. | closed | 2022–2025 baseline stability | Extreme risk amplification and recovery dependence. |
@@ -30,4 +30,3 @@ measurements authorize.
 - Decisions cannot promote post-hoc analysis to prospective evidence.
 - A closed decision is reopened only under the rules in
   `HYPOTHESIS_REGISTRY.md`, with a new ID and independent declaration.
-

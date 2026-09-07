@@ -36,7 +36,7 @@ evidence.
 | Normalized record schema | `qcrl.experiment_record.v5` |
 | Campaign manifest/state | `qcrl.campaign.v1` / `qcrl.campaign_state.v1` |
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
-| Test suite | 96 deterministic tests passing |
+| Test suite | 97 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
@@ -95,7 +95,8 @@ trade.
 
 ### Research and orchestration
 
-- Guarded Git/QuantConnect synchronization through `synch.sh`
+- Guarded Git/QuantConnect synchronization through `synch.sh`, including a
+  read-only upload plan and preflight enforcement of the 64,000-character limit
 - Resumable, rate-aware QuantConnect API campaign runner
 - Authoritative API collection and provenance checks
 - Cohort ranking and paired flat/martingale validation

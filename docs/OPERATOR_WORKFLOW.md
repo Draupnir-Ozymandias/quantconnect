@@ -9,6 +9,7 @@ environment. `.qcrl/` is ignored local execution state.
 ```text
 edit locally
   -> ./synch.sh test
+  -> ./synch.sh push-plan
   -> inspect git diff/status
   -> git add + git commit
   -> git push origin main
@@ -19,16 +20,23 @@ edit locally
   -> update and commit documentation
 ```
 
-`./synch.sh push` sends committed project files from the local checkout to the
-linked QuantConnect project. It does not push to GitHub and it does not upload
-ignored `.qcrl/` state. `git push` sends Git commits to GitHub and does not
-update QuantConnect. Those are separate operations.
+`./synch.sh push` sends LEAN-eligible source files from the local checkout to
+the linked QuantConnect project. The installed LEAN CLI considers `.py`, `.cs`,
+`.ipynb`, `.css`, and `.html` files; Markdown documentation and ignored
+`.qcrl/` state are not uploaded. `git push` sends Git commits to GitHub and does
+not update QuantConnect. Those are separate operations.
+
+`./synch.sh push-plan` is read-only. It lists every tracked file eligible for
+upload, reports its character count, and fails if any file exceeds
+QuantConnect's 64,000-character limit. `push` runs the same preflight before it
+asks for confirmation.
 
 ## Before any QuantConnect push
 
 ```bash
 ./synch.sh status
 ./synch.sh test
+./synch.sh push-plan
 git status --short --branch
 git log -1 --oneline
 git push origin main
@@ -112,4 +120,3 @@ only after its declared window ends on 2026-12-31.
 5. Run deterministic tests and whitespace checks.
 6. Commit, push GitHub, then push the committed project to QuantConnect if
    cloud execution needs the documentation/code revision.
-

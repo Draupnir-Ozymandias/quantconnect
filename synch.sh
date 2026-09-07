@@ -14,6 +14,7 @@ Commands:
   status              Show Git state, project linkage, and LEAN login status.
   test                Run the local deterministic unit tests.
   pull                Pull the linked QuantConnect project after a clean-tree check.
+  push-plan           Show files eligible for a QuantConnect push; make no changes.
   push                Push committed local files to QuantConnect after confirmation.
   backtest [args...]  Run a cloud backtest without implicitly pushing local changes.
   campaign [args...]  Run QCRL campaigns, analyses, and evidence syntheses.
@@ -43,6 +44,50 @@ cloud_project_id() {
     python3 -c \
         'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["cloud-id"])' \
         "$PROJECT_DIR/config.json"
+}
+
+show_cloud_push_plan() {
+    local relative_path
+    local character_count
+    local file_count=0
+    local oversized_count=0
+    local character_limit=64000
+
+    require_command python3
+
+    echo "QuantConnect upload plan"
+    echo "Project: $PROJECT_NAME ($(cloud_project_id))"
+    echo "LEAN source types: .py, .cs, .ipynb, .css, .html"
+    echo "Markdown documentation and other repository-only files are excluded by LEAN CLI."
+    echo
+
+    while IFS= read -r -d '' relative_path; do
+        character_count="$(python3 -c \
+            'from pathlib import Path; import sys; print(len(Path(sys.argv[1]).read_text(encoding="utf-8")))' \
+            "$PROJECT_DIR/$relative_path")"
+        file_count=$((file_count + 1))
+
+        if (( character_count > character_limit )); then
+            oversized_count=$((oversized_count + 1))
+            printf '  BLOCKED  %6s chars  %s\n' "$character_count" "$relative_path"
+        else
+            printf '  include  %6s chars  %s\n' "$character_count" "$relative_path"
+        fi
+    done < <(
+        git -C "$PROJECT_DIR" ls-files -z -- \
+            '*.py' '*.cs' '*.ipynb' '*.css' '*.html'
+    )
+
+    echo
+    echo "Eligible tracked source files: $file_count"
+    echo "Per-file QuantConnect limit: $character_limit characters"
+
+    if (( oversized_count > 0 )); then
+        echo "Refusing push: $oversized_count eligible file(s) exceed the limit." >&2
+        return 1
+    fi
+
+    echo "Preflight passed. This command did not contact QuantConnect."
 }
 
 show_status() {
@@ -82,7 +127,10 @@ push_cloud() {
     require_command lean
     require_clean_tree
 
-    echo "This will overwrite the linked QuantConnect project with committed local files."
+    show_cloud_push_plan
+    echo
+
+    echo "This will overwrite the linked QuantConnect project with the eligible files above."
     read -r -p "Push $PROJECT_NAME to QuantConnect? [y/N] " reply
 
     if [[ "$reply" != "y" && "$reply" != "Y" ]]; then
@@ -136,6 +184,9 @@ case "$command_name" in
         ;;
     pull)
         pull_cloud
+        ;;
+    push-plan)
+        show_cloud_push_plan
         ;;
     push)
         push_cloud

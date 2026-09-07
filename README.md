@@ -38,13 +38,18 @@ Use the guarded synchronization script from the project directory:
 ./synch.sh status
 ./synch.sh test
 ./synch.sh pull
+./synch.sh push-plan
 ./synch.sh push
 ./synch.sh backtest
 ```
 
 - `status` is the default and makes no changes.
 - `pull` requires a clean tree and creates a recovery branch before contacting QuantConnect.
+- `push-plan` lists tracked LEAN-eligible source files and checks QuantConnect's
+  64,000-character per-file limit without contacting the cloud.
 - `push` requires a clean tree and interactive confirmation because local files replace their cloud counterparts.
+- LEAN ignores Markdown and other non-source extensions during push, so the
+  repository documentation remains local/GitHub-only.
 - `backtest` does not implicitly push local changes.
 - `backtest` injects the current Git commit, branch, and optional
   `QCRL_CAMPAIGN_ID` into the experiment record.
