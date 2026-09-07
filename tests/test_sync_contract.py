@@ -1,4 +1,5 @@
 import subprocess
+import sys
 import unittest
 from pathlib import Path
 
@@ -21,6 +22,22 @@ class SyncContractTests(unittest.TestCase):
         self.assertIn("Preflight passed", result.stdout)
         self.assertNotIn("README.md", result.stdout)
         self.assertNotIn("QCRL_SYNC.md", result.stdout)
+
+    def test_tracked_python_files_do_not_shadow_standard_library_modules(self):
+        result = subprocess.run(
+            ["git", "ls-files", "*.py"],
+            cwd=PROJECT_DIR,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        conflicts = sorted({
+            Path(path).stem for path in result.stdout.splitlines()
+            if (PROJECT_DIR / path).is_file()
+            and Path(path).name != "__init__.py"
+            and Path(path).stem in sys.stdlib_module_names
+        })
+        self.assertEqual([], conflicts)
 
 
 if __name__ == "__main__":

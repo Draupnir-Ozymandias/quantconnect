@@ -28,7 +28,8 @@ not update QuantConnect. Those are separate operations.
 
 `./synch.sh push-plan` is read-only. It lists every tracked file eligible for
 upload, reports its character count, and fails if any file exceeds
-QuantConnect's 64,000-character limit. `push` runs the same preflight before it
+QuantConnect's 64,000-character limit or shadows a Python standard-library
+module name rejected by QuantConnect. `push` runs the same preflight before it
 asks for confirmation.
 
 ## Before any QuantConnect push

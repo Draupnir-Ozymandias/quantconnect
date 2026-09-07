@@ -17,7 +17,7 @@ from .bundle import (
 )
 from .discovery import normalize_discovery, verify_raw_discovery
 from .binding import bind_signal_to_market
-from .signal import (
+from .signal_adapter import (
     materialize_boundary_signal,
     normalize_source_bar,
     normalize_source_contract,

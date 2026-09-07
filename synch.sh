@@ -52,6 +52,7 @@ show_cloud_push_plan() {
     local character_count
     local file_count=0
     local oversized_count=0
+    local module_conflict_count=0
     local character_limit=64000
 
     require_command python3
@@ -63,12 +64,22 @@ show_cloud_push_plan() {
     echo
 
     while IFS= read -r -d '' relative_path; do
+        if [[ ! -f "$PROJECT_DIR/$relative_path" ]]; then
+            continue
+        fi
         character_count="$(python3 -c \
             'from pathlib import Path; import sys; print(len(Path(sys.argv[1]).read_text(encoding="utf-8")))' \
             "$PROJECT_DIR/$relative_path")"
         file_count=$((file_count + 1))
 
-        if (( character_count > character_limit )); then
+        if [[ "$relative_path" == *.py ]] && \
+            [[ "$(basename "$relative_path")" != "__init__.py" ]] && \
+            python3 -c \
+                'import pathlib, sys; raise SystemExit(pathlib.Path(sys.argv[1]).stem not in sys.stdlib_module_names)' \
+                "$relative_path"; then
+            module_conflict_count=$((module_conflict_count + 1))
+            printf '  BLOCKED  stdlib module conflict  %s\n' "$relative_path"
+        elif (( character_count > character_limit )); then
             oversized_count=$((oversized_count + 1))
             printf '  BLOCKED  %6s chars  %s\n' "$character_count" "$relative_path"
         else
@@ -82,6 +93,11 @@ show_cloud_push_plan() {
     echo
     echo "Eligible tracked source files: $file_count"
     echo "Per-file QuantConnect limit: $character_limit characters"
+
+    if (( module_conflict_count > 0 )); then
+        echo "Refusing push: $module_conflict_count Python file(s) conflict with standard-library modules." >&2
+        return 1
+    fi
 
     if (( oversized_count > 0 )); then
         echo "Refusing push: $oversized_count eligible file(s) exceed the limit." >&2

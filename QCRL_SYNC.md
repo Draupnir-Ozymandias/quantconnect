@@ -1946,6 +1946,20 @@ deterministic tests passing.
 Next coding target: deterministic execution replay against durable books,
 starting with taker price, depth, fees, partial fill, and no-fill truth.
 
+## 2026-09-07 QuantConnect module-name compatibility correction
+
+QuantConnect correctly refused the first cloud push of the boundary adapter
+because `execution_truth/signal.py` conflicted with Python's standard-library
+`signal` module. No cloud files were overwritten. The module is renamed to
+`execution_truth/signal_adapter.py`; package imports and current contract
+documentation were updated without changing schemas or behavior. The full
+deterministic suite, import compilation, whitespace validation, and cloud
+source-size preflight were rerun before synchronization.
+
+The local push preflight now also rejects tracked Python filenames that shadow
+standard-library modules, and a deterministic repository invariant test guards
+the same rule. Tests completed: 149 deterministic tests passing.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

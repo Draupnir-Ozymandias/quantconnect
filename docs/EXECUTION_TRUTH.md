@@ -54,7 +54,7 @@ evidence (contract error) from an expected ineligibility decision (structured
 rejection reasons), and maps Up or Down only through an explicit outcome label
 and token ID.
 
-`execution_truth/signal.py` makes the research source and signal boundary
+`execution_truth/signal_adapter.py` makes the research source and signal boundary
 explicit. The current source contract is Coinbase BTCUSD minute trade bars
 consolidated into 86,400-second bars anchored at midnight UTC. This anchor is
 the documented LEAN behavior for crypto daily time-period consolidators. The

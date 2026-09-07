@@ -37,7 +37,7 @@ evidence.
 | Campaign manifest/state | `qcrl.campaign.v1` / `qcrl.campaign_state.v1` |
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
 | Execution-truth schemas | market, signal intent, and binding v2; source, source bar, signal decision, book, bundles, discovery, and live inventory v1 |
-| Test suite | 148 deterministic tests passing |
+| Test suite | 149 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
