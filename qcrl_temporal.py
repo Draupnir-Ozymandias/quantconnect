@@ -79,6 +79,7 @@ def build_temporal_artifact(manifest, cases, state):
         "campaign_id": manifest["campaign_id"],
         "case_set_hash": state["case_set_hash"],
         "sample_field": config["sample_field"],
+        "required_parameters": config["required_parameters"],
         "expected_samples": expected,
         "base_wager": config["base_wager"],
         "friction_grid_base_wager_pct": config["friction_grid_base_wager_pct"],

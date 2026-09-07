@@ -1,0 +1,82 @@
+{
+  "schema_version": "qcrl.campaign.v1",
+  "campaign_id": "btcusd-1d-candle-streak-prospective-2026q4-v1",
+  "project_id": 33239307,
+  "description": "Prospectively locked untouched 2026Q4 baseline for the unfiltered length-2 candle-streak reversal signal. Declared before the evaluation window begins.",
+  "evidence_role": "prospective_forward_baseline",
+  "locked_on_date": "2026-09-06",
+  "backtest_name_prefix": "QCRL-2.4.0-BTCUSD-1D-2026Q4-Prospective",
+  "case_name_fields": [
+    "run_notes"
+  ],
+  "base_parameters": {
+    "coin": "BTCUSD",
+    "timeframe": "1d",
+    "entry_model": "candle_streak",
+    "streak_length": 2,
+    "streak_mode": "reverse",
+    "filter_model": "none",
+    "ema_fast": 5,
+    "ema_slow": 10,
+    "macd_fast": 12,
+    "macd_slow": 26,
+    "macd_signal": 9,
+    "rsi_period": 14,
+    "rsi_oversold": 30,
+    "rsi_overbought": 70,
+    "adx_period": 14,
+    "adx_threshold": 25,
+    "atr_period": 14,
+    "atr_min_pct": 1,
+    "atr_max_pct": 10,
+    "regime_model": "none",
+    "regime_lookback": 20,
+    "regime_threshold_pct": 0,
+    "stake_mode": "flat",
+    "base_wager": 10,
+    "bankroll": 100000,
+    "multiplier": 2,
+    "max_steps": 10,
+    "enable_plots": false,
+    "lab_version": "QCRL-2.4.0"
+  },
+  "variants": [
+    {
+      "start_year": 2026,
+      "start_month": 9,
+      "start_day": 29,
+      "evaluation_start_year": 2026,
+      "evaluation_start_month": 10,
+      "evaluation_start_day": 1,
+      "end_year": 2026,
+      "end_month": 12,
+      "end_day": 31,
+      "run_notes": "2026Q4_PROSPECTIVE"
+    }
+  ],
+  "cohort_rankings": [
+    {
+      "name": "Locked 2026Q4 prospective baseline",
+      "filters": {
+        "run_notes": "2026Q4_PROSPECTIVE"
+      },
+      "score_model": "flat_profit_drawdown",
+      "direction": "max",
+      "display_fields": [
+        "bars_seen",
+        "win_rate",
+        "trades",
+        "wins",
+        "max_loss_streak"
+      ]
+    }
+  ],
+  "limitations": [
+    "manifest_was_locked_before_the_2026q4_evaluation_window",
+    "two_prior_daily_bars_seed_entry_state_outside_evaluation_and_scoring",
+    "one_quarter_cannot_establish_persistence_on_its_own",
+    "parameters_must_not_change_after_the_evaluation_window_begins",
+    "transaction_costs_are_not_directly_modeled",
+    "research_result_is_not_live_authorization"
+  ]
+}

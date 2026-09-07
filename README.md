@@ -433,6 +433,30 @@ coverage, rolling four-quarter persistence, win-rate dispersion, loss streaks,
 profit concentration, and constant per-wager friction capacity. Passing does
 not erase the failed 2026 forward result or authorize feature optimization.
 
+Synthesize the historical and locked forward evidence with:
+
+```bash
+./synch.sh campaign synthesize syntheses/btcusd_1d_candle_streak_historical_forward_bridge.json
+```
+
+The current bridge classification is `forward_degraded`: historical evidence
+passed, but January–August 2026 failed the forward-profit, minimum-win-rate,
+and maximum-degradation checks. Feature optimization remains held.
+
+The already-observed 2026 interval may be segmented only to localize the
+degradation. These three cases are explicitly post-hoc diagnostics:
+
+```bash
+./synch.sh campaign run campaigns/btcusd_1d_candle_streak_forward_diagnostic_2026.json --execute
+./synch.sh campaign collect campaigns/btcusd_1d_candle_streak_forward_diagnostic_2026.json
+./synch.sh campaign validate campaigns/btcusd_1d_candle_streak_forward_diagnostic_2026.json
+```
+
+`btcusd_1d_candle_streak_prospective_2026q4.json` locks the next untouched
+baseline before Q4 begins. Synchronize it now, but do not run it, change its
+parameters, or interpret a partial result. It becomes eligible for final
+collection only after December 31, 2026.
+
 When `pair_comparison` is present, validation also writes a structured artifact
 to `.qcrl/campaigns/{campaign_id}/paired_comparison.json`. Each pair contains:
 

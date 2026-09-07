@@ -400,7 +400,7 @@ This enables filtering, auditing, comparison, and reproducibility.
 
 ## Current
 
-* Quarterly Temporal Persistence Gate
+* Forward-degradation diagnostics and locked prospective 2026Q4 baseline
 * Audit Database
 * Experiment Registry
 

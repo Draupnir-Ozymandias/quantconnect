@@ -1658,10 +1658,10 @@ def main(arguments=None):
         if args.command == "synthesize":
             from qcrl_synthesis import (
                 QcrlSynthesisError,
-                run_cross_regime_side_synthesis
+                run_synthesis
             )
             try:
-                run_cross_regime_side_synthesis(
+                run_synthesis(
                     args.spec.resolve(), project_root()
                 )
             except QcrlSynthesisError as exc:

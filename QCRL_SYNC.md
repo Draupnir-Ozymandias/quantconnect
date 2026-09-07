@@ -1630,6 +1630,40 @@ compilation, and whitespace validation.
 Next coding target: none until the first 2018Q1 cloud case confirms the seeded
 quarter boundary and authoritative metric collection.
 
+## 2026-09-06 historical-forward bridge and prospective lock
+
+The 2018–2025 temporal campaign completed 32/32 with authoritative API
+evidence and exact calendar-quarter bar counts. The untouched signal passed
+every predeclared historical gate: 25/32 profitable quarters, 54.22% weighted
+win rate over 1,352 trades, +1,140 flat-wager profit, 27/29 positive rolling
+four-quarter windows, 8.43% aggregate break-even friction, 6.13% quarterly
+win-rate dispersion, and 32.85% top-four positive-profit concentration.
+
+`qcrl.temporal_bridge_report.v1` now adjudicates that history against the
+locked January–August 2026 sample. Its result is `forward_degraded` and
+`hold_feature_optimization`: the forward sample had 130 trades, 46.92% wins,
+and -80 profit, a -7.29 percentage-point change. It failed the declared
+positive-profit, 52% minimum forward win-rate, and three-point maximum decline
+checks. The approximate two-sided comparison p-value is descriptive only and
+does not override these evidence gates.
+
+Two follow-ups are now architecturally separated. A three-case campaign splits
+the already-observed 2026 period into Q1, Q2, and July–August solely to localize
+the degradation; it is permanently labeled post-hoc diagnostic evidence. A
+separate 2026Q4 baseline was locked on September 6 before its October 1 start.
+It must not be run partially or modified and becomes evaluable only after
+December 31. Neither path authorizes indicator, regime, or parameter search.
+
+Files created or changed: temporal bridge engine and synthesis routing,
+versioned synthesis specification, diagnostic and prospective campaign
+declarations, deterministic tests, and research documentation. No algorithm
+logic or QCRL metric schema changed. Tests completed: 93 deterministic tests,
+both new manifest expansions, synthesis execution, Python compilation, and
+whitespace validation.
+
+Next coding target: none until the three post-hoc 2026 diagnostic cases are
+collected; the prospective Q4 declaration remains frozen.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

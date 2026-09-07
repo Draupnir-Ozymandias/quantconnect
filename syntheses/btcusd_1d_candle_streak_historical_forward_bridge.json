@@ -1,0 +1,31 @@
+{
+  "schema_version": "qcrl.temporal_bridge_synthesis_spec.v1",
+  "synthesis_id": "btcusd-1d-candle-streak-historical-forward-bridge-v1",
+  "historical_campaign_id": "btcusd-1d-candle-streak-temporal-audit-2018-2025-v1",
+  "forward_campaign_id": "btcusd-1d-candle-streak-roc-regime-forward-2026-v1",
+  "required_signal_parameters": {
+    "entry_model": "candle_streak",
+    "streak_length": 2,
+    "streak_mode": "reverse",
+    "filter_model": "none",
+    "stake_mode": "flat"
+  },
+  "thresholds": {
+    "minimum_forward_trades": 100,
+    "minimum_forward_win_rate": 0.52,
+    "maximum_historical_forward_win_rate_drop": 0.03
+  },
+  "declared_followups": {
+    "post_hoc_diagnostic_campaign_id": "btcusd-1d-candle-streak-forward-diagnostic-2026-v1",
+    "prospective_campaign_id": "btcusd-1d-candle-streak-prospective-2026q4-v1"
+  },
+  "limitations": [
+    "historical_quarters_are_discovery_evidence_while_january_august_2026_is_locked_forward_evidence",
+    "the_forward_period_is_one_partial_year_and_not_32_independent_quarters",
+    "normal_approximation_intervals_and_p_values_are_descriptive_not_decision_thresholds",
+    "post_hoc_2026_segmentation_cannot reverse_the_bridge_verdict",
+    "prospective_2026q4_must_remain_untouched_until_the_window_is_complete",
+    "transaction_costs_are_not_directly_modeled",
+    "research_result_is_not_live_authorization"
+  ]
+}

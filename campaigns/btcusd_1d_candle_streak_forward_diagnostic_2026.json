@@ -1,0 +1,106 @@
+{
+  "schema_version": "qcrl.campaign.v1",
+  "campaign_id": "btcusd-1d-candle-streak-forward-diagnostic-2026-v1",
+  "project_id": 33239307,
+  "description": "Post-hoc temporal localization of the already-observed January-August 2026 base-signal degradation. These segments are diagnostic and cannot confirm or select a feature.",
+  "evidence_role": "post_hoc_forward_diagnostic",
+  "backtest_name_prefix": "QCRL-2.4.0-BTCUSD-1D-2026-Diagnostic",
+  "case_name_fields": [
+    "run_notes"
+  ],
+  "base_parameters": {
+    "coin": "BTCUSD",
+    "timeframe": "1d",
+    "entry_model": "candle_streak",
+    "streak_length": 2,
+    "streak_mode": "reverse",
+    "filter_model": "none",
+    "ema_fast": 5,
+    "ema_slow": 10,
+    "macd_fast": 12,
+    "macd_slow": 26,
+    "macd_signal": 9,
+    "rsi_period": 14,
+    "rsi_oversold": 30,
+    "rsi_overbought": 70,
+    "adx_period": 14,
+    "adx_threshold": 25,
+    "atr_period": 14,
+    "atr_min_pct": 1,
+    "atr_max_pct": 10,
+    "regime_model": "none",
+    "regime_lookback": 20,
+    "regime_threshold_pct": 0,
+    "stake_mode": "flat",
+    "base_wager": 10,
+    "bankroll": 100000,
+    "multiplier": 2,
+    "max_steps": 10,
+    "enable_plots": false,
+    "lab_version": "QCRL-2.4.0"
+  },
+  "variants": [
+    {
+      "start_year": 2025,
+      "start_month": 12,
+      "start_day": 30,
+      "evaluation_start_year": 2026,
+      "evaluation_start_month": 1,
+      "evaluation_start_day": 1,
+      "end_year": 2026,
+      "end_month": 3,
+      "end_day": 31,
+      "run_notes": "2026Q1_DIAGNOSTIC"
+    },
+    {
+      "start_year": 2026,
+      "start_month": 3,
+      "start_day": 30,
+      "evaluation_start_year": 2026,
+      "evaluation_start_month": 4,
+      "evaluation_start_day": 1,
+      "end_year": 2026,
+      "end_month": 6,
+      "end_day": 30,
+      "run_notes": "2026Q2_DIAGNOSTIC"
+    },
+    {
+      "start_year": 2026,
+      "start_month": 6,
+      "start_day": 29,
+      "evaluation_start_year": 2026,
+      "evaluation_start_month": 7,
+      "evaluation_start_day": 1,
+      "end_year": 2026,
+      "end_month": 8,
+      "end_day": 31,
+      "run_notes": "2026JUL_AUG_DIAGNOSTIC"
+    }
+  ],
+  "cohort_rankings": [
+    {
+      "name": "Post-hoc 2026 temporal localization",
+      "filters": {
+        "entry_model": "candle_streak"
+      },
+      "score_model": "flat_profit_drawdown",
+      "direction": "max",
+      "display_fields": [
+        "bars_seen",
+        "win_rate",
+        "trades",
+        "wins",
+        "max_loss_streak"
+      ]
+    }
+  ],
+  "limitations": [
+    "all_2026_segments_were_declared_after_observing_the_january_august_aggregate",
+    "diagnostic_results_cannot_confirm_an_edge_or_select_a_feature",
+    "two_prior_daily_bars_seed_entry_state_outside_evaluation_and_scoring",
+    "july_august_is_a_two_month_partial_quarter",
+    "transaction_costs_are_not_directly_modeled",
+    "research_result_is_not_live_authorization"
+  ]
+}
+

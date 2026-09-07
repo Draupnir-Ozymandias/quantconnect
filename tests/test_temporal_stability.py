@@ -86,6 +86,25 @@ class TemporalStabilityTests(unittest.TestCase):
         args = qcrl_campaign.build_parser().parse_args(["temporal", str(MANIFEST)])
         self.assertEqual("temporal", args.command)
 
+    def test_2026_followups_separate_diagnostic_and_prospective_roles(self):
+        diagnostic = qcrl_campaign.load_manifest(
+            ROOT / "campaigns" / "btcusd_1d_candle_streak_forward_diagnostic_2026.json"
+        )
+        prospective = qcrl_campaign.load_manifest(
+            ROOT / "campaigns" / "btcusd_1d_candle_streak_prospective_2026q4.json"
+        )
+        diagnostic_cases = qcrl_campaign.expand_cases(diagnostic)
+        prospective_cases = qcrl_campaign.expand_cases(prospective)
+        self.assertEqual("post_hoc_forward_diagnostic", diagnostic["evidence_role"])
+        self.assertEqual(3, len(diagnostic_cases))
+        self.assertEqual("prospective_forward_baseline", prospective["evidence_role"])
+        self.assertEqual(1, len(prospective_cases))
+        parameters = prospective_cases[0]["parameters"]
+        self.assertEqual((2026, 10, 1), tuple(
+            parameters[f"evaluation_start_{part}"]
+            for part in ["year", "month", "day"]
+        ))
+
 
 if __name__ == "__main__":
     unittest.main()

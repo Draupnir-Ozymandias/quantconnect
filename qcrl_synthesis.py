@@ -7,9 +7,14 @@ from discovery.cross_regime_side_engine import (
     CrossRegimeSideEngine,
     CrossRegimeSideError
 )
+from discovery.temporal_bridge_engine import (
+    TemporalBridgeEngine,
+    TemporalBridgeError
+)
 
 
 SPEC_SCHEMA_VERSION = "qcrl.cross_regime_side_synthesis_spec.v1"
+TEMPORAL_SPEC_SCHEMA_VERSION = "qcrl.temporal_bridge_synthesis_spec.v1"
 
 
 class QcrlSynthesisError(ValueError):
@@ -94,6 +99,104 @@ def run_cross_regime_side_synthesis(spec_path, project_root):
     _write_json(evidence_path, evidence)
     _write_json(report_path, report)
     _print_report(report, evidence_path, report_path)
+    return report
+
+
+def run_synthesis(spec_path, project_root):
+    spec = _read_json(spec_path)
+    if spec.get("schema_version") == SPEC_SCHEMA_VERSION:
+        return run_cross_regime_side_synthesis(spec_path, project_root)
+    if spec.get("schema_version") == TEMPORAL_SPEC_SCHEMA_VERSION:
+        return run_temporal_bridge_synthesis(spec, project_root)
+    raise QcrlSynthesisError("Unsupported synthesis spec schema")
+
+
+def run_temporal_bridge_synthesis(spec, project_root):
+    historical_id = spec.get("historical_campaign_id")
+    forward_id = spec.get("forward_campaign_id")
+    if not spec.get("synthesis_id") or not historical_id or not forward_id:
+        raise QcrlSynthesisError(
+            "Temporal bridge requires synthesis and source campaign IDs"
+        )
+    historical_dir = project_root / ".qcrl" / "campaigns" / historical_id
+    forward_dir = project_root / ".qcrl" / "campaigns" / forward_id
+    historical = _read_json(historical_dir / "temporal_stability_report.json")
+    historical_audit = _read_json(historical_dir / "temporal_audit.json")
+    forward = _read_json(forward_dir / "directional_cohort_report.json")
+    forward_artifact = _read_json(forward_dir / "directional_cohort.json")
+    if historical.get("campaign_id") != historical_id:
+        raise QcrlSynthesisError("Historical campaign identity mismatch")
+    if forward.get("campaign_id") != forward_id:
+        raise QcrlSynthesisError("Forward campaign identity mismatch")
+    if historical.get("case_set_hash") != historical_audit.get(
+        "case_set_hash"
+    ):
+        raise QcrlSynthesisError("Historical temporal evidence revision mismatch")
+    if forward.get("case_set_hash") != forward_artifact.get("case_set_hash"):
+        raise QcrlSynthesisError("Forward evidence revision mismatch")
+    cohorts = forward.get("cohorts", [])
+    if len(cohorts) != 1:
+        raise QcrlSynthesisError("Forward evidence must contain one locked cohort")
+    cohort = cohorts[0]
+    artifact_cohorts = forward_artifact.get("cohorts", [])
+    if len(artifact_cohorts) != 1 or len(
+        artifact_cohorts[0].get("records", [])
+    ) != 1:
+        raise QcrlSynthesisError("Forward artifact must contain one locked record")
+    forward_record = artifact_cohorts[0]["records"][0]
+    required = spec.get("required_signal_parameters", {})
+    historical_parameters = historical_audit.get("required_parameters", {})
+    forward_parameters = forward_artifact.get("required_parameters", {})
+    for key, expected in required.items():
+        if historical_parameters.get(key) != expected:
+            raise QcrlSynthesisError(f"Historical signal mismatch: {key}")
+        if forward_parameters.get(key) != expected:
+            raise QcrlSynthesisError(f"Forward signal mismatch: {key}")
+    historical_metrics = historical["aggregate"]
+    evidence = {
+        "schema_version": TemporalBridgeEngine.INPUT_SCHEMA_VERSION,
+        "synthesis_id": spec["synthesis_id"],
+        "historical": {
+            "campaign_id": historical_id,
+            "case_set_hash": historical["case_set_hash"],
+            "classification": historical["verdict"]["classification"],
+            "trades": historical_metrics["trades"],
+            "wins": historical_metrics["wins"],
+            "win_rate": historical_metrics["weighted_win_rate"],
+            "net_profit": historical_metrics["net_profit"]
+        },
+        "forward": {
+            "campaign_id": forward_id,
+            "case_set_hash": forward["case_set_hash"],
+            "classification": cohort["classification"],
+            "trades": int(cohort["total_trades"]),
+            "wins": forward_record["wins"],
+            "win_rate": cohort["weighted_win_rate"],
+            "net_profit": cohort["total_net_profit"]
+        },
+        "thresholds": spec["thresholds"],
+        "declared_followups": spec.get("declared_followups", {}),
+        "limitations": spec.get("limitations", [])
+    }
+    try:
+        report = TemporalBridgeEngine().analyze(evidence)
+    except TemporalBridgeError as exc:
+        raise QcrlSynthesisError(str(exc)) from exc
+    output = project_root / ".qcrl" / "syntheses" / spec["synthesis_id"]
+    evidence_path = output / "temporal_bridge_evidence.json"
+    report_path = output / "temporal_bridge_report.json"
+    _write_json(evidence_path, evidence)
+    _write_json(report_path, report)
+    print(
+        f"Temporal bridge: classification={report['classification']} "
+        f"decision={report['decision']} "
+        f"win_rate_change={report['comparison']['win_rate_change']:+.2%}"
+    )
+    failed = [key for key, value in report["checks"].items() if not value]
+    print("Failed checks: " + (", ".join(failed) if failed else "none"))
+    print(f"Next action: {report['next_action']}")
+    print(f"Synthesis evidence: {evidence_path}")
+    print(f"Synthesis report:   {report_path}")
     return report
 
 
