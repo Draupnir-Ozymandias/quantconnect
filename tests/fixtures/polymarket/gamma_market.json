@@ -1,0 +1,17 @@
+{
+  "id": "123456",
+  "question": "Bitcoin Up or Down - documented contract fixture",
+  "conditionId": "0x1111111111111111111111111111111111111111111111111111111111111111",
+  "questionID": "0x2222222222222222222222222222222222222222222222222222222222222222",
+  "slug": "btc-updown-fixture-1777938600",
+  "description": "Resolves Up if the specified resolution price is greater than the starting price; otherwise Down.",
+  "resolutionSource": "Documented fixture price source",
+  "startDate": "2026-05-04T23:50:00Z",
+  "endDate": "2026-05-04T23:55:00Z",
+  "outcomes": "[\"Up\", \"Down\"]",
+  "clobTokenIds": "[\"10001\", \"10002\"]",
+  "active": true,
+  "closed": false,
+  "enableOrderBook": true,
+  "acceptingOrders": true
+}

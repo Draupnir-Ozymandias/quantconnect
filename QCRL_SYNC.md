@@ -1776,6 +1776,36 @@ completed: 97 deterministic tests, shell syntax, and whitespace validation.
 Next engineering target: the independent, read-only Polymarket execution-truth
 foundation.
 
+## 2026-09-07 execution-truth contract kernel
+
+The first greenfield Polymarket execution-truth slice adds pure, credential-free
+normalizers for two new contracts:
+`qcrl.polymarket_market_contract.v1` and
+`qcrl.polymarket_order_book.v1`. The market contract reconciles Gamma identity,
+terms, state, and outcome-token pairs with CLOB V2 market constraints and fee
+parameters. The book contract binds full depth to that validated market and
+fails on identity, token, tick-size, minimum-size, duplicate-price, or crossed-
+book drift. Both preserve canonical source and normalized-artifact hashes.
+
+Files created or changed: `execution_truth/`, deterministic documentation-
+derived JSON fixtures, execution-truth contract tests, schema/status/
+architecture documentation, and this sync record. No signal algorithm,
+campaign, synthesis, collected evidence, report/record schema, or locked 2026Q4
+declaration changed.
+
+Interfaces added: `normalize_market_contract()` and `normalize_order_book()`.
+Record fields consumed: none; this lane remains independent of research records.
+Assumptions introduced: current public Gamma and CLOB V2 responses must agree
+explicitly; token order and slug grammar have no semantic authority; decimal
+values remain strings at the evidence boundary. Limitations: fixtures are
+documentation-derived, not live observations; no HTTP acquisition, signal-time
+binding, replay, fill, or resolution reconciliation exists yet. New requests
+for Workstream A: none. Tests completed: 107 deterministic tests passing.
+
+Next coding target: an unauthenticated acquisition adapter with injected
+transport and clock, followed by one immutable current BTC Up/Down market bundle
+and offline replay through the new contracts.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

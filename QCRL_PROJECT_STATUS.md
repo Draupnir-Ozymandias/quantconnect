@@ -1,6 +1,6 @@
 # QCRL Project Status
 
-**As of:** 2026-09-06  
+**As of:** 2026-09-07
 **Repository:** `Draupnir-Ozymandias/quantconnect` / `polymarket-martingale`  
 **QuantConnect project:** 33239307  
 **Current research decision:** Hold feature optimization; preserve the locked
@@ -36,7 +36,8 @@ evidence.
 | Normalized record schema | `qcrl.experiment_record.v5` |
 | Campaign manifest/state | `qcrl.campaign.v1` / `qcrl.campaign_state.v1` |
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
-| Test suite | 97 deterministic tests passing |
+| Execution-truth schemas | `qcrl.polymarket_market_contract.v1` / `qcrl.polymarket_order_book.v1` |
+| Test suite | 107 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
@@ -284,8 +285,9 @@ weak explanations and dangerous sizing have been rejected before deployment.
 
 ## Known Gaps and Risks
 
-1. No actual Polymarket market discovery, token, order-book, trade, or settlement
-   data is ingested.
+1. No actual Polymarket market discovery, trade, or settlement data is ingested.
+   Pure market and order-book normalizers now exist, but their checked-in
+   fixtures are documentation-derived rather than captured live evidence.
 2. No bid/ask spread, entry price, market depth, partial fill, no-fill, dynamic
    fee, or latency model exists.
 3. The research callback evaluates a completed bar while notionally assigning
@@ -312,14 +314,16 @@ weak explanations and dangerous sizing have been rejected before deployment.
 
 ## Recommended Next Development
 
-Build a read-only Polymarket execution-truth foundation while keeping signal
-research frozen:
+Continue the read-only Polymarket execution-truth foundation while keeping
+signal research frozen. The versioned market and order-book contract kernel is
+implemented; remaining work is:
 
-1. Define a versioned market contract: signal timestamp, eligible market,
-   entry cutoff, outcome mapping, and resolution.
-2. Add unauthenticated market discovery and CLOB metadata/order-book clients.
-3. Capture immutable fixtures and normalize prices, ticks, minimum sizes,
-   depths, and fee parameters.
+1. Add an unauthenticated market-discovery and CLOB acquisition adapter with
+   injected transport and clock.
+2. Capture one immutable live-market bundle and normalize both outcome books,
+   ticks, minimum sizes, depths, fee parameters, and resolution terms.
+3. Define the versioned timing/binding contract: signal timestamp, eligible
+   market, entry cutoff, outcome mapping, and resolution.
 4. Build a replay-only execution model for maker/taker prices, fees, partial
    fills, no fills, and settlement.
 5. Add shadow decisions and reconciliation before any authenticated order path.
@@ -336,6 +340,7 @@ The Q4 evidence lane and execution-infrastructure lane must remain independent.
 - `docs/DECISION_LOG.md` — decisions that govern current work
 - `docs/HYPOTHESIS_REGISTRY.md` — supported, failed, closed, and locked ideas
 - `docs/SCHEMA_CONTRACTS.md` — producer/consumer compatibility contracts
+- `docs/EXECUTION_TRUTH.md` — Polymarket observation boundary and invariants
 - `docs/OPERATOR_WORKFLOW.md` — exact Git, GitHub, QuantConnect, and campaign flow
 - `campaigns/` — immutable experiment declarations
 - `syntheses/` — versioned cross-campaign analysis declarations
