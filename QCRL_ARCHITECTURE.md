@@ -413,7 +413,9 @@ itself, a production module.
 ## Current engineering lane
 
 * Read-only Polymarket market/order-book contracts and acquisition (implemented)
-* Market discovery, signal binding, execution replay, and reconciliation
+* Contract-driven series/event discovery and signal binding (implemented)
+* Durable live evidence, compatible-horizon signal adaptation, execution replay,
+  and reconciliation
 * Documentation-backed experiment and decision registry
 * Locked prospective 2026Q4 baseline (preservation only until window end)
 

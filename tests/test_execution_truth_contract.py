@@ -37,7 +37,7 @@ class ExecutionTruthContractTests(unittest.TestCase):
         self.assertEqual("0.01", contract["constraints"]["minimum_tick_size"])
         self.assertEqual("0.02", contract["constraints"]["fee_curve"]["rate"])
         self.assertEqual(
-            "2026-05-04T23:51:00Z",
+            "2026-05-04T23:50:00Z",
             contract["terms"]["event_start_at_utc"],
         )
         self.assertEqual(64, len(contract["contract_sha256"]))

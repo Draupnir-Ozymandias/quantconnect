@@ -16,6 +16,10 @@
 | Polymarket order book | `qcrl.polymarket_order_book.v1` | `execution_truth/contracts.py` | future replay and shadow-decision layers | derived, content-addressed observation |
 | Polymarket raw bundle | `qcrl.polymarket_raw_bundle.v1` | `execution_truth/acquisition.py` | offline normalization and audit | content-addressed raw observation |
 | Polymarket normalized bundle | `qcrl.polymarket_normalized_bundle.v1` | `execution_truth/bundle.py` | future timing/replay layers | derived, content-addressed observation |
+| Polymarket raw discovery | `qcrl.polymarket_raw_discovery.v1` | `execution_truth/acquisition.py` | discovery normalization and audit | content-addressed raw observation |
+| Polymarket discovery spec/result | `qcrl.polymarket_discovery_spec.v1` / `qcrl.polymarket_discovery_result.v1` | human declaration / `execution_truth/discovery.py` | market-contract acquisition and audit | versioned declaration / derived evidence |
+| Directional signal intent | `qcrl.directional_signal_intent.v1` | future signal adapter | market binding and replay | content-addressed decision input |
+| Polymarket binding policy/result | `qcrl.polymarket_binding_policy.v1` / `qcrl.polymarket_binding_result.v1` | human declaration / `execution_truth/binding.py` | replay and shadow-decision layers | versioned declaration / derived evidence |
 
 The QCRL engine version and schema versions are different concerns. The clean
 baseline pins engine 2.2.0, most directional campaigns pin 2.3.0, and temporal
@@ -37,6 +41,18 @@ fixtures are derived from public documentation and test compatibility only.
 They are not live market evidence. Market contract v1 is superseded because it
 conflated Gamma `startDate` with `eventStartTime`; no reader supports v1. See
 `docs/EXECUTION_TRUTH.md` for acquisition and evidence requirements.
+
+Raw discovery records the separately hashed series and event observations used
+to identify a target interval. The discovery result requires one and only one
+market to match explicit series, event time, asset, duration, TWAP, resolution,
+outcome, and orderability fields. Slug and title text are not contract inputs.
+
+A signal intent declares identity, asset, source timeframe, direction,
+availability time, target interval, and methodology version. Binding requires
+exact market-window and policy agreement, a post-observation decision within
+the declared entry window, an orderable market, and an unambiguous outcome
+token. Expected incompatibility is retained as a hashed result with rejection
+reasons. A daily signal therefore cannot silently bind to a five-minute market.
 
 ## Research report contract
 

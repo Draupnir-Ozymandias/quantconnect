@@ -36,8 +36,8 @@ evidence.
 | Normalized record schema | `qcrl.experiment_record.v5` |
 | Campaign manifest/state | `qcrl.campaign.v1` / `qcrl.campaign_state.v1` |
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
-| Execution-truth schemas | market v2 / order book v1 / raw and normalized bundle v1 |
-| Test suite | 114 deterministic tests passing |
+| Execution-truth schemas | market v2; book, bundles, discovery, signal intent, and binding v1 |
+| Test suite | 135 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
@@ -285,15 +285,16 @@ weak explanations and dangerous sizing have been rejected before deployment.
 
 ## Known Gaps and Risks
 
-1. No actual Polymarket market discovery, trade, or settlement data is ingested.
-   Public market and order-book acquisition and normalizers now exist. One live
-   bundle is stored as ignored local evidence; checked-in fixtures remain
-   documentation-derived rather than live evidence.
+1. Public Polymarket series/event discovery, market metadata, and order books
+   can now be acquired and normalized. One live bundle is stored as ignored
+   local evidence; checked-in fixtures remain documentation-derived rather than
+   durable live evidence. No trade, fill, or settlement data is ingested.
 2. No bid/ask spread, entry price, market depth, partial fill, no-fill, dynamic
    fee, or latency model exists.
-3. The research callback evaluates a completed bar while notionally assigning
-   the forecast to that bar's opening interval. A live timing contract must
-   separate signal availability, order placement, fill, and later settlement.
+3. The signal/market binding contract now separates availability, observation,
+   decision, target, and cutoff times, but the research callback still evaluates
+   a completed bar while notionally assigning the forecast to that bar's opening
+   interval. A live signal adapter must emit prior-state intent at the boundary.
 4. QCRL uses its own synthetic bankroll and submits no LEAN portfolio orders;
    standard LEAN portfolio statistics are not strategy objectives here.
 5. Polymarket is not implemented as a LEAN brokerage or execution adapter.
@@ -316,14 +317,15 @@ weak explanations and dangerous sizing have been rejected before deployment.
 ## Recommended Next Development
 
 Continue the read-only Polymarket execution-truth foundation while keeping
-signal research frozen. Public acquisition, immutable local raw storage, and
-offline normalization are implemented; remaining work is:
+signal research frozen. Public acquisition, explicit contract-driven discovery,
+immutable local raw storage, offline normalization, and signal binding are
+implemented; remaining work is:
 
-1. Add contract-driven market discovery without trusting slug grammar.
-2. Promote selected irreplaceable live bundles into an explicit
+1. Promote selected irreplaceable live bundles into an explicit
    Git-synchronized fixture workflow.
-3. Define the versioned timing/binding contract: signal timestamp, eligible
-   market, entry cutoff, outcome mapping, and resolution.
+2. Determine whether an exact daily BTC Up/Down market series exists; do not
+   bind the daily research signal to the validated five-minute series.
+3. Build a boundary-time signal adapter from prior completed bars.
 4. Build a replay-only execution model for maker/taker prices, fees, partial
    fills, no fills, and settlement.
 5. Add shadow decisions and reconciliation before any authenticated order path.

@@ -10,6 +10,7 @@ from .contracts import normalize_market_contract, payload_hash
 
 
 RAW_BUNDLE_SCHEMA = "qcrl.polymarket_raw_bundle.v1"
+RAW_DISCOVERY_SCHEMA = "qcrl.polymarket_raw_discovery.v1"
 GAMMA_BASE = "https://gamma-api.polymarket.com"
 CLOB_BASE = "https://clob.polymarket.com"
 
@@ -103,3 +104,60 @@ class PublicPolymarketAcquirer:
         }
         bundle["bundle_sha256"] = payload_hash(bundle)
         return bundle
+
+    def acquire_series_event(self, series_id, target_at_utc):
+        """Acquire the unique series event whose explicit interval contains T."""
+        series_id = str(series_id).strip()
+        if not series_id or any(char not in "0123456789" for char in series_id):
+            raise AcquisitionError("series_id must be numeric")
+        if isinstance(target_at_utc, str):
+            try:
+                target = datetime.fromisoformat(
+                    target_at_utc.replace("Z", "+00:00")
+                )
+            except ValueError as exc:
+                raise AcquisitionError("target_at_utc is invalid") from exc
+        else:
+            target = target_at_utc
+        if not isinstance(target, datetime):
+            raise AcquisitionError("target_at_utc must be an ISO-8601 value")
+        target_text = utc_text(target)
+        target = datetime.fromisoformat(target_text.replace("Z", "+00:00"))
+
+        acquired_at = utc_text(self.clock())
+        series = self._observe(f"{GAMMA_BASE}/series/{series_id}")
+        if str(series["payload"].get("id")) != series_id:
+            raise AcquisitionError("Gamma returned a different series id")
+        candidates = []
+        for event in series["payload"].get("events") or []:
+            try:
+                start = datetime.fromisoformat(
+                    str(event["startTime"]).replace("Z", "+00:00")
+                )
+                end = datetime.fromisoformat(
+                    str(event["endDate"]).replace("Z", "+00:00")
+                )
+            except (KeyError, TypeError, ValueError):
+                continue
+            if start.tzinfo is None or end.tzinfo is None:
+                continue
+            if start <= target < end:
+                candidates.append(str(event.get("id") or ""))
+        candidates = sorted(set(value for value in candidates if value))
+        if len(candidates) != 1:
+            raise AcquisitionError(
+                f"expected one series event at target time, found {len(candidates)}"
+            )
+        event = self._observe(f"{GAMMA_BASE}/events/{candidates[0]}")
+        if str(event["payload"].get("id")) != candidates[0]:
+            raise AcquisitionError("Gamma returned a different event id")
+
+        discovery = {
+            "schema_version": RAW_DISCOVERY_SCHEMA,
+            "acquired_at_utc": acquired_at,
+            "target_at_utc": target_text,
+            "series_id_requested": series_id,
+            "observations": {"series": series, "event": event},
+        }
+        discovery["discovery_sha256"] = payload_hash(discovery)
+        return discovery

@@ -1,0 +1,26 @@
+{
+  "id": "event-current",
+  "startTime": "2026-05-04T23:50:00Z",
+  "endDate": "2026-05-04T23:55:00Z",
+  "series": [{"id": "10684", "recurrence": "5m"}],
+  "markets": [
+    {
+      "id": "123456",
+      "conditionId": "0x1111111111111111111111111111111111111111111111111111111111111111",
+      "resolutionSource": "https://data.chain.link/streams/btc-usd-twap-60s-streams",
+      "outcomes": "[\"Up\", \"Down\"]",
+      "eventStartTime": "2026-05-04T23:50:00Z",
+      "endDate": "2026-05-04T23:55:00Z",
+      "active": true,
+      "closed": false,
+      "enableOrderBook": true,
+      "acceptingOrders": true,
+      "cryptoMarketConfig": {
+        "asset": "btc",
+        "duration": "5m",
+        "twapEnabled": true,
+        "twapLookbackSeconds": 60
+      }
+    }
+  ]
+}

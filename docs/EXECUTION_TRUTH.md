@@ -1,7 +1,8 @@
 # QCRL Polymarket Execution Truth
 
 **As of:** 2026-09-07
-**Status:** public acquisition, immutable local storage, and offline normalization implemented
+**Status:** public acquisition, explicit discovery, signal binding, immutable
+local storage, and offline normalization implemented
 
 ## Purpose
 
@@ -37,6 +38,18 @@ fixed public GET routes, accepts injected transport and clock implementations,
 and has no credential, signing, balance, position, or order capability.
 `execution_truth/bundle.py` stores verified raw bundles under content-addressed,
 no-overwrite filenames and replays them offline.
+
+`execution_truth/discovery.py` verifies a human-authored discovery specification
+against one explicitly identified Gamma series and the unique event whose
+declared half-open interval contains the target time. Selection then requires
+exact asset, duration, TWAP, resolution-source, outcomes, event-time, and
+orderability agreement. Neither titles nor slugs participate in selection.
+
+`execution_truth/binding.py` joins one versioned directional signal intent to
+one market contract under a versioned timing policy. It distinguishes malformed
+evidence (contract error) from an expected ineligibility decision (structured
+rejection reasons), and maps Up or Down only through an explicit outcome label
+and token ID.
 
 The normalizers fail closed when:
 
@@ -88,6 +101,26 @@ five-minute market by many hours, while `eventStartTime` exactly named the
 outcome window. Version 2 preserves both fields separately and only
 `event_start_at_utc` may anchor outcome timing. Version 1 must not be consumed.
 
+## Discovery probe and timeframe boundary
+
+A public probe on 2026-09-07 validated series `10684` without reading a slug or
+title. For target `2026-09-07T21:36:50Z`, explicit series membership and event
+times selected event `978977` (`21:35:00Z`–`21:40:00Z`) and market `4310537`.
+Its declared configuration was BTC, five minutes, Chainlink BTC/USD 60-second
+TWAP, with Up and Down outcomes.
+
+This proves the discovery mechanism, not signal compatibility. A QCRL daily
+signal targeting a daily interval fails the binding contract against this
+five-minute market with `target_window_mismatch`. No fractal or cross-timeframe
+equivalence is assumed. We must either discover an exactly compatible market
+horizon or separately research and version a five-minute signal before any
+execution replay can claim relevance.
+
+The present LEAN callback also computes a decision when the consolidated target
+bar closes, even though the entry model uses prior-bar state. A live signal
+producer must materialize that prior-state decision at the target boundary;
+the research callback itself is not evidence of timely executability.
+
 ## Architectural invariants
 
 1. Signal time, observation time, decision time, hypothetical submission time,
@@ -102,7 +135,8 @@ outcome window. Version 2 preserves both fields separately and only
 
 ## Next vertical slice
 
-Add contract-driven market discovery without assigning semantic authority to
-slug grammar, then define the signal-to-market timing and eligibility binding.
-Promote selected irreplaceable live bundles into a deliberate Git-synchronized
-fixture workflow before relying on them for regression tests.
+Promote selected irreplaceable live observations into a deliberate,
+Git-synchronized fixture workflow; identify whether an exact daily BTC market
+contract exists; and build offline replay for compatible signals only. Replay
+must model observable price, depth, fees, entry delay, partial/no fill, and
+settlement before shadow execution is considered.

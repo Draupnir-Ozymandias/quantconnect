@@ -1845,6 +1845,39 @@ New requests for Workstream A: none. Tests completed: 114 deterministic tests.
 Next coding target: contract-driven discovery, a deliberate durable live-fixture
 workflow, and the signal-to-market timing/eligibility contract.
 
+## 2026-09-07 contract-driven discovery and signal binding
+
+Public discovery now starts from an explicit numeric series ID and selects the
+unique event whose declared half-open interval contains the target time. The
+normalizer then requires exact series membership, recurrence, asset, duration,
+TWAP configuration, resolution source, binary outcomes, event times, and
+orderability before returning one market. Slugs and titles are never selection
+inputs. A live public probe validated series `10684`, event `978977`, and market
+`4310537` for the declared `21:35Z`–`21:40Z` BTC five-minute interval.
+
+The new binding layer hashes and joins a versioned directional signal intent,
+market contract, timing policy, and decision time. Malformed evidence fails as
+a contract error; normal incompatibility produces a deterministic ineligible
+result with explicit reasons. Most importantly, the contract rejects the QCRL
+daily target interval against the observed five-minute market. This repository
+does not assume daily behavior is fractal or executable at a lower horizon.
+
+Files created or changed: public acquisition, discovery and binding modules;
+contract hash verification; deterministic series/event fixtures and tests;
+execution-truth, schema, status, architecture documentation; and this sync
+record. Interfaces added: `acquire_series_event()`, `normalize_discovery()`, and
+`bind_signal_to_market()`. Record fields consumed: none; signal intent is a new
+execution boundary, not a reinterpretation of research records. Assumptions
+introduced: target intervals are half-open, series IDs are explicit config, and
+only exact market fields authorize binding. Limitations: the validated series
+is five-minute and incompatible with the current daily candidate; live evidence
+is still ignored local state; the LEAN callback does not yet emit a live-timely
+intent; replay, fills, and settlement remain absent. New requests for Workstream
+A: none. Tests completed: 135 deterministic tests passing.
+
+Next coding target: durable live-evidence promotion, exact-horizon discovery,
+and a boundary-time signal adapter before execution replay.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

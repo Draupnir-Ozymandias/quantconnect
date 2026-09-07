@@ -34,6 +34,14 @@ def payload_hash(value):
     return hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()
 
 
+def verify_artifact_hash(value, field, name):
+    supplied = value.get(field)
+    unhashed = dict(value)
+    unhashed.pop(field, None)
+    if supplied != payload_hash(unhashed):
+        raise ContractError(f"{name} hash mismatch")
+
+
 def _required(mapping, key, context):
     value = mapping.get(key)
     if value is None or value == "":
@@ -279,6 +287,9 @@ def normalize_order_book(book_payload, market_contract, observed_at_utc):
     """Normalize a full CLOB book and bind it to a validated market contract."""
     if market_contract.get("schema_version") != MARKET_CONTRACT_SCHEMA:
         raise ContractError("unsupported market contract schema")
+    verify_artifact_hash(
+        market_contract, "contract_sha256", "market contract"
+    )
     condition_id = str(_required(book_payload, "market", "order_book"))
     token_id = str(_required(book_payload, "asset_id", "order_book"))
     if condition_id != market_contract["identity"]["condition_id"]:
