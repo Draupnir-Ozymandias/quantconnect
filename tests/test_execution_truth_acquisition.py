@@ -9,11 +9,14 @@ from execution_truth import (
     ContractError,
     PublicPolymarketAcquirer,
     normalize_bundle,
+    promote_raw_evidence,
     store_raw_bundle,
+    verify_live_evidence_inventory,
 )
 
 
 FIXTURES = Path(__file__).parent / "fixtures" / "polymarket"
+LIVE_EVIDENCE = Path(__file__).parents[1] / "evidence" / "polymarket" / "live"
 
 
 def fixture(name):
@@ -109,6 +112,20 @@ class ExecutionTruthAcquisitionTests(unittest.TestCase):
             self.assertEqual(first, second)
             self.assertIn(raw["bundle_sha256"], first.name)
             self.assertEqual(raw, json.loads(first.read_text(encoding="utf-8")))
+
+    def test_promotion_revalidates_and_preserves_bundle(self):
+        raw = self.acquirer.acquire_market_bundle("123456")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = store_raw_bundle(raw, root / "local")
+            promoted = promote_raw_evidence(source, root / "durable")
+            self.assertEqual(raw, json.loads(promoted.read_text(encoding="utf-8")))
+            self.assertEqual(promoted, promote_raw_evidence(
+                source, root / "durable"
+            ))
+
+    def test_checked_in_live_evidence_inventory_replays(self):
+        self.assertEqual(3, verify_live_evidence_inventory(LIVE_EVIDENCE))
 
 
 if __name__ == "__main__":

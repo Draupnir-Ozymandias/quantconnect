@@ -67,12 +67,7 @@ def _required_text(mapping, key, name):
 
 def normalize_discovery(raw_discovery, spec):
     """Select one market by explicit series, timing, and crypto configuration."""
-    if raw_discovery.get("schema_version") != RAW_DISCOVERY_SCHEMA:
-        raise ContractError("unsupported raw discovery schema")
-    unhashed = dict(raw_discovery)
-    supplied_hash = unhashed.pop("discovery_sha256", None)
-    if supplied_hash != payload_hash(unhashed):
-        raise ContractError("raw discovery hash mismatch")
+    supplied_hash = verify_raw_discovery(raw_discovery)
     if spec.get("schema_version") != DISCOVERY_SPEC_SCHEMA:
         raise ContractError("unsupported discovery spec schema")
 
@@ -194,3 +189,19 @@ def normalize_discovery(raw_discovery, spec):
     }
     result["result_sha256"] = payload_hash(result)
     return result
+
+
+def verify_raw_discovery(raw_discovery):
+    """Verify a raw discovery envelope without interpreting market meaning."""
+    if raw_discovery.get("schema_version") != RAW_DISCOVERY_SCHEMA:
+        raise ContractError("unsupported raw discovery schema")
+    unhashed = dict(raw_discovery)
+    supplied_hash = unhashed.pop("discovery_sha256", None)
+    if supplied_hash != payload_hash(unhashed):
+        raise ContractError("raw discovery hash mismatch")
+    observations = raw_discovery.get("observations") or {}
+    _payload(observations.get("series"), "series")
+    _payload(observations.get("event"), "event")
+    _time(raw_discovery.get("acquired_at_utc"), "acquired_at_utc")
+    _time(raw_discovery.get("target_at_utc"), "target_at_utc")
+    return supplied_hash

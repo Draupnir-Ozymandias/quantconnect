@@ -1878,6 +1878,39 @@ A: none. Tests completed: 135 deterministic tests passing.
 Next coding target: durable live-evidence promotion, exact-horizon discovery,
 and a boundary-time signal adapter before execution replay.
 
+## 2026-09-07 durable evidence and daily-series compatibility
+
+The execution-truth operator now separates ephemeral public capture from
+deliberate durable promotion. `./synch.sh evidence` captures discovery or full
+market/book bundles into ignored local state, promotes only explicitly selected
+artifacts into content-addressed Git storage, and verifies the complete tracked
+inventory offline. The deterministic suite replays every promoted artifact.
+
+Three live artifacts are now durable: the original Chainlink five-minute
+market bundle, a discovery capture for daily series `41`, and a complete bundle
+for daily market `4293892`. The daily event covered
+`2026-09-07T16:00:00Z`–`2026-09-08T16:00:00Z`. It resolves from Binance
+BTC/USDT one-minute candle closes, not Coinbase BTCUSD, and equal closes settle
+50/50 rather than being skipped. The inventory therefore records the candidate
+as incompatible with the current QCRL signal; daily recurrence is not treated
+as sufficient equivalence.
+
+Files created or changed: durable public evidence and inventory, evidence CLI
+and sync routing, bundle/discovery verification, deterministic tests, status,
+architecture, contracts, workflow, decision log, execution-truth documentation,
+and this sync record. Interfaces added: `store_raw_discovery()`,
+`promote_raw_evidence()`, `verify_raw_discovery()`, and
+`verify_live_evidence_inventory()`. Record fields consumed: none. Assumptions
+introduced: promotion is explicit; every durable artifact must be inventoried;
+daily horizon alone does not establish source/window/settlement equivalence.
+Limitations found: QCRL's daily consolidator anchor is not explicit, series 41
+uses a different feed and tie rule, and no execution replay exists. New requests
+for Workstream A: none; any aligned Binance/noon research must be separately
+authorized and declared. Tests completed: 138 deterministic tests passing.
+
+Next coding target: an explicit QCRL source/bar-anchor contract and boundary-time
+signal adapter, followed by replay only for a genuinely compatible declaration.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

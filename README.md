@@ -41,6 +41,7 @@ Use the guarded synchronization script from the project directory:
 ./synch.sh push-plan
 ./synch.sh push
 ./synch.sh backtest
+./synch.sh evidence --help
 ```
 
 - `status` is the default and makes no changes.
@@ -53,6 +54,9 @@ Use the guarded synchronization script from the project directory:
 - `backtest` does not implicitly push local changes.
 - `backtest` injects the current Git commit, branch, and optional
   `QCRL_CAMPAIGN_ID` into the experiment record.
+- `evidence` captures public Polymarket observations into ignored local state,
+  promotes selected immutable artifacts into Git, and verifies the durable
+  inventory offline. It has no credential or order capability.
 
 Run `./synch.sh help` for the complete command summary.
 

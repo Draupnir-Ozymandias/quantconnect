@@ -36,8 +36,8 @@ evidence.
 | Normalized record schema | `qcrl.experiment_record.v5` |
 | Campaign manifest/state | `qcrl.campaign.v1` / `qcrl.campaign_state.v1` |
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
-| Execution-truth schemas | market v2; book, bundles, discovery, signal intent, and binding v1 |
-| Test suite | 135 deterministic tests passing |
+| Execution-truth schemas | market v2; book, bundles, discovery, signal intent, binding, and live inventory v1 |
+| Test suite | 138 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
@@ -286,9 +286,9 @@ weak explanations and dangerous sizing have been rejected before deployment.
 ## Known Gaps and Risks
 
 1. Public Polymarket series/event discovery, market metadata, and order books
-   can now be acquired and normalized. One live bundle is stored as ignored
-   local evidence; checked-in fixtures remain documentation-derived rather than
-   durable live evidence. No trade, fill, or settlement data is ingested.
+   can now be acquired, promoted, inventoried, and replayed. Three live raw
+   artifacts are durable Git evidence. No trade, fill, or settlement data is
+   ingested.
 2. No bid/ask spread, entry price, market depth, partial fill, no-fill, dynamic
    fee, or latency model exists.
 3. The signal/market binding contract now separates availability, observation,
@@ -319,13 +319,15 @@ weak explanations and dangerous sizing have been rejected before deployment.
 Continue the read-only Polymarket execution-truth foundation while keeping
 signal research frozen. Public acquisition, explicit contract-driven discovery,
 immutable local raw storage, offline normalization, and signal binding are
-implemented; remaining work is:
+implemented. Live promotion and inventory verification are also implemented.
+Daily series `41` exists but is incompatible with the current signal because
+its Binance BTC/USDT feed, noon-Eastern anchor, and tie settlement differ.
+Remaining work is:
 
-1. Promote selected irreplaceable live bundles into an explicit
-   Git-synchronized fixture workflow.
-2. Determine whether an exact daily BTC Up/Down market series exists; do not
-   bind the daily research signal to the validated five-minute series.
-3. Build a boundary-time signal adapter from prior completed bars.
+1. Define the QCRL data-source and daily-bar-anchor contract explicitly.
+2. Build a boundary-time signal adapter from prior completed bars.
+3. Decide whether to authorize a separate Binance noon-to-noon research lane;
+   do not retrofit the historical Coinbase evidence.
 4. Build a replay-only execution model for maker/taker prices, fees, partial
    fills, no fills, and settlement.
 5. Add shadow decisions and reconciliation before any authenticated order path.

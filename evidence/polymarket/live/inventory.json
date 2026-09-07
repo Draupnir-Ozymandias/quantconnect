@@ -1,0 +1,71 @@
+{
+  "artifacts": [
+    {
+      "artifact_sha256": "a69f00a48676e9442a797f72332330f74f8514ea412559f8c967dbe9afac27b1",
+      "captured_at_utc": "2026-09-07T22:41:44.674583Z",
+      "evidence_role": "daily_contract_compatibility_audit",
+      "limitations": [
+        "single intramarket order-book snapshot",
+        "cannot prove fill or settlement",
+        "incompatible with current QCRL signal source and unresolved bar anchor"
+      ],
+      "normalized_sha256": "2d5f3b97685fe124191592c1175d15a71140909c4f34ed13231a872e25b58460",
+      "path": "raw/market-4293892-a69f00a48676e9442a797f72332330f74f8514ea412559f8c967dbe9afac27b1.json",
+      "schema_version": "qcrl.polymarket_raw_bundle.v1",
+      "subject": {
+        "event_end_at_utc": "2026-09-08T16:00:00Z",
+        "event_start_at_utc": "2026-09-07T16:00:00Z",
+        "market_id": "4293892",
+        "resolution_source": "https://www.binance.com/en/trade/BTC_USDT"
+      }
+    },
+    {
+      "artifact_sha256": "a9c40ee7c38a6dad0f3482b4c0c9676dd4865bc26f7042f713b080bf141fc912",
+      "captured_at_utc": "2026-09-07T20:52:23.815277Z",
+      "evidence_role": "five_minute_contract_mechanics_reference",
+      "limitations": [
+        "single intramarket order-book snapshot",
+        "five-minute horizon is incompatible with the current daily QCRL signal",
+        "cannot prove fill or settlement"
+      ],
+      "normalized_sha256": "bd7b59542b8b93d94c7525b255d567ba09e5175e6a3e6b287940663c86d3a6a6",
+      "path": "raw/market-4309046-a9c40ee7c38a6dad0f3482b4c0c9676dd4865bc26f7042f713b080bf141fc912.json",
+      "schema_version": "qcrl.polymarket_raw_bundle.v1",
+      "subject": {
+        "event_end_at_utc": "2026-09-07T20:55:00Z",
+        "event_start_at_utc": "2026-09-07T20:50:00Z",
+        "market_id": "4309046",
+        "resolution_source": "https://data.chain.link/streams/btc-usd-twap-60s-streams"
+      }
+    },
+    {
+      "artifact_sha256": "ef47b4dbdfbabe0d78af64eaa13ff36e9506c713a40c3217384d69174de6e6ca",
+      "captured_at_utc": "2026-09-07T22:41:44.442357Z",
+      "evidence_role": "daily_series_discovery",
+      "limitations": [
+        "series response is a point-in-time public observation",
+        "daily recurrence alone does not establish QCRL compatibility"
+      ],
+      "path": "raw/series-41-ef47b4dbdfbabe0d78af64eaa13ff36e9506c713a40c3217384d69174de6e6ca.json",
+      "schema_version": "qcrl.polymarket_raw_discovery.v1",
+      "subject": {
+        "event_id": "976673",
+        "series_id": "41",
+        "target_at_utc": "2026-09-07T22:30:00Z"
+      }
+    }
+  ],
+  "compatibility_findings": [
+    {
+      "candidate_series_id": "41",
+      "decision": "incompatible_with_current_qcrl_signal",
+      "finding_id": "btc-daily-series-41-v1",
+      "reasons": [
+        "resolution_feed_mismatch: Binance BTC/USDT versus Coinbase BTCUSD",
+        "interval_anchor_unproven: noon Eastern versus implicit LEAN consolidation boundary",
+        "tie_semantics_mismatch: 50/50 settlement versus skipped tied bars"
+      ]
+    }
+  ],
+  "schema_version": "qcrl.polymarket_live_evidence_inventory.v1"
+}

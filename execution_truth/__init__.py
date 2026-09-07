@@ -8,8 +8,14 @@ from .contracts import (
     normalize_order_book,
 )
 from .acquisition import AcquisitionError, PublicPolymarketAcquirer
-from .bundle import normalize_bundle, store_raw_bundle
-from .discovery import normalize_discovery
+from .bundle import (
+    normalize_bundle,
+    promote_raw_evidence,
+    store_raw_bundle,
+    store_raw_discovery,
+    verify_live_evidence_inventory,
+)
+from .discovery import normalize_discovery, verify_raw_discovery
 from .binding import bind_signal_to_market
 
 __all__ = [
@@ -21,7 +27,11 @@ __all__ = [
     "normalize_order_book",
     "normalize_bundle",
     "normalize_discovery",
+    "verify_raw_discovery",
     "bind_signal_to_market",
+    "promote_raw_evidence",
     "store_raw_bundle",
+    "store_raw_discovery",
+    "verify_live_evidence_inventory",
     "PublicPolymarketAcquirer",
 ]

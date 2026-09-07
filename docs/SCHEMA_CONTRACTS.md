@@ -20,6 +20,7 @@
 | Polymarket discovery spec/result | `qcrl.polymarket_discovery_spec.v1` / `qcrl.polymarket_discovery_result.v1` | human declaration / `execution_truth/discovery.py` | market-contract acquisition and audit | versioned declaration / derived evidence |
 | Directional signal intent | `qcrl.directional_signal_intent.v1` | future signal adapter | market binding and replay | content-addressed decision input |
 | Polymarket binding policy/result | `qcrl.polymarket_binding_policy.v1` / `qcrl.polymarket_binding_result.v1` | human declaration / `execution_truth/binding.py` | replay and shadow-decision layers | versioned declaration / derived evidence |
+| Polymarket live evidence inventory | `qcrl.polymarket_live_evidence_inventory.v1` | deliberate operator promotion | regression tests and audit | version controlled |
 
 The QCRL engine version and schema versions are different concerns. The clean
 baseline pins engine 2.2.0, most directional campaigns pin 2.3.0, and temporal
@@ -53,6 +54,12 @@ exact market-window and policy agreement, a post-observation decision within
 the declared entry window, an orderable market, and an unambiguous outcome
 token. Expected incompatibility is retained as a hashed result with rejection
 reasons. A daily signal therefore cannot silently bind to a five-minute market.
+
+The live evidence inventory declares every promoted raw path, artifact schema
+and hash, exact capture time, evidence role, limitations, and normalized hash
+where applicable. Verification fails on an undeclared/missing artifact, path
+escape, schema/hash/time drift, or an offline replay failure. The inventory's
+daily-series finding is compatibility evidence, not signal research evidence.
 
 ## Research report contract
 

@@ -74,6 +74,24 @@ set +a
 Never commit `.env`. Collection through the API is authoritative; terminal
 tables can wrap or truncate custom metrics.
 
+## Public execution evidence
+
+No credentials are used for public Polymarket discovery or market/book capture:
+
+```bash
+./synch.sh evidence capture-discovery <series-id> <target-utc>
+./synch.sh evidence capture-market <market-id>
+./synch.sh evidence promote .qcrl/execution_truth/raw/<artifact>.json
+./synch.sh evidence verify
+```
+
+Capture writes ignored local evidence. Promotion is a deliberate decision that
+revalidates and copies an immutable artifact into
+`evidence/polymarket/live/raw/`; it does not automatically edit the inventory.
+Add the new artifact's role and limitations to `inventory.json`, then run
+`evidence verify`. Verification requires every tracked raw artifact to be
+declared and every declaration to exist, hash correctly, and replay offline.
+
 ## Interpreting campaign state
 
 - `pending`: not submitted.

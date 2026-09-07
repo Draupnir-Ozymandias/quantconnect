@@ -1,0 +1,725 @@
+{
+  "acquired_at_utc": "2026-09-07T22:41:44.674583Z",
+  "bundle_sha256": "a69f00a48676e9442a797f72332330f74f8514ea412559f8c967dbe9afac27b1",
+  "market_id_requested": "4293892",
+  "observations": {
+    "clob_market": {
+      "endpoint": "https://clob.polymarket.com/clob-markets/0xfc212403d7ecbb857d300f20403b0e129109272203ce46fc865a8cb80d101ca0",
+      "observed_at_utc": "2026-09-07T22:41:44.869591Z",
+      "params": {},
+      "payload": {
+        "ao": true,
+        "aot": "2026-09-06T16:14:47Z",
+        "c": "0xfc212403d7ecbb857d300f20403b0e129109272203ce46fc865a8cb80d101ca0",
+        "cbos": true,
+        "fd": {
+          "e": 1,
+          "r": 0.07,
+          "to": true
+        },
+        "ibce": true,
+        "mbf": 1000,
+        "mos": 5,
+        "mts": 0.01,
+        "r": {
+          "ma": 4.5,
+          "mi": 50,
+          "moas": 30
+        },
+        "t": [
+          {
+            "o": "Up",
+            "t": "61265659607611571989597927562517561686388056537051122315648513183093145440810"
+          },
+          {
+            "o": "Down",
+            "t": "91933384475937550855480471473382712488007131691626056922845225652447263854455"
+          }
+        ],
+        "tbf": 1000,
+        "v": "v1"
+      },
+      "payload_sha256": "16edf4009097559900a4f716a6ed42bb897eb76e36d81b44fb17c7bb2f6cc3b7"
+    },
+    "gamma_market": {
+      "endpoint": "https://gamma-api.polymarket.com/markets/4293892",
+      "observed_at_utc": "2026-09-07T22:41:44.738870Z",
+      "params": {},
+      "payload": {
+        "$schema": "https://gamma-api.polymarket.com/schemas/Market.json",
+        "acceptingOrders": true,
+        "acceptingOrdersTimestamp": "2026-09-06T16:14:47Z",
+        "active": true,
+        "approved": true,
+        "archived": false,
+        "automaticallyActive": true,
+        "bestAsk": 0.57,
+        "bestBid": 0.56,
+        "clearBookOnStart": true,
+        "clobTokenIds": "[\"61265659607611571989597927562517561686388056537051122315648513183093145440810\", \"91933384475937550855480471473382712488007131691626056922845225652447263854455\"]",
+        "closed": false,
+        "comboStatus": "disabled",
+        "competitive": 0.9957927755234136,
+        "conditionId": "0xfc212403d7ecbb857d300f20403b0e129109272203ce46fc865a8cb80d101ca0",
+        "createdAt": "2026-09-06T16:07:00.234188Z",
+        "customLiveness": 600,
+        "cyom": false,
+        "deploying": false,
+        "deployingTimestamp": "2026-09-06T16:07:00.812198Z",
+        "description": "This market will resolve to \"Up\" if the \"Close\" price for the Binance 1 minute candle for BTC/USDT Sep 7 '26 12:00 in the ET timezone (noon) is lower than the final \"Close\" price for the Sep 8 '26 12:00 ET candle.\n\nThis market will resolve to \"Down\" if the \"Close\" price for the Binance 1 minute candle for BTC/USDT Sep 7 '26 12:00 in the ET timezone (noon) is higher than the final \"Close\" price for the Sep 8 '26 12:00 ET candle.\n\nIf the final \"Close\" price for both of these candles is exactly equal on Binance, this market will resolve 50-50.\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"Close\" prices currently available at https://www.binance.com/en/trade/BTC_USDT with \"1m\" and \"Candles\" selected on the top bar.\n\nPlease note that this market is about the price according to Binance BTC/USDT, not according to other exchanges or trading pairs.",
+        "enableOrderBook": true,
+        "endDate": "2026-09-08T16:00:00Z",
+        "endDateIso": "2026-09-08",
+        "eventStartTime": "2026-09-07T16:00:00Z",
+        "featured": false,
+        "feeSchedule": {
+          "exponent": 1,
+          "rate": 0.07,
+          "rebateRate": 0.2,
+          "takerOnly": true
+        },
+        "feeType": "crypto_fees_v2",
+        "feesEnabled": true,
+        "funded": false,
+        "hasReviewedDates": true,
+        "holdingRewardsEnabled": false,
+        "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/BTC+fullsize.png",
+        "id": "4293892",
+        "image": "https://polymarket-upload.s3.us-east-2.amazonaws.com/BTC+fullsize.png",
+        "lastTradePrice": 0.6,
+        "liquidity": "27611.6568",
+        "liquidityClob": 27611.6568,
+        "liquidityNum": 27611.6568,
+        "makerBaseFee": 1000,
+        "manualActivation": false,
+        "marketMakerAddress": "",
+        "negRisk": false,
+        "negRiskOther": false,
+        "new": false,
+        "oneDayPriceChange": 0.06,
+        "oneHourPriceChange": -0.07,
+        "orderMinSize": 5,
+        "orderPriceMinTickSize": 0.01,
+        "outcomePrices": "[\"0.565\", \"0.435\"]",
+        "outcomes": "[\"Up\", \"Down\"]",
+        "pagerDutyNotificationEnabled": false,
+        "pendingDeployment": false,
+        "question": "Bitcoin Up or Down on September 8?",
+        "questionID": "0x24606af624b48c3d062324f62e809c5d637d0c523a05737eb102d89446e519d9",
+        "ready": false,
+        "requiresTranslation": false,
+        "resolutionSource": "https://www.binance.com/en/trade/BTC_USDT",
+        "resolvedBy": "0x65070BE91477460D8A7AeEb94ef92fe056C2f2A7",
+        "restricted": true,
+        "rewardsMaxSpread": 4.5,
+        "rewardsMinSize": 50,
+        "rfqEnabled": false,
+        "slug": "bitcoin-up-or-down-on-september-8-2026",
+        "spread": 0.01,
+        "startDate": "2026-09-06T16:14:47Z",
+        "startDateIso": "2026-09-06",
+        "takerBaseFee": 1000,
+        "umaBond": "250",
+        "umaResolutionStatuses": "[]",
+        "umaReward": "0.6",
+        "updatedAt": "2026-09-07T22:37:53.592464Z",
+        "version": "v1",
+        "volume": "21466.86232199999",
+        "volume1mo": 21466.862322,
+        "volume1moClob": 21466.862322,
+        "volume1wk": 21466.862322,
+        "volume1wkClob": 21466.862322,
+        "volume1yr": 21466.862322,
+        "volume1yrClob": 21466.862322,
+        "volume24hr": 21456.862322,
+        "volume24hrClob": 21456.862322,
+        "volumeClob": 21466.86232199999,
+        "volumeNum": 21466.86232199999
+      },
+      "payload_sha256": "8e0e6360307fe10675eac7c1d571a929c1fe6d9a73f66289236f6b847534d4eb"
+    },
+    "order_books": [
+      {
+        "endpoint": "https://clob.polymarket.com/book",
+        "observed_at_utc": "2026-09-07T22:41:44.978457Z",
+        "params": {
+          "token_id": "61265659607611571989597927562517561686388056537051122315648513183093145440810"
+        },
+        "payload": {
+          "asks": [
+            {
+              "price": "0.99",
+              "size": "30100.89"
+            },
+            {
+              "price": "0.98",
+              "size": "69.34"
+            },
+            {
+              "price": "0.97",
+              "size": "19016.84"
+            },
+            {
+              "price": "0.96",
+              "size": "309.34"
+            },
+            {
+              "price": "0.95",
+              "size": "2109.34"
+            },
+            {
+              "price": "0.94",
+              "size": "9.34"
+            },
+            {
+              "price": "0.93",
+              "size": "1437.91"
+            },
+            {
+              "price": "0.92",
+              "size": "14.86"
+            },
+            {
+              "price": "0.91",
+              "size": "9.34"
+            },
+            {
+              "price": "0.9",
+              "size": "9369.34"
+            },
+            {
+              "price": "0.89",
+              "size": "10254.78"
+            },
+            {
+              "price": "0.88",
+              "size": "9.34"
+            },
+            {
+              "price": "0.87",
+              "size": "9.34"
+            },
+            {
+              "price": "0.86",
+              "size": "9.34"
+            },
+            {
+              "price": "0.85",
+              "size": "3008.34"
+            },
+            {
+              "price": "0.84",
+              "size": "9.34"
+            },
+            {
+              "price": "0.83",
+              "size": "9.34"
+            },
+            {
+              "price": "0.82",
+              "size": "9.34"
+            },
+            {
+              "price": "0.81",
+              "size": "14.54"
+            },
+            {
+              "price": "0.8",
+              "size": "69.34"
+            },
+            {
+              "price": "0.79",
+              "size": "9.34"
+            },
+            {
+              "price": "0.78",
+              "size": "9.34"
+            },
+            {
+              "price": "0.77",
+              "size": "9.34"
+            },
+            {
+              "price": "0.76",
+              "size": "209.34"
+            },
+            {
+              "price": "0.75",
+              "size": "514.44"
+            },
+            {
+              "price": "0.74",
+              "size": "9.34"
+            },
+            {
+              "price": "0.73",
+              "size": "9.34"
+            },
+            {
+              "price": "0.72",
+              "size": "9.34"
+            },
+            {
+              "price": "0.71",
+              "size": "1008.34"
+            },
+            {
+              "price": "0.7",
+              "size": "3425.34"
+            },
+            {
+              "price": "0.69",
+              "size": "169.34"
+            },
+            {
+              "price": "0.68",
+              "size": "29.34"
+            },
+            {
+              "price": "0.67",
+              "size": "9.34"
+            },
+            {
+              "price": "0.66",
+              "size": "9.34"
+            },
+            {
+              "price": "0.65",
+              "size": "14.84"
+            },
+            {
+              "price": "0.57",
+              "size": "20"
+            },
+            {
+              "price": "0.56",
+              "size": "7.5"
+            },
+            {
+              "price": "0.55",
+              "size": "600"
+            },
+            {
+              "price": "0.54",
+              "size": "5"
+            },
+            {
+              "price": "0.53",
+              "size": "211"
+            },
+            {
+              "price": "0.52",
+              "size": "910"
+            },
+            {
+              "price": "0.51",
+              "size": "10426.99"
+            },
+            {
+              "price": "0.5",
+              "size": "40"
+            },
+            {
+              "price": "0.49",
+              "size": "78"
+            }
+          ],
+          "asset_id": "61265659607611571989597927562517561686388056537051122315648513183093145440810",
+          "bids": [
+            {
+              "price": "0.01",
+              "size": "30100.45"
+            },
+            {
+              "price": "0.02",
+              "size": "60"
+            },
+            {
+              "price": "0.03",
+              "size": "19008.34"
+            },
+            {
+              "price": "0.05",
+              "size": "2100"
+            },
+            {
+              "price": "0.07",
+              "size": "1428.57"
+            },
+            {
+              "price": "0.08",
+              "size": "5.34"
+            },
+            {
+              "price": "0.1",
+              "size": "9160"
+            },
+            {
+              "price": "0.11",
+              "size": "10145.44"
+            },
+            {
+              "price": "0.15",
+              "size": "2999"
+            },
+            {
+              "price": "0.16",
+              "size": "170"
+            },
+            {
+              "price": "0.2",
+              "size": "10"
+            },
+            {
+              "price": "0.21",
+              "size": "1714.28"
+            },
+            {
+              "price": "0.25",
+              "size": "5.1"
+            },
+            {
+              "price": "0.31",
+              "size": "999"
+            },
+            {
+              "price": "0.35",
+              "size": "5"
+            },
+            {
+              "price": "0.38",
+              "size": "10.4"
+            },
+            {
+              "price": "0.4",
+              "size": "265"
+            },
+            {
+              "price": "0.43",
+              "size": "13"
+            },
+            {
+              "price": "0.44",
+              "size": "210"
+            },
+            {
+              "price": "0.45",
+              "size": "672.5"
+            },
+            {
+              "price": "0.46",
+              "size": "8369.99"
+            },
+            {
+              "price": "0.47",
+              "size": "8031"
+            },
+            {
+              "price": "0.48",
+              "size": "1861"
+            }
+          ],
+          "hash": "b297b7a0d106e0d028121e992fc28bc253e8b9b2",
+          "last_trade_price": "0.500",
+          "market": "0xfc212403d7ecbb857d300f20403b0e129109272203ce46fc865a8cb80d101ca0",
+          "min_order_size": "5",
+          "neg_risk": false,
+          "tick_size": "0.01",
+          "timestamp": "1788820904865"
+        },
+        "payload_sha256": "fd65c0f688244b6deca27b72224f128fb11670d796ee0bb441d23076a15f4039"
+      },
+      {
+        "endpoint": "https://clob.polymarket.com/book",
+        "observed_at_utc": "2026-09-07T22:41:45.095855Z",
+        "params": {
+          "token_id": "91933384475937550855480471473382712488007131691626056922845225652447263854455"
+        },
+        "payload": {
+          "asks": [
+            {
+              "price": "0.99",
+              "size": "30100.45"
+            },
+            {
+              "price": "0.98",
+              "size": "60"
+            },
+            {
+              "price": "0.97",
+              "size": "19008.34"
+            },
+            {
+              "price": "0.95",
+              "size": "2100"
+            },
+            {
+              "price": "0.93",
+              "size": "1428.57"
+            },
+            {
+              "price": "0.92",
+              "size": "5.34"
+            },
+            {
+              "price": "0.9",
+              "size": "9160"
+            },
+            {
+              "price": "0.89",
+              "size": "10145.44"
+            },
+            {
+              "price": "0.85",
+              "size": "2999"
+            },
+            {
+              "price": "0.84",
+              "size": "170"
+            },
+            {
+              "price": "0.8",
+              "size": "10"
+            },
+            {
+              "price": "0.79",
+              "size": "1714.28"
+            },
+            {
+              "price": "0.75",
+              "size": "5.1"
+            },
+            {
+              "price": "0.69",
+              "size": "999"
+            },
+            {
+              "price": "0.65",
+              "size": "5"
+            },
+            {
+              "price": "0.62",
+              "size": "10.4"
+            },
+            {
+              "price": "0.6",
+              "size": "265"
+            },
+            {
+              "price": "0.57",
+              "size": "13"
+            },
+            {
+              "price": "0.56",
+              "size": "210"
+            },
+            {
+              "price": "0.55",
+              "size": "672.5"
+            },
+            {
+              "price": "0.54",
+              "size": "8369.99"
+            },
+            {
+              "price": "0.53",
+              "size": "8031"
+            },
+            {
+              "price": "0.52",
+              "size": "1861"
+            }
+          ],
+          "asset_id": "91933384475937550855480471473382712488007131691626056922845225652447263854455",
+          "bids": [
+            {
+              "price": "0.01",
+              "size": "30100.89"
+            },
+            {
+              "price": "0.02",
+              "size": "69.34"
+            },
+            {
+              "price": "0.03",
+              "size": "19016.84"
+            },
+            {
+              "price": "0.04",
+              "size": "309.34"
+            },
+            {
+              "price": "0.05",
+              "size": "2109.34"
+            },
+            {
+              "price": "0.06",
+              "size": "9.34"
+            },
+            {
+              "price": "0.07",
+              "size": "1437.91"
+            },
+            {
+              "price": "0.08",
+              "size": "14.86"
+            },
+            {
+              "price": "0.09",
+              "size": "9.34"
+            },
+            {
+              "price": "0.1",
+              "size": "9369.34"
+            },
+            {
+              "price": "0.11",
+              "size": "10254.78"
+            },
+            {
+              "price": "0.12",
+              "size": "9.34"
+            },
+            {
+              "price": "0.13",
+              "size": "9.34"
+            },
+            {
+              "price": "0.14",
+              "size": "9.34"
+            },
+            {
+              "price": "0.15",
+              "size": "3008.34"
+            },
+            {
+              "price": "0.16",
+              "size": "9.34"
+            },
+            {
+              "price": "0.17",
+              "size": "9.34"
+            },
+            {
+              "price": "0.18",
+              "size": "9.34"
+            },
+            {
+              "price": "0.19",
+              "size": "14.54"
+            },
+            {
+              "price": "0.2",
+              "size": "69.34"
+            },
+            {
+              "price": "0.21",
+              "size": "9.34"
+            },
+            {
+              "price": "0.22",
+              "size": "9.34"
+            },
+            {
+              "price": "0.23",
+              "size": "9.34"
+            },
+            {
+              "price": "0.24",
+              "size": "209.34"
+            },
+            {
+              "price": "0.25",
+              "size": "514.44"
+            },
+            {
+              "price": "0.26",
+              "size": "9.34"
+            },
+            {
+              "price": "0.27",
+              "size": "9.34"
+            },
+            {
+              "price": "0.28",
+              "size": "9.34"
+            },
+            {
+              "price": "0.29",
+              "size": "1008.34"
+            },
+            {
+              "price": "0.3",
+              "size": "3425.34"
+            },
+            {
+              "price": "0.31",
+              "size": "169.34"
+            },
+            {
+              "price": "0.32",
+              "size": "29.34"
+            },
+            {
+              "price": "0.33",
+              "size": "9.34"
+            },
+            {
+              "price": "0.34",
+              "size": "9.34"
+            },
+            {
+              "price": "0.35",
+              "size": "14.84"
+            },
+            {
+              "price": "0.43",
+              "size": "20"
+            },
+            {
+              "price": "0.44",
+              "size": "7.5"
+            },
+            {
+              "price": "0.45",
+              "size": "600"
+            },
+            {
+              "price": "0.46",
+              "size": "5"
+            },
+            {
+              "price": "0.47",
+              "size": "211"
+            },
+            {
+              "price": "0.48",
+              "size": "910"
+            },
+            {
+              "price": "0.49",
+              "size": "10426.99"
+            },
+            {
+              "price": "0.5",
+              "size": "40"
+            },
+            {
+              "price": "0.51",
+              "size": "78"
+            }
+          ],
+          "hash": "97e4e47ec24edaeffbf32302ae1184cf25d734f6",
+          "last_trade_price": "0.500",
+          "market": "0xfc212403d7ecbb857d300f20403b0e129109272203ce46fc865a8cb80d101ca0",
+          "min_order_size": "5",
+          "neg_risk": false,
+          "tick_size": "0.01",
+          "timestamp": "1788820904865"
+        },
+        "payload_sha256": "6836e8492c6302360172266bb233f2f8cc8708eecdc0b20b3156a302767e0ba3"
+      }
+    ]
+  },
+  "schema_version": "qcrl.polymarket_raw_bundle.v1"
+}

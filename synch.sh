@@ -18,6 +18,7 @@ Commands:
   push                Push committed local files to QuantConnect after confirmation.
   backtest [args...]  Run a cloud backtest without implicitly pushing local changes.
   campaign [args...]  Run QCRL campaigns, analyses, and evidence syntheses.
+  evidence [args...]  Capture, promote, or verify public execution evidence.
 
 The local Git checkout is the source of truth. Pull and push intentionally
 refuse to run while the working tree contains uncommitted changes.
@@ -172,6 +173,11 @@ run_campaign() {
     python3 "$PROJECT_DIR/qcrl_campaign.py" "$@"
 }
 
+run_evidence() {
+    require_command python3
+    python3 "$PROJECT_DIR/qcrl_execution_truth.py" "$@"
+}
+
 command_name="${1:-status}"
 
 case "$command_name" in
@@ -198,6 +204,10 @@ case "$command_name" in
     campaign)
         shift
         run_campaign "$@"
+        ;;
+    evidence)
+        shift
+        run_evidence "$@"
         ;;
     help|-h|--help)
         usage

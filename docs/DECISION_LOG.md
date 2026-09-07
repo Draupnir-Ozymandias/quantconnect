@@ -19,6 +19,7 @@ measurements authorize.
 | D-011 | Treat 2026 segment analysis as post-hoc diagnostics only. | accepted | forward diagnostic synthesis | It cannot reverse D-010 or select a regime. |
 | D-012 | Preserve the 2026Q4 prospective declaration unchanged and unexecuted until complete. | locked | prospective manifest locked 2026-09-06 | No partial run, parameter edit, or retrospective relabeling. |
 | D-013 | Build read-only Polymarket execution truth as the next engineering lane. | accepted | known-gap audit | Define timing/market contracts, fixtures, replay, and reconciliation before credentials or orders. |
+| D-014 | Do not map the current QCRL daily signal to Polymarket daily series 41. | accepted | durable public discovery and market bundle | Feed, interval-anchor, and tie semantics are not equivalent; retain the capture for mechanics only and require a new aligned research declaration before reconsideration. |
 
 ## Decision discipline
 

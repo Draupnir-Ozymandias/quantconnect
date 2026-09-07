@@ -2,6 +2,7 @@ import copy
 import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import tempfile
 import unittest
 
 from execution_truth import (
@@ -9,6 +10,7 @@ from execution_truth import (
     ContractError,
     PublicPolymarketAcquirer,
     normalize_discovery,
+    store_raw_discovery,
 )
 
 
@@ -161,6 +163,15 @@ class ExecutionTruthDiscoveryTests(unittest.TestCase):
         raw, _ = self.acquire(FakeDiscoveryTransport(event=event))
         with self.assertRaisesRegex(ContractError, "intervals disagree"):
             normalize_discovery(raw, SPEC)
+
+    def test_raw_discovery_storage_is_content_addressed(self):
+        raw, _ = self.acquire()
+        with tempfile.TemporaryDirectory() as directory:
+            first = store_raw_discovery(raw, directory)
+            second = store_raw_discovery(raw, directory)
+            self.assertEqual(first, second)
+            self.assertIn(raw["discovery_sha256"], first.name)
+            self.assertEqual(raw, json.loads(first.read_text(encoding="utf-8")))
 
 
 if __name__ == "__main__":

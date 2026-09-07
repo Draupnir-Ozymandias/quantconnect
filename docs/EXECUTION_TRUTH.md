@@ -1,8 +1,8 @@
 # QCRL Polymarket Execution Truth
 
 **As of:** 2026-09-07
-**Status:** public acquisition, explicit discovery, signal binding, immutable
-local storage, and offline normalization implemented
+**Status:** public acquisition, explicit discovery, signal binding, durable live
+evidence, and offline normalization implemented
 
 ## Purpose
 
@@ -36,8 +36,11 @@ no input.
 `execution_truth/acquisition.py` provides the only network boundary. It exposes
 fixed public GET routes, accepts injected transport and clock implementations,
 and has no credential, signing, balance, position, or order capability.
-`execution_truth/bundle.py` stores verified raw bundles under content-addressed,
-no-overwrite filenames and replays them offline.
+`execution_truth/bundle.py` stores verified raw bundles and discovery records
+under content-addressed, no-overwrite filenames, replays them offline, and
+checks that every promoted live artifact agrees with its inventory declaration.
+`qcrl_execution_truth.py` and `./synch.sh evidence` provide the operator boundary
+for capture, deliberate promotion, and complete inventory verification.
 
 `execution_truth/discovery.py` verifies a human-authored discovery specification
 against one explicitly identified Gamma series and the unique event whose
@@ -89,9 +92,9 @@ The first live bundle was captured on 2026-09-07 for Gamma market `4309046`:
 - normalized bundle SHA-256:
   `bd7b59542b8b93d94c7525b255d567ba09e5175e6a3e6b287940663c86d3a6a6`.
 
-The raw file is currently local ignored evidence under
-`.qcrl/execution_truth/raw/`. Its hash is durable, but the file is not yet a
-Git-synchronized fixture.
+The raw file has now been deliberately promoted to
+`evidence/polymarket/live/raw/` and is Git-synchronized. Its inventory retains
+its mechanics-only role and five-minute incompatibility limitation.
 
 ## Superseded timing assumption
 
@@ -121,6 +124,43 @@ bar closes, even though the entry model uses prior-bar state. A live signal
 producer must materialize that prior-state decision at the target boundary;
 the research callback itself is not evidence of timely executability.
 
+## Daily-series compatibility finding
+
+Series `41` is an active BTC Up/Down series with recurrence `daily`. A public
+capture for target `2026-09-07T22:30:00Z` selected event `976673` and market
+`4293892`, whose explicit outcome interval was
+`2026-09-07T16:00:00Z`–`2026-09-08T16:00:00Z` (noon Eastern to noon Eastern).
+The complete market and both outcome books were captured and normalized.
+
+This is a horizon match but not a signal-contract match:
+
+- resolution uses Binance BTC/USDT one-minute candle closes, while QCRL was
+  researched on Coinbase BTCUSD;
+- the Polymarket interval is explicitly noon-to-noon Eastern, while QCRL's
+  consolidator anchor has not yet been made an explicit contract; and
+- equal daily closes settle 50/50, while QCRL skips tied bars.
+
+The durable inventory therefore records
+`incompatible_with_current_qcrl_signal`. This does not reject the market as an
+execution-mechanics fixture; it rejects any claim that existing QCRL results
+can be transferred to it without a new aligned research lane.
+
+## Durable evidence workflow
+
+Public captures land in ignored local state. Promotion is an explicit second
+step, followed by whole-inventory replay:
+
+```bash
+./synch.sh evidence capture-discovery <series-id> <target-utc>
+./synch.sh evidence capture-market <market-id>
+./synch.sh evidence promote .qcrl/execution_truth/raw/<artifact>.json
+./synch.sh evidence verify
+```
+
+The tracked inventory currently declares three artifacts: the original
+five-minute bundle, the daily-series discovery record, and the daily market
+bundle. Tests replay all three on every deterministic suite run.
+
 ## Architectural invariants
 
 1. Signal time, observation time, decision time, hypothetical submission time,
@@ -135,8 +175,9 @@ the research callback itself is not evidence of timely executability.
 
 ## Next vertical slice
 
-Promote selected irreplaceable live observations into a deliberate,
-Git-synchronized fixture workflow; identify whether an exact daily BTC market
-contract exists; and build offline replay for compatible signals only. Replay
-must model observable price, depth, fees, entry delay, partial/no fill, and
-settlement before shadow execution is considered.
+Define an explicit QCRL bar-anchor/source contract and a boundary-time signal
+adapter. Do not change the existing evidence declaration to mimic series `41`.
+If a separately declared Binance noon-to-noon research lane is later
+authorized, it starts as new evidence. Offline replay must then model observable
+price, depth, fees, entry delay, partial/no fill, and settlement before shadow
+execution is considered.
