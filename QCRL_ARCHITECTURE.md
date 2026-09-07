@@ -2,14 +2,17 @@
 
 # QuantConnect Research Laboratory (QCRL)
 
-**Version:** 2.3
+**Document revision:** 2026-09-06
+
+**Implemented engine versions:** 2.2.0 baseline; 2.3.0 directional; 2.4.0 temporal
 
 **Author:** Eric Bucher
 
 **Project Status:** Active Research
 
 The consolidated current snapshot is maintained in
-`QCRL_PROJECT_STATUS.md`.
+`QCRL_PROJECT_STATUS.md`. Documentation ownership and terminology are defined
+in `docs/README.md`.
 
 ---
 
@@ -60,6 +63,10 @@ A broad plateau is preferable to a sharp spike.
 ---
 
 # Current Architecture
+
+This section describes the implemented conceptual flow. The current executable
+path, including campaign orchestration and discovery engines, is enumerated in
+`QCRL_PROJECT_STATUS.md`. Items under **Future** are proposals, not modules.
 
 ```
 Optimization Engine
@@ -382,39 +389,55 @@ This enables filtering, auditing, comparison, and reproducibility.
 
 # Development Roadmap
 
-## Completed
+This roadmap distinguishes verified repository capabilities from historical
+prototypes and proposals. A notebook visualization or design note is not, by
+itself, a production module.
 
-* Optimization Engine
+## Implemented and verified
+
+* QuantConnect-backed experiment engine
 * Entry Models
 * Filter Models
 * Stake Models
 * StatsTracker
 * Report Models
-* Results Database
 * Research Report
+* Experiment Store and ResearchTools retrieval
+* Resumable API-backed Campaign Runner
+* Versioned Stability and Directional Cohort Analysis
+* Versioned Cross-Regime Side Synthesis
+* Temporal Stability, Historical/Forward Bridge, and Forward Diagnostics
+
+---
+
+## Current engineering lane
+
+* Read-only Polymarket market and execution-truth contracts
+* Market discovery, order-book fixtures, replay, and reconciliation
+* Documentation-backed experiment and decision registry
+* Locked prospective 2026Q4 baseline (preservation only until window end)
+
+---
+
+## Historical prototypes or unverified design claims
+
 * Research Dashboard
 * Heatmaps
 * Plateau Analysis
 * Correlation Dashboard
-* Versioned Directional Cohort Analysis
-* Versioned Cross-Regime Side Synthesis
-
----
-
-## Current
-
-* Forward-degradation diagnostics and locked prospective 2026Q4 baseline
 * Audit Database
-* Experiment Registry
+
+These may exist in notebook or legacy form, but are not asserted as current
+operational modules until they have an owned interface and deterministic test.
 
 ---
 
-## Next
+## Proposed discovery work (not authorized while optimization is frozen)
 
 * Compare()
 * Cluster Analysis
 * Consensus Parameters
-* Discovery Layer
+* Additional Discovery Layer engines
 
 ---
 

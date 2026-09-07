@@ -330,8 +330,13 @@ The Q4 evidence lane and execution-infrastructure lane must remain independent.
 - `README.md` — operator workflow and campaign commands
 - `QCRL_ARCHITECTURE.md` — architecture and roadmap
 - `QCRL_SYNC.md` — chronological research and synchronization record
+- `docs/README.md` — documentation ownership and update rules
+- `docs/CAMPAIGN_REGISTRY.md` — campaign and synthesis evidence ledger
+- `docs/DECISION_LOG.md` — decisions that govern current work
+- `docs/HYPOTHESIS_REGISTRY.md` — supported, failed, closed, and locked ideas
+- `docs/SCHEMA_CONTRACTS.md` — producer/consumer compatibility contracts
+- `docs/OPERATOR_WORKFLOW.md` — exact Git, GitHub, QuantConnect, and campaign flow
 - `campaigns/` — immutable experiment declarations
 - `syntheses/` — versioned cross-campaign analysis declarations
 - `.qcrl/campaigns/` — ignored local campaign state and derived evidence
 - `.qcrl/syntheses/` — ignored reproducible synthesis outputs
-

@@ -2,13 +2,20 @@
 
 QCRL is a research platform for testing whether signal, filter, and capital-management behavior remains stable across experiments. It is not a live trading bot.
 
-The validated methodological baseline is **QCRL 2.2.0**. The active directional
-research engine is **QCRL 2.3.0**. See [QCRL_SYNC.md](QCRL_SYNC.md) for the
-current engine/discovery boundary and research roadmap.
+The validated methodological baseline is **QCRL 2.2.0**. Most directional
+campaigns pin **QCRL 2.3.0**, while temporal campaigns pin **QCRL 2.4.0**.
+These are manifest-level evidence versions, not a claim that the manual default
+is current.
 
 For a consolidated snapshot of modules, campaign coverage, findings,
 rejection rates, assumptions, guardrails, and current gaps, see
 [QCRL_PROJECT_STATUS.md](QCRL_PROJECT_STATUS.md).
+
+The [documentation map](docs/README.md) identifies the authoritative source for
+architecture, campaigns, decisions, hypotheses, schema contracts, operating
+procedure, and chronological provenance. In particular,
+[QCRL_SYNC.md](QCRL_SYNC.md) is an append-only history; its older “current”
+sections are historical snapshots.
 
 ## Source-of-truth workflow
 
@@ -19,6 +26,9 @@ local branch -> tests -> commit -> QuantConnect push/backtest -> canonical repor
 ```
 
 Do not edit the same files locally and in the QuantConnect web IDE at the same time. Commit local work before synchronizing in either direction.
+
+For the exact Git/GitHub/QuantConnect order, recovery procedure, and campaign
+lifecycle, use the [operator workflow](docs/OPERATOR_WORKFLOW.md).
 
 ## Synchronization
 
@@ -128,6 +138,13 @@ Changing ranking, display, or submission configuration is accepted as an
 analysis-only manifest revision when the deterministic case set is unchanged.
 Changing any expanded parameter set requires a new `campaign_id`; existing run
 state cannot silently migrate to different experiments.
+
+## Historical campaign examples
+
+The sections below preserve runnable commands and contemporaneous research
+context. Their result narratives are historical snapshots. Use the
+[campaign registry](docs/CAMPAIGN_REGISTRY.md) and
+[current project status](QCRL_PROJECT_STATUS.md) for current conclusions.
 
 ### Directional signal Stage 1
 
@@ -485,7 +502,7 @@ The labels are descriptive rather than recommendations. In particular,
 flat signal was neutral or negative. This artifact is the input boundary for
 the Stability Engine; it does not require another backtest or ObjectStore read.
 
-## Stability Engine
+## Historical Stability Engine notes
 
 Run stability analysis after campaign validation:
 

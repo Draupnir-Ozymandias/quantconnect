@@ -1,11 +1,34 @@
 # QCRL Sync Log
 
 **Updated:** 2026-09-06
-**Sync version:** 2026-09-06 ROC Regime Forward Validation
+**Latest checkpoint:** 2026-09-06 Documentation Architecture
 **QCRL baseline:** 2.2.0  
 **Status:** Active research
 
 ---
+
+> **Chronological provenance, not current truth.** This file is append-only and
+> preserves the terminology, schemas, plans, and conclusions that existed at
+> each checkpoint. Older sections headed “current” are historical snapshots.
+> Use [`QCRL_PROJECT_STATUS.md`](QCRL_PROJECT_STATUS.md) for the current verdict
+> and [`docs/README.md`](docs/README.md) for the documentation map.
+
+## Navigation
+
+- Integration and campaign-runner foundation: lines/sections beginning
+  `2026-08-07 integration checkpoint` through `API Boundary`
+- Architecture/discovery specification: `Workstream A`, `Methodology Boundary`,
+  `Engine-to-Discovery Data Contract`, and `Workstream B`
+- Research checkpoints: the dated blocks under `Current Handoff State`
+- Durable campaign and synthesis summary:
+  [`docs/CAMPAIGN_REGISTRY.md`](docs/CAMPAIGN_REGISTRY.md)
+- Current decisions and closed hypotheses:
+  [`docs/DECISION_LOG.md`](docs/DECISION_LOG.md) and
+  [`docs/HYPOTHESIS_REGISTRY.md`](docs/HYPOTHESIS_REGISTRY.md)
+
+Proposed Consensus, Cluster, Archetype, and Confidence engines below are design
+notes unless the current architecture/status explicitly identifies an
+implementation. They are not part of the present execution path.
 
 ## Purpose
 
@@ -1706,6 +1729,30 @@ All numerical claims were reconciled against the stored campaign and synthesis
 artifacts. Next documentation action: fork the current task into a dedicated
 documentation task only if requested, using this report as its source of truth.
 
+## 2026-09-06 documentation architecture
+
+The repository now assigns one authoritative document to each information
+class. `QCRL_PROJECT_STATUS.md` remains the sole mutable current-state report;
+this sync log remains append-only provenance. `docs/` adds a campaign and
+synthesis registry, durable decision log, hypothesis/closure registry, schema
+contract matrix, exact operator workflow, and documentation ownership rules.
+
+The audit explicitly reconciled four recurring ambiguities: engine 2.3.0 versus
+temporal manifest 2.4.0, the legacy EMA manual default versus the unfiltered
+candidate, historical report/record schemas versus current v6/v5 contracts,
+and implemented modules versus proposed discovery engines or notebook
+prototypes. Root navigation now identifies older README result narratives and
+older “current” sync sections as historical snapshots.
+
+Files created or changed: documentation only. No research algorithm, test,
+campaign parameter, synthesis declaration, collected evidence, schema, or
+locked 2026Q4 declaration changed. Validation: deterministic tests, manifest
+expansion audit, Markdown link audit, and whitespace validation.
+
+Next documentation target: keep the registries synchronized with every new
+declaration and verdict. Next engineering target remains the independent,
+read-only Polymarket execution-truth foundation.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:
@@ -1725,4 +1772,7 @@ next coding target
 
 # One-Sentence State
 
-> QCRL 2.4.0 rejected the forward ROC-state hypothesis and now requires the untouched daily signal to pass a predeclared 32-quarter persistence and friction-capacity gate before any further feature work.
+> Historical QCRL evidence supported the untouched daily signal, locked forward
+> evidence degraded it, feature optimization is on hold, and the next independent
+> lane is read-only Polymarket execution-truth infrastructure while 2026Q4 remains
+> locked.
