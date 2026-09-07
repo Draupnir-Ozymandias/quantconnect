@@ -18,8 +18,10 @@
 | Polymarket normalized bundle | `qcrl.polymarket_normalized_bundle.v1` | `execution_truth/bundle.py` | future timing/replay layers | derived, content-addressed observation |
 | Polymarket raw discovery | `qcrl.polymarket_raw_discovery.v1` | `execution_truth/acquisition.py` | discovery normalization and audit | content-addressed raw observation |
 | Polymarket discovery spec/result | `qcrl.polymarket_discovery_spec.v1` / `qcrl.polymarket_discovery_result.v1` | human declaration / `execution_truth/discovery.py` | market-contract acquisition and audit | versioned declaration / derived evidence |
-| Directional signal intent | `qcrl.directional_signal_intent.v1` | future signal adapter | market binding and replay | content-addressed decision input |
-| Polymarket binding policy/result | `qcrl.polymarket_binding_policy.v1` / `qcrl.polymarket_binding_result.v1` | human declaration / `execution_truth/binding.py` | replay and shadow-decision layers | versioned declaration / derived evidence |
+| Directional source contract/bar | `qcrl.directional_source_contract.v1` / `qcrl.directional_source_bar.v1` | human declaration / future data adapter | boundary signal materialization | versioned declaration / hashed observation |
+| Candle-streak signal spec/decision | `qcrl.candle_streak_signal_spec.v1` / `qcrl.directional_signal_decision.v1` | human declaration / `execution_truth/signal.py` | signal intent and audit | versioned declaration / derived evidence |
+| Directional signal intent | `qcrl.directional_signal_intent.v2` | `execution_truth/signal.py` | market binding and replay | content-addressed decision input |
+| Polymarket binding policy/result | `qcrl.polymarket_binding_policy.v2` / `qcrl.polymarket_binding_result.v2` | human declaration / `execution_truth/binding.py` | replay and shadow-decision layers | versioned declaration / derived evidence |
 | Polymarket live evidence inventory | `qcrl.polymarket_live_evidence_inventory.v1` | deliberate operator promotion | regression tests and audit | version controlled |
 
 The QCRL engine version and schema versions are different concerns. The clean
@@ -48,12 +50,23 @@ to identify a target interval. The discovery result requires one and only one
 market to match explicit series, event time, asset, duration, TWAP, resolution,
 outcome, and orderability fields. Slug and title text are not contract inputs.
 
-A signal intent declares identity, asset, source timeframe, direction,
+A source contract declares venue, instrument, input resolution, price
+semantics, exact duration, UTC anchor, and tie policy. The current declaration
+is Coinbase BTCUSD minute trades consolidated into 86,400-second bars anchored
+at midnight UTC. Source bars are individually hashed and must be aligned,
+contiguous, complete, and no earlier than their end time.
+
+The candle-streak adapter consumes only those completed bars. It emits a hashed
+decision at the next boundary, including an intent only when sufficient prior
+non-tied directions form the declared streak. A signal intent declares
+identity, asset, source timeframe, direction,
 availability time, target interval, and methodology version. Binding requires
 exact market-window and policy agreement, a post-observation decision within
 the declared entry window, an orderable market, and an unambiguous outcome
-token. Expected incompatibility is retained as a hashed result with rejection
-reasons. A daily signal therefore cannot silently bind to a five-minute market.
+token. Intent/binding v2 additionally requires the exact source-contract hash
+approved by policy. Expected incompatibility is retained as a hashed result
+with rejection reasons. V1 intent/binding artifacts are superseded and cannot
+be consumed.
 
 The live evidence inventory declares every promoted raw path, artifact schema
 and hash, exact capture time, evidence role, limitations, and normalized hash

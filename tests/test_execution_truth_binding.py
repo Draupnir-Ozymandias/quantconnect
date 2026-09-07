@@ -15,7 +15,7 @@ def fixture(name):
 
 def signal(**updates):
     value = {
-        "schema_version": "qcrl.directional_signal_intent.v1",
+        "schema_version": "qcrl.directional_signal_intent.v2",
         "signal_id": "signal-fixture",
         "asset": "btc",
         "source_timeframe": "5m",
@@ -24,6 +24,7 @@ def signal(**updates):
         "target_start_at_utc": "2026-05-04T23:50:00Z",
         "target_end_at_utc": "2026-05-04T23:55:00Z",
         "methodology_version": "qcrl.methodology.lookahead_free.v1",
+        "source_contract_sha256": "a" * 64,
     }
     value.update(updates)
     return value
@@ -31,12 +32,13 @@ def signal(**updates):
 
 def policy(**updates):
     value = {
-        "schema_version": "qcrl.polymarket_binding_policy.v1",
+        "schema_version": "qcrl.polymarket_binding_policy.v2",
         "asset": "btc",
         "duration_seconds": 300,
         "resolution_source": "Documented fixture price source",
         "max_entry_delay_seconds": 30,
         "entry_cutoff_seconds_before_end": 30,
+        "signal_source_contract_sha256": "a" * 64,
     }
     value.update(updates)
     return value
@@ -125,7 +127,10 @@ class ExecutionTruthBindingTests(unittest.TestCase):
         self.assertEqual(first, second)
 
     def test_signal_identity_and_methodology_are_required(self):
-        for field in ["signal_id", "asset", "source_timeframe", "methodology_version"]:
+        for field in [
+            "signal_id", "asset", "source_timeframe", "methodology_version",
+            "source_contract_sha256",
+        ]:
             with self.subTest(field=field):
                 with self.assertRaisesRegex(ContractError, f"signal.{field}"):
                     bind_signal_to_market(
@@ -139,6 +144,17 @@ class ExecutionTruthBindingTests(unittest.TestCase):
                 signal(), contract(), policy(duration_seconds=None),
                 "2026-05-04T23:50:12Z",
             )
+
+    def test_unapproved_signal_source_contract_is_rejected(self):
+        result = bind_signal_to_market(
+            signal(), contract(),
+            policy(signal_source_contract_sha256="b" * 64),
+            "2026-05-04T23:50:12Z",
+        )
+        self.assertFalse(result["eligible"])
+        self.assertIn(
+            "signal_source_contract_mismatch", result["rejection_reasons"]
+        )
 
 
 if __name__ == "__main__":

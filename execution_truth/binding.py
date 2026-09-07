@@ -10,9 +10,9 @@ from .contracts import (
 )
 
 
-SIGNAL_INTENT_SCHEMA = "qcrl.directional_signal_intent.v1"
-BINDING_POLICY_SCHEMA = "qcrl.polymarket_binding_policy.v1"
-BINDING_RESULT_SCHEMA = "qcrl.polymarket_binding_result.v1"
+SIGNAL_INTENT_SCHEMA = "qcrl.directional_signal_intent.v2"
+BINDING_POLICY_SCHEMA = "qcrl.polymarket_binding_policy.v2"
+BINDING_RESULT_SCHEMA = "qcrl.polymarket_binding_result.v2"
 
 
 def _time(value, name):
@@ -36,6 +36,13 @@ def _required_text(mapping, key, name):
     return value
 
 
+def _sha256(mapping, key, name):
+    value = _required_text(mapping, key, name)
+    if len(value) != 64 or any(char not in "0123456789abcdef" for char in value):
+        raise ContractError(f"{name}.{key} must be a lowercase SHA-256 digest")
+    return value
+
+
 def bind_signal_to_market(signal, market_contract, policy, decision_at_utc):
     """Return an auditable eligibility result; expected rejection is data."""
     if signal.get("schema_version") != SIGNAL_INTENT_SCHEMA:
@@ -50,9 +57,15 @@ def bind_signal_to_market(signal, market_contract, policy, decision_at_utc):
 
     for field in ["signal_id", "asset", "source_timeframe", "methodology_version"]:
         _required_text(signal, field, "signal")
+    signal_source_hash = _sha256(
+        signal, "source_contract_sha256", "signal"
+    )
     policy_asset = _required_text(policy, "asset", "policy")
     policy_resolution = _required_text(
         policy, "resolution_source", "policy"
+    )
+    policy_source_hash = _sha256(
+        policy, "signal_source_contract_sha256", "policy"
     )
 
     direction = str(signal.get("direction") or "").casefold()
@@ -102,6 +115,8 @@ def bind_signal_to_market(signal, market_contract, policy, decision_at_utc):
         policy_asset
     ).casefold():
         reasons.append("signal_asset_mismatch")
+    if signal_source_hash != policy_source_hash:
+        reasons.append("signal_source_contract_mismatch")
     if str(terms["resolution_source"]) != policy_resolution:
         reasons.append("resolution_source_mismatch")
     if target_start != event_start or target_end != event_end:

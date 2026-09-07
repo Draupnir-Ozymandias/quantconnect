@@ -415,8 +415,8 @@ itself, a production module.
 * Read-only Polymarket market/order-book contracts and acquisition (implemented)
 * Contract-driven series/event discovery and signal binding (implemented)
 * Durable live evidence promotion and inventory verification (implemented)
-* Explicit source/bar-anchor signal adaptation, execution replay, and
-  reconciliation
+* Explicit Coinbase/UTC source contract and boundary signal adapter (implemented)
+* Execution replay, settlement evidence, and reconciliation
 * Documentation-backed experiment and decision registry
 * Locked prospective 2026Q4 baseline (preservation only until window end)
 

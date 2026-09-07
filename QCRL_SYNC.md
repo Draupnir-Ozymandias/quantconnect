@@ -1911,6 +1911,41 @@ authorized and declared. Tests completed: 138 deterministic tests passing.
 Next coding target: an explicit QCRL source/bar-anchor contract and boundary-time
 signal adapter, followed by replay only for a genuinely compatible declaration.
 
+## 2026-09-07 source contract and boundary-time signal adapter
+
+The current research input is now a versioned execution boundary: Coinbase
+BTCUSD minute trade bars consolidated into 86,400-second bars anchored at
+midnight UTC, with open/close direction and tied bars skipped. The UTC anchor is
+documented LEAN behavior for crypto daily time-period consolidators; it is no
+longer an unresolved assumption.
+
+The pure boundary adapter validates the source contract and each aligned,
+contiguous completed bar, reproduces length-2 candle-streak reversal semantics,
+and emits an intent for the next UTC day only when the streak exists and the
+latest bar was available by the boundary. Every source bar, non-emission
+decision, and intent dependency is hashed. Intent and binding contracts advance
+to v2 so binding policy must approve the exact source-contract hash. V1 is
+superseded rather than silently reinterpreted.
+
+The adapter was tested against the durable daily market `4293892`: the QCRL
+intent targets midnight UTC to midnight UTC and is rejected against the
+market's noon-Eastern interval. This machine-enforces D-014 independently of
+titles or slugs.
+
+Files created or changed: source and signal modules/specifications, binding v2,
+deterministic signal/binding tests, live evidence finding, schema/status/
+architecture/decision/execution documentation, and this sync record. Interfaces
+added: `normalize_source_contract()`, `normalize_source_bar()`, and
+`materialize_boundary_signal()`. Record fields consumed: none. Assumptions
+introduced: official LEAN crypto daily consolidation ends at midnight UTC;
+signals target the next equal-duration interval. Limitations found: no live
+data process invokes the adapter, and no compatible Polymarket daily contract
+has been observed. New requests for Workstream A: none. Tests completed: 148
+deterministic tests passing.
+
+Next coding target: deterministic execution replay against durable books,
+starting with taker price, depth, fees, partial fill, and no-fill truth.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

@@ -1,0 +1,9 @@
+{
+  "entry_model": "candle_streak",
+  "filter_model": "none",
+  "methodology_version": "qcrl.methodology.lookahead_free.v1",
+  "schema_version": "qcrl.candle_streak_signal_spec.v1",
+  "streak_length": 2,
+  "streak_mode": "reverse",
+  "target_duration_seconds": 86400
+}

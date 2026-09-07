@@ -36,8 +36,8 @@ evidence.
 | Normalized record schema | `qcrl.experiment_record.v5` |
 | Campaign manifest/state | `qcrl.campaign.v1` / `qcrl.campaign_state.v1` |
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
-| Execution-truth schemas | market v2; book, bundles, discovery, signal intent, binding, and live inventory v1 |
-| Test suite | 138 deterministic tests passing |
+| Execution-truth schemas | market, signal intent, and binding v2; source, source bar, signal decision, book, bundles, discovery, and live inventory v1 |
+| Test suite | 148 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
@@ -292,9 +292,9 @@ weak explanations and dangerous sizing have been rejected before deployment.
 2. No bid/ask spread, entry price, market depth, partial fill, no-fill, dynamic
    fee, or latency model exists.
 3. The signal/market binding contract now separates availability, observation,
-   decision, target, and cutoff times, but the research callback still evaluates
-   a completed bar while notionally assigning the forecast to that bar's opening
-   interval. A live signal adapter must emit prior-state intent at the boundary.
+   decision, target, and cutoff times. A pure boundary adapter now materializes
+   the next UTC-day intent from prior completed bars, but no live data process
+   invokes it yet.
 4. QCRL uses its own synthetic bankroll and submits no LEAN portfolio orders;
    standard LEAN portfolio statistics are not strategy objectives here.
 5. Polymarket is not implemented as a LEAN brokerage or execution adapter.
@@ -318,19 +318,20 @@ weak explanations and dangerous sizing have been rejected before deployment.
 
 Continue the read-only Polymarket execution-truth foundation while keeping
 signal research frozen. Public acquisition, explicit contract-driven discovery,
-immutable local raw storage, offline normalization, and signal binding are
-implemented. Live promotion and inventory verification are also implemented.
+immutable local raw storage, offline normalization, source contracts, boundary
+signal materialization, and signal binding are implemented. Live promotion and
+inventory verification are also implemented.
 Daily series `41` exists but is incompatible with the current signal because
 its Binance BTC/USDT feed, noon-Eastern anchor, and tie settlement differ.
 Remaining work is:
 
-1. Define the QCRL data-source and daily-bar-anchor contract explicitly.
-2. Build a boundary-time signal adapter from prior completed bars.
-3. Decide whether to authorize a separate Binance noon-to-noon research lane;
+1. Build deterministic order-book replay for taker entry, fees, depth, partial
+   fill, and no-fill outcomes.
+2. Decide whether to authorize a separate Binance noon-to-noon research lane;
    do not retrofit the historical Coinbase evidence.
-4. Build a replay-only execution model for maker/taker prices, fees, partial
-   fills, no fills, and settlement.
-5. Add shadow decisions and reconciliation before any authenticated order path.
+3. Add settlement evidence and reconciliation.
+4. Connect the boundary adapter to a read-only live data process.
+5. Add shadow decisions before any authenticated order path.
 
 The Q4 evidence lane and execution-infrastructure lane must remain independent.
 

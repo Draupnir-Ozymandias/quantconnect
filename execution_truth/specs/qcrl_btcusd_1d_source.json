@@ -1,0 +1,14 @@
+{
+  "anchor_authority": "https://www.quantconnect.com/docs/v2/writing-algorithms/consolidating-data/consolidator-types/time-period-consolidators",
+  "asset": "btc",
+  "bar_anchor_offset_seconds": 0,
+  "bar_anchor_timezone": "UTC",
+  "bar_duration_seconds": 86400,
+  "bar_timeframe": "1d",
+  "input_resolution": "minute",
+  "instrument": "BTCUSD",
+  "price_semantics": "Coinbase trade-bar open versus close",
+  "schema_version": "qcrl.directional_source_contract.v1",
+  "tie_policy": "skip",
+  "venue": "coinbase"
+}

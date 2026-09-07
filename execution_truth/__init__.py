@@ -17,6 +17,11 @@ from .bundle import (
 )
 from .discovery import normalize_discovery, verify_raw_discovery
 from .binding import bind_signal_to_market
+from .signal import (
+    materialize_boundary_signal,
+    normalize_source_bar,
+    normalize_source_contract,
+)
 
 __all__ = [
     "ContractError",
@@ -29,6 +34,9 @@ __all__ = [
     "normalize_discovery",
     "verify_raw_discovery",
     "bind_signal_to_market",
+    "materialize_boundary_signal",
+    "normalize_source_bar",
+    "normalize_source_contract",
     "promote_raw_evidence",
     "store_raw_bundle",
     "store_raw_discovery",

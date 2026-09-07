@@ -54,6 +54,13 @@ evidence (contract error) from an expected ineligibility decision (structured
 rejection reasons), and maps Up or Down only through an explicit outcome label
 and token ID.
 
+`execution_truth/signal.py` makes the research source and signal boundary
+explicit. The current source contract is Coinbase BTCUSD minute trade bars
+consolidated into 86,400-second bars anchored at midnight UTC. This anchor is
+the documented LEAN behavior for crypto daily time-period consolidators. The
+adapter uses only completed, contiguous, source-bound bars and emits the
+length-2 reversal intent for the next UTC interval. Late input fails closed.
+
 The normalizers fail closed when:
 
 - Gamma and CLOB disagree about token IDs or outcome labels;
@@ -137,7 +144,7 @@ This is a horizon match but not a signal-contract match:
 - resolution uses Binance BTC/USDT one-minute candle closes, while QCRL was
   researched on Coinbase BTCUSD;
 - the Polymarket interval is explicitly noon-to-noon Eastern, while QCRL's
-  consolidator anchor has not yet been made an explicit contract; and
+  crypto daily consolidator is midnight-to-midnight UTC; and
 - equal daily closes settle 50/50, while QCRL skips tied bars.
 
 The durable inventory therefore records
@@ -175,9 +182,8 @@ bundle. Tests replay all three on every deterministic suite run.
 
 ## Next vertical slice
 
-Define an explicit QCRL bar-anchor/source contract and a boundary-time signal
-adapter. Do not change the existing evidence declaration to mimic series `41`.
-If a separately declared Binance noon-to-noon research lane is later
-authorized, it starts as new evidence. Offline replay must then model observable
-price, depth, fees, entry delay, partial/no fill, and settlement before shadow
-execution is considered.
+Build a deterministic replay contract around the durable order-book snapshots.
+Do not change the existing evidence declaration to mimic series `41`. If a
+separately declared Binance noon-to-noon research lane is later authorized, it
+starts as new evidence. Replay must model observable price, depth, fees, entry
+delay, partial/no fill, and settlement before shadow execution is considered.

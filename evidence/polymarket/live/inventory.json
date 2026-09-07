@@ -7,7 +7,7 @@
       "limitations": [
         "single intramarket order-book snapshot",
         "cannot prove fill or settlement",
-        "incompatible with current QCRL signal source and unresolved bar anchor"
+        "incompatible with the Coinbase source and midnight-UTC QCRL bar anchor"
       ],
       "normalized_sha256": "2d5f3b97685fe124191592c1175d15a71140909c4f34ed13231a872e25b58460",
       "path": "raw/market-4293892-a69f00a48676e9442a797f72332330f74f8514ea412559f8c967dbe9afac27b1.json",
@@ -62,7 +62,7 @@
       "finding_id": "btc-daily-series-41-v1",
       "reasons": [
         "resolution_feed_mismatch: Binance BTC/USDT versus Coinbase BTCUSD",
-        "interval_anchor_unproven: noon Eastern versus implicit LEAN consolidation boundary",
+        "interval_anchor_mismatch: noon Eastern versus midnight UTC",
         "tie_semantics_mismatch: 50/50 settlement versus skipped tied bars"
       ]
     }
