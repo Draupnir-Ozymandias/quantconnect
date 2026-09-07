@@ -1690,6 +1690,22 @@ Python compilation, and whitespace validation.
 Next coding target: none. Preserve the locked 2026Q4 prospective baseline
 without partial execution or parameter changes until after December 31, 2026.
 
+## 2026-09-06 canonical project status report
+
+`QCRL_PROJECT_STATUS.md` now provides the canonical consolidated snapshot of
+the repository: versions, modules, execution path, 160 collected campaign
+cases, research progression and rejection rates, filter and regime findings,
+historical/forward evidence, assumptions, known gaps, guardrails, and the next
+execution-infrastructure phase. It explicitly records the 2.3.0 default versus
+2.4.0 temporal-manifest mismatch and the legacy EMA manual default so neither
+can be mistaken for the current unfiltered research candidate.
+
+Files changed: the new status report plus navigation links in `README.md` and
+`QCRL_ARCHITECTURE.md`. No source code, manifests, evidence, or tests changed.
+All numerical claims were reconciled against the stored campaign and synthesis
+artifacts. Next documentation action: fork the current task into a dedicated
+documentation task only if requested, using this report as its source of truth.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

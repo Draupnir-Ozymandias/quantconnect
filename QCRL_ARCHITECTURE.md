@@ -8,6 +8,9 @@
 
 **Project Status:** Active Research
 
+The consolidated current snapshot is maintained in
+`QCRL_PROJECT_STATUS.md`.
+
 ---
 
 # Vision

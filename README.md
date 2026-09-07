@@ -6,6 +6,10 @@ The validated methodological baseline is **QCRL 2.2.0**. The active directional
 research engine is **QCRL 2.3.0**. See [QCRL_SYNC.md](QCRL_SYNC.md) for the
 current engine/discovery boundary and research roadmap.
 
+For a consolidated snapshot of modules, campaign coverage, findings,
+rejection rates, assumptions, guardrails, and current gaps, see
+[QCRL_PROJECT_STATUS.md](QCRL_PROJECT_STATUS.md).
+
 ## Source-of-truth workflow
 
 The local Git checkout is the source of truth. QuantConnect Cloud is the remote compilation, data, backtesting, optimization, and ObjectStore environment.
