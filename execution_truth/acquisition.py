@@ -11,6 +11,7 @@ from .contracts import normalize_market_contract, payload_hash
 
 RAW_BUNDLE_SCHEMA = "qcrl.polymarket_raw_bundle.v1"
 RAW_DISCOVERY_SCHEMA = "qcrl.polymarket_raw_discovery.v1"
+RAW_SLUG_RESOLUTION_SCHEMA = "qcrl.polymarket_raw_slug_resolution.v1"
 GAMMA_BASE = "https://gamma-api.polymarket.com"
 CLOB_BASE = "https://clob.polymarket.com"
 
@@ -104,6 +105,46 @@ class PublicPolymarketAcquirer:
         }
         bundle["bundle_sha256"] = payload_hash(bundle)
         return bundle
+
+    def resolve_market_slug(self, slug, reference_kind="event"):
+        """Resolve one exact event or market slug to one numeric market id."""
+        slug = str(slug).strip()
+        if (not slug or len(slug) > 120
+                or any(char not in "abcdefghijklmnopqrstuvwxyz0123456789-"
+                       for char in slug)):
+            raise AcquisitionError("slug must contain only lowercase letters, digits, and hyphens")
+        if reference_kind not in {"event", "market"}:
+            raise AcquisitionError("reference_kind must be event or market")
+
+        acquired_at = utc_text(self.clock())
+        endpoint = f"{GAMMA_BASE}/{reference_kind}s/slug/{slug}"
+        observation = self._observe(endpoint)
+        payload = observation["payload"]
+        if str(payload.get("slug") or "") != slug:
+            raise AcquisitionError(f"Gamma returned a different {reference_kind} slug")
+        if reference_kind == "market":
+            candidates = [payload]
+        else:
+            candidates = payload.get("markets")
+            if not isinstance(candidates, list):
+                raise AcquisitionError("Gamma event has no markets array")
+        if len(candidates) != 1 or not isinstance(candidates[0], dict):
+            raise AcquisitionError(
+                f"expected one market for {reference_kind} slug, found {len(candidates)}"
+            )
+        market_id = str(candidates[0].get("id") or "").strip()
+        if not market_id.isdigit():
+            raise AcquisitionError("resolved market id must be numeric")
+        resolution = {
+            "schema_version": RAW_SLUG_RESOLUTION_SCHEMA,
+            "acquired_at_utc": acquired_at,
+            "reference_kind": reference_kind,
+            "slug_requested": slug,
+            "resolved_market_id": market_id,
+            "observation": observation,
+        }
+        resolution["resolution_sha256"] = payload_hash(resolution)
+        return resolution
 
     def acquire_series_event(self, series_id, target_at_utc):
         """Acquire the unique series event whose explicit interval contains T."""

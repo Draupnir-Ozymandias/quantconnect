@@ -10,7 +10,7 @@ from .contracts import (
     normalize_order_book,
     payload_hash,
 )
-from .discovery import verify_raw_discovery
+from .discovery import verify_raw_discovery, verify_raw_slug_resolution
 
 
 NORMALIZED_BUNDLE_SCHEMA = "qcrl.polymarket_normalized_bundle.v2"
@@ -128,6 +128,17 @@ def store_raw_book_sequence(raw_sequence, directory):
     )
 
 
+def store_raw_slug_resolution(raw_resolution, directory):
+    """Store one immutable exact-slug lookup."""
+    supplied_hash = verify_raw_slug_resolution(raw_resolution)
+    slug = raw_resolution["slug_requested"]
+    kind = raw_resolution["reference_kind"]
+    return _store_json(
+        raw_resolution,
+        Path(directory) / f"{kind}-slug-{slug}-{supplied_hash}.json",
+    )
+
+
 def promote_raw_evidence(source, directory):
     """Verify and copy one raw artifact into the durable evidence directory."""
     source = Path(source)
@@ -143,6 +154,8 @@ def promote_raw_evidence(source, directory):
         return store_raw_discovery(artifact, directory)
     if schema == "qcrl.polymarket_raw_book_sequence.v1":
         return store_raw_book_sequence(artifact, directory)
+    if schema == "qcrl.polymarket_raw_slug_resolution.v1":
+        return store_raw_slug_resolution(artifact, directory)
     raise ContractError("unsupported raw evidence schema")
 
 
@@ -210,6 +223,8 @@ def verify_live_evidence_inventory(directory):
             artifact_hash = artifact.get("sequence_sha256")
             if normalized["sequence_sha256"] != entry.get("normalized_sha256"):
                 raise ContractError(f"inventory normalized hash mismatch: {relative}")
+        elif schema == "qcrl.polymarket_raw_slug_resolution.v1":
+            artifact_hash = verify_raw_slug_resolution(artifact)
         else:
             raise ContractError(f"unsupported inventory artifact: {relative}")
         if artifact_hash != entry.get("artifact_sha256"):

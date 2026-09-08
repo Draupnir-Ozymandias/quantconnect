@@ -83,6 +83,8 @@ No credentials are used for public Polymarket discovery or market/book capture:
 ./synch.sh evidence capture-discovery <series-id> <target-utc>
 ./synch.sh evidence capture-market <market-id>
 ./synch.sh evidence capture-sequence <market-id> --samples 5 --interval-seconds 5
+./synch.sh evidence capture-sequence-slug <event-slug> --samples 5 --interval-seconds 5
+./synch.sh evidence resolve-slug <event-slug>
 ./synch.sh evidence inspect-sequence .qcrl/execution_truth/raw/<sequence>.json
 ./synch.sh evidence promote .qcrl/execution_truth/raw/<artifact>.json
 ./synch.sh evidence verify
@@ -101,6 +103,12 @@ between complete samples, not exact wall-clock cadence. Allowed values are
 2–120 samples, 1–60 seconds, and at most one hour of scheduled sleeps. A failed
 response aborts without persisting a partial artifact. Inspect the local result
 before considering deliberate promotion. See [BOOK_SEQUENCE.md](BOOK_SEQUENCE.md).
+
+The slug visible in a normal `/event/<slug>` URL is treated as an event slug by
+default. Resolution uses the official Gamma event-by-slug route and requires
+exactly one contained market. It never guesses within a multi-market event. Use
+`--kind market` only for an exact market slug. Both resolution forms store the
+complete public response and hash before printing the numeric ID.
 
 To exercise offline taker mechanics, run:
 

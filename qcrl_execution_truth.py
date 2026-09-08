@@ -13,6 +13,7 @@ from execution_truth import (
     store_raw_bundle,
     store_raw_book_sequence,
     store_raw_discovery,
+    store_raw_slug_resolution,
     verify_live_evidence_inventory,
 )
 
@@ -42,6 +43,28 @@ def capture_market(args):
 def capture_sequence(args):
     artifact = PublicPolymarketAcquirer().acquire_book_sequence(
         args.market_id, args.samples, args.interval_seconds
+    )
+    path = store_raw_book_sequence(artifact, LOCAL_RAW_DIR)
+    normalized = normalize_book_sequence(artifact)
+    print(path)
+    print(f"normalized_sha256={normalized['sequence_sha256']}")
+
+
+def resolve_slug(args):
+    artifact = PublicPolymarketAcquirer().resolve_market_slug(args.slug, args.kind)
+    path = store_raw_slug_resolution(artifact, LOCAL_RAW_DIR)
+    print(path)
+    print(f"market_id={artifact['resolved_market_id']}")
+
+
+def capture_sequence_slug(args):
+    acquirer = PublicPolymarketAcquirer()
+    resolution = acquirer.resolve_market_slug(args.slug, args.kind)
+    resolution_path = store_raw_slug_resolution(resolution, LOCAL_RAW_DIR)
+    print(resolution_path)
+    print(f"market_id={resolution['resolved_market_id']}")
+    artifact = acquirer.acquire_book_sequence(
+        resolution["resolved_market_id"], args.samples, args.interval_seconds
     )
     path = store_raw_book_sequence(artifact, LOCAL_RAW_DIR)
     normalized = normalize_book_sequence(artifact)
@@ -95,6 +118,18 @@ def build_parser():
     sequence.add_argument("--samples", type=int, default=5)
     sequence.add_argument("--interval-seconds", type=int, default=5)
     sequence.set_defaults(handler=capture_sequence)
+
+    slug = commands.add_parser("resolve-slug")
+    slug.add_argument("slug")
+    slug.add_argument("--kind", choices=("event", "market"), default="event")
+    slug.set_defaults(handler=resolve_slug)
+
+    slug_sequence = commands.add_parser("capture-sequence-slug")
+    slug_sequence.add_argument("slug")
+    slug_sequence.add_argument("--kind", choices=("event", "market"), default="event")
+    slug_sequence.add_argument("--samples", type=int, default=5)
+    slug_sequence.add_argument("--interval-seconds", type=int, default=5)
+    slug_sequence.set_defaults(handler=capture_sequence_slug)
 
     inspect = commands.add_parser("inspect-sequence")
     inspect.add_argument("source")

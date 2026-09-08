@@ -197,7 +197,9 @@ Unknown execution metadata is preserved explicitly in market contract v3; the
 API reference supplies no omitted-field default. A bounded read-only recorder
 now captures complete, independently timed market/book bundles and derives a
 hashed sequence summary without inferring missing intervals. See
-[BOOK_SEQUENCE.md](BOOK_SEQUENCE.md). Next, add sequence-based latency
+[BOOK_SEQUENCE.md](BOOK_SEQUENCE.md). Exact event/market slug resolution is
+also public, hashed, and fails on ambiguous multi-market events. Next, add
+sequence-based latency
 sensitivity that selects only observed books at or after hypothetical arrival
 and labels polling uncertainty. Settlement and
 signal-to-execution integration remain subsequent work. Any Binance

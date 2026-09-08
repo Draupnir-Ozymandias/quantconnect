@@ -2073,6 +2073,42 @@ Next coding target: sequence-based latency sensitivity using only an observed
 book at or after hypothetical arrival, with polling uncertainty explicit and
 exchange delay remaining unknown unless supported by contemporaneous evidence.
 
+## 2026-09-08 — Auditable slug-to-market resolution
+
+Added public slug resolution so sequence capture no longer requires a manually
+copied numeric market ID. The official Gamma API distinguishes event-slug and
+market-slug endpoints. Because a normal Polymarket URL is `/event/<slug>`, the
+operator default is event. Event resolution proceeds only when the response
+contains exactly one market; it rejects a multi-market event instead of making
+a semantic choice. `--kind market` selects the distinct direct market route.
+
+Raw schema `qcrl.polymarket_raw_slug_resolution.v1` preserves the exact slug,
+reference kind, endpoint response, observation time, payload hash, resolved
+numeric market ID, and whole-artifact hash. Verification checks endpoint,
+parameters, response slug, candidate cardinality, numeric identity, chronology,
+and hashes. Storage, explicit promotion, and live inventory verification support
+the artifact. No slug lookup is treated as QCRL source/window compatibility.
+
+The CLI adds `evidence resolve-slug` and `evidence capture-sequence-slug`. The
+latter stores a complete resolution artifact, prints the ID, and then begins the
+existing bounded sequence. If sequence acquisition later fails, the complete
+resolution may remain locally; no partial sequence is stored.
+
+Files created: `tests/test_slug_resolution.py`. Files changed: acquisition,
+discovery verification, bundle storage/promotion/inventory support, package
+exports, evidence CLI, book-sequence/schema/operator/execution documentation,
+architecture/status, and this record. Interfaces added:
+`PublicPolymarketAcquirer.resolve_market_slug()`,
+`verify_raw_slug_resolution()`, `store_raw_slug_resolution()`, `resolve-slug`,
+and `capture-sequence-slug`. Record fields consumed: none. Assumptions: the
+operator explicitly distinguishes event versus market slug; `/event/` is the
+CLI default. Limitations: single-market cardinality does not prove strategy
+compatibility or execution. New requests for Workstream A: none. Tests completed:
+192 deterministic tests. No credentials, orders, or live evidence promotion.
+
+Next coding target remains sequence-based latency sensitivity after a small
+public integration capture from a currently open single-market event.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

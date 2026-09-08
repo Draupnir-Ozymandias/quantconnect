@@ -36,9 +36,9 @@ evidence.
 | Normalized record schema | `qcrl.experiment_record.v5` |
 | Campaign manifest/state | `qcrl.campaign.v1` / `qcrl.campaign_state.v1` |
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
-| Execution-truth schemas | market v3; normalized bundle, signal intent, binding, and replay result v2; source, source bar, signal decision, book, raw bundle, raw/normalized book sequence, discovery, and live inventory v1 |
+| Execution-truth schemas | market v3; normalized bundle, signal intent, binding, and replay result v2; source, source bar, signal decision, book, raw bundle, raw/normalized book sequence, raw slug resolution, discovery, and live inventory v1 |
 | Snapshot taker replay | result v2; request / policy / example v1; mechanics-only |
-| Test suite | 184 deterministic tests passing |
+| Test suite | 192 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
@@ -303,6 +303,7 @@ weak explanations and dangerous sizing have been rejected before deployment.
 4. Bounded public book-sequence capture now records 2–120 complete market
    bundles, with independently timed metadata and both books. It remains a
    polling record—not continuous liquidity, delay, fill, or settlement evidence.
+   Exact event/market slug resolution is hashed; ambiguous events are rejected.
 5. QCRL uses its own synthetic bankroll and submits no LEAN portfolio orders;
    standard LEAN portfolio statistics are not strategy objectives here.
 6. Polymarket is not implemented as a LEAN brokerage or execution adapter.

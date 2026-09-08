@@ -418,6 +418,7 @@ itself, a production module.
 * Explicit Coinbase/UTC source contract and boundary signal adapter (implemented)
 * Snapshot BUY/FAK/FOK mechanics with depth, fees, budgets, and timestamp checks (implemented)
 * Bounded full-bundle book-sequence capture and offline summary (implemented)
+* Exact public event/market slug resolution with ambiguity rejection (implemented)
 * Sequence-based latency sensitivity, settlement evidence, and reconciliation
 * Documentation-backed experiment and decision registry
 * Locked prospective 2026Q4 baseline (preservation only until window end)

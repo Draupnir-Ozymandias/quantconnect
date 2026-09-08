@@ -17,6 +17,7 @@
 | Polymarket raw bundle | `qcrl.polymarket_raw_bundle.v1` | `execution_truth/acquisition.py` | offline normalization and audit | content-addressed raw observation |
 | Polymarket normalized bundle | `qcrl.polymarket_normalized_bundle.v2` | `execution_truth/bundle.py` | timing/replay layers | derived, content-addressed observation |
 | Polymarket raw/normalized book sequence | `qcrl.polymarket_raw_book_sequence.v1` / `qcrl.polymarket_book_sequence.v1` | `execution_truth/book_sequence.py` | temporal sensitivity and audit | ignored raw capture / derived content-addressed summary |
+| Polymarket raw slug resolution | `qcrl.polymarket_raw_slug_resolution.v1` | `execution_truth/acquisition.py` | operator market selection and audit | ignored or deliberately promoted raw observation |
 | Polymarket raw discovery | `qcrl.polymarket_raw_discovery.v1` | `execution_truth/acquisition.py` | discovery normalization and audit | content-addressed raw observation |
 | Polymarket discovery spec/result | `qcrl.polymarket_discovery_spec.v1` / `qcrl.polymarket_discovery_result.v1` | human declaration / `execution_truth/discovery.py` | market-contract acquisition and audit | versioned declaration / derived evidence |
 | Directional source contract/bar | `qcrl.directional_source_contract.v1` / `qcrl.directional_source_bar.v1` | human declaration / future data adapter | boundary signal materialization | versioned declaration / hashed observation |
@@ -95,6 +96,13 @@ summary requires stable market/outcome identity and strictly increasing sample
 acquisition times, while allowing state, constraints, and books to change.
 Bounds are 2–120 samples, integer 1–60 second sleeps, and no more than one hour
 of scheduled pauses. See [BOOK_SEQUENCE.md](BOOK_SEQUENCE.md).
+
+Slug resolution is an exact, hashed lookup rather than semantic discovery.
+Event and market slugs use their distinct official Gamma endpoints. An event
+must contain exactly one market; multi-market selection is rejected. The
+artifact preserves the requested slug, reference kind, endpoint response,
+observation time, payload hash, and resolved numeric market ID. It does not
+assert source/timeframe compatibility or strategy eligibility.
 
 ## Research report contract
 

@@ -15,6 +15,32 @@ The command is:
   --interval-seconds 5
 ```
 
+If the only identifier available is the slug from a normal
+`polymarket.com/event/<slug>` URL, use the atomic convenience command:
+
+```bash
+./synch.sh evidence capture-sequence-slug <slug> \
+  --samples 5 \
+  --interval-seconds 5
+```
+
+It first stores a hashed lookup from the official public Gamma event-slug
+endpoint, prints the resolved numeric market ID, and then performs the bounded
+sequence. Event resolution requires exactly one market and never chooses among
+a multi-market event. If you instead possess the exact market slug, add
+`--kind market`. The two lookups use distinct documented endpoints.
+
+To resolve without starting a sequence:
+
+```bash
+./synch.sh evidence resolve-slug <slug>
+./synch.sh evidence resolve-slug <market-slug> --kind market
+```
+
+Slug-resolution artifacts are ignored local evidence until explicitly
+promoted. A resolution can remain stored if a later sequence request fails;
+that is a complete lookup artifact, not a partial sequence.
+
 It stores one ignored, content-addressed raw artifact under
 `.qcrl/execution_truth/raw/`. Five samples make twenty public GET requests. The
 interval is an integer pause between complete samples, so actual observation
@@ -31,6 +57,11 @@ capture start/completion, every full raw bundle, and a hash over the entire
 sequence. Repeated identical payloads remain separate timed observations. Each
 sample retains four endpoint/parameter identities, response timestamps, source
 payload hashes, and its raw bundle hash.
+
+Raw schema `qcrl.polymarket_raw_slug_resolution.v1` records whether the input
+was an event or market slug, the exact endpoint observation, resolved numeric
+market ID, and a whole-artifact hash. Slugs are restricted to lowercase ASCII
+letters, digits, and hyphens and must match the returned object exactly.
 
 ## Offline inspection
 

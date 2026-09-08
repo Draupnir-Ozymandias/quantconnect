@@ -3,12 +3,52 @@
 import json
 from datetime import datetime
 
-from .acquisition import RAW_DISCOVERY_SCHEMA
+from .acquisition import RAW_DISCOVERY_SCHEMA, RAW_SLUG_RESOLUTION_SCHEMA, GAMMA_BASE
 from .contracts import ContractError, payload_hash
 
 
 DISCOVERY_SPEC_SCHEMA = "qcrl.polymarket_discovery_spec.v1"
 DISCOVERY_RESULT_SCHEMA = "qcrl.polymarket_discovery_result.v1"
+
+
+def verify_raw_slug_resolution(raw_resolution):
+    """Verify one exact slug lookup and its unambiguous market selection."""
+    if not isinstance(raw_resolution, dict):
+        raise ContractError("raw slug resolution must be an object")
+    if raw_resolution.get("schema_version") != RAW_SLUG_RESOLUTION_SCHEMA:
+        raise ContractError("unsupported raw slug resolution schema")
+    supplied = raw_resolution.get("resolution_sha256")
+    unhashed = dict(raw_resolution)
+    unhashed.pop("resolution_sha256", None)
+    if supplied != payload_hash(unhashed):
+        raise ContractError("raw slug resolution hash mismatch")
+    kind = raw_resolution.get("reference_kind")
+    if kind not in {"event", "market"}:
+        raise ContractError("slug reference kind must be event or market")
+    slug = _required_text(raw_resolution, "slug_requested", "raw_resolution")
+    observation = raw_resolution.get("observation")
+    payload = _payload(observation, "slug")
+    if observation.get("endpoint") != f"{GAMMA_BASE}/{kind}s/slug/{slug}":
+        raise ContractError("slug resolution endpoint disagrees with declaration")
+    if observation.get("params") != {}:
+        raise ContractError("slug resolution must not contain query parameters")
+    if str(payload.get("slug") or "") != slug:
+        raise ContractError("slug response disagrees with requested slug")
+    expected = [payload] if kind == "market" else payload.get("markets")
+    if not isinstance(expected, list):
+        raise ContractError("event slug response has no markets array")
+    if len(expected) != 1 or not isinstance(expected[0], dict):
+        raise ContractError(f"slug resolution has {len(expected)} candidate markets")
+    market_id = str(expected[0].get("id") or "").strip()
+    if not market_id.isdigit():
+        raise ContractError("slug resolution market id must be numeric")
+    if raw_resolution.get("resolved_market_id") != market_id:
+        raise ContractError("resolved market id disagrees with slug response")
+    acquired = _time(raw_resolution.get("acquired_at_utc"), "acquired_at_utc")
+    observed = _time(observation.get("observed_at_utc"), "slug.observed_at_utc")
+    if observed < acquired:
+        raise ContractError("slug observation precedes acquisition")
+    return supplied
 
 
 def _array(value, name):

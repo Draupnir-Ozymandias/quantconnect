@@ -14,9 +14,14 @@ from .bundle import (
     store_raw_bundle,
     store_raw_book_sequence,
     store_raw_discovery,
+    store_raw_slug_resolution,
     verify_live_evidence_inventory,
 )
-from .discovery import normalize_discovery, verify_raw_discovery
+from .discovery import (
+    normalize_discovery,
+    verify_raw_discovery,
+    verify_raw_slug_resolution,
+)
 from .book_sequence import normalize_book_sequence
 from .binding import bind_signal_to_market
 from .taker_replay import replay_taker_buy
@@ -37,6 +42,7 @@ __all__ = [
     "normalize_book_sequence",
     "normalize_discovery",
     "verify_raw_discovery",
+    "verify_raw_slug_resolution",
     "bind_signal_to_market",
     "replay_taker_buy",
     "materialize_boundary_signal",
@@ -46,6 +52,7 @@ __all__ = [
     "store_raw_bundle",
     "store_raw_book_sequence",
     "store_raw_discovery",
+    "store_raw_slug_resolution",
     "verify_live_evidence_inventory",
     "PublicPolymarketAcquirer",
 ]
