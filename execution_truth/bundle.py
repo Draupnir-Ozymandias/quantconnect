@@ -115,6 +115,19 @@ def store_raw_discovery(raw_discovery, directory):
     )
 
 
+def store_raw_book_sequence(raw_sequence, directory):
+    """Store an immutable verified sequence under a content-addressed filename."""
+    from .book_sequence import normalize_book_sequence
+
+    normalize_book_sequence(raw_sequence)
+    market_id = str(raw_sequence.get("market_id_requested") or "").strip()
+    supplied_hash = raw_sequence["sequence_sha256"]
+    return _store_json(
+        raw_sequence,
+        Path(directory) / f"sequence-market-{market_id}-{supplied_hash}.json",
+    )
+
+
 def promote_raw_evidence(source, directory):
     """Verify and copy one raw artifact into the durable evidence directory."""
     source = Path(source)
@@ -128,6 +141,8 @@ def promote_raw_evidence(source, directory):
         return store_raw_bundle(artifact, directory)
     if schema == "qcrl.polymarket_raw_discovery.v1":
         return store_raw_discovery(artifact, directory)
+    if schema == "qcrl.polymarket_raw_book_sequence.v1":
+        return store_raw_book_sequence(artifact, directory)
     raise ContractError("unsupported raw evidence schema")
 
 
@@ -188,11 +203,19 @@ def verify_live_evidence_inventory(directory):
                 raise ContractError(f"inventory normalized hash mismatch: {relative}")
         elif schema == "qcrl.polymarket_raw_discovery.v1":
             artifact_hash = verify_raw_discovery(artifact)
+        elif schema == "qcrl.polymarket_raw_book_sequence.v1":
+            from .book_sequence import normalize_book_sequence
+
+            normalized = normalize_book_sequence(artifact)
+            artifact_hash = artifact.get("sequence_sha256")
+            if normalized["sequence_sha256"] != entry.get("normalized_sha256"):
+                raise ContractError(f"inventory normalized hash mismatch: {relative}")
         else:
             raise ContractError(f"unsupported inventory artifact: {relative}")
         if artifact_hash != entry.get("artifact_sha256"):
             raise ContractError(f"inventory artifact hash mismatch: {relative}")
-        if entry.get("captured_at_utc") != artifact.get("acquired_at_utc"):
+        captured_at = artifact.get("acquired_at_utc", artifact.get("capture_started_at_utc"))
+        if entry.get("captured_at_utc") != captured_at:
             raise ContractError(f"inventory capture time mismatch: {relative}")
         if not str(entry.get("evidence_role") or "").strip():
             raise ContractError(f"inventory evidence_role is required: {relative}")

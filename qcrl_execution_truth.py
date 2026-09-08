@@ -7,9 +7,11 @@ from pathlib import Path
 from execution_truth import (
     PublicPolymarketAcquirer,
     normalize_bundle,
+    normalize_book_sequence,
     promote_raw_evidence,
     replay_taker_buy,
     store_raw_bundle,
+    store_raw_book_sequence,
     store_raw_discovery,
     verify_live_evidence_inventory,
 )
@@ -35,6 +37,21 @@ def capture_market(args):
     normalized = normalize_bundle(artifact)
     print(path)
     print(f"normalized_sha256={normalized['bundle_sha256']}")
+
+
+def capture_sequence(args):
+    artifact = PublicPolymarketAcquirer().acquire_book_sequence(
+        args.market_id, args.samples, args.interval_seconds
+    )
+    path = store_raw_book_sequence(artifact, LOCAL_RAW_DIR)
+    normalized = normalize_book_sequence(artifact)
+    print(path)
+    print(f"normalized_sha256={normalized['sequence_sha256']}")
+
+
+def inspect_sequence(args):
+    raw = json.loads(Path(args.source).read_text(encoding="utf-8"))
+    print(json.dumps(normalize_book_sequence(raw), indent=2, sort_keys=True))
 
 
 def promote(args):
@@ -72,6 +89,16 @@ def build_parser():
     market = commands.add_parser("capture-market")
     market.add_argument("market_id")
     market.set_defaults(handler=capture_market)
+
+    sequence = commands.add_parser("capture-sequence")
+    sequence.add_argument("market_id")
+    sequence.add_argument("--samples", type=int, default=5)
+    sequence.add_argument("--interval-seconds", type=int, default=5)
+    sequence.set_defaults(handler=capture_sequence)
+
+    inspect = commands.add_parser("inspect-sequence")
+    inspect.add_argument("source")
+    inspect.set_defaults(handler=inspect_sequence)
 
     promote_parser = commands.add_parser("promote")
     promote_parser.add_argument("source")

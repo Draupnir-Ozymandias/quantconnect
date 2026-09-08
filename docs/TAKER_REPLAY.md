@@ -83,11 +83,12 @@ versions. Re-normalization changes derived contract/book/bundle hashes, not raw
 evidence hashes; the live inventory pins the new derived hashes. Old normalized
 contracts must be regenerated from raw evidence, not relabeled as v3.
 
-Next: a bounded read-only timestamped-book recorder, preserving metadata gaps
-and observation times. Temporal replay must distinguish assumed latency from
-verified exchange delay and must not infer the latter from missing fields or
-backfill an old capture with metadata observed later. Neither snapshot polling
-nor these guardrails establishes actual execution or settlement.
+A bounded read-only timestamped-book recorder now preserves metadata gaps and
+observation times; see [BOOK_SEQUENCE.md](BOOK_SEQUENCE.md). The next replay
+step must distinguish assumed latency from verified exchange delay, select only
+actually observed future snapshots, and never backfill an old capture with
+metadata observed later. Neither polling nor these guardrails establishes
+actual execution or settlement.
 
 ## Runnable examples
 

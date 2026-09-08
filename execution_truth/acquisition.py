@@ -161,3 +161,11 @@ class PublicPolymarketAcquirer:
         }
         discovery["discovery_sha256"] = payload_hash(discovery)
         return discovery
+
+    def acquire_book_sequence(self, market_id, sample_count, interval_seconds, sleeper=None):
+        """Capture a bounded series through the separately testable sequence contract."""
+        from .book_sequence import acquire_book_sequence
+
+        return acquire_book_sequence(
+            self, market_id, sample_count, interval_seconds, sleeper=sleeper
+        )

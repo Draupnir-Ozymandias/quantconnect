@@ -2,7 +2,7 @@
 
 # QuantConnect Research Laboratory (QCRL)
 
-**Document revision:** 2026-09-06
+**Document revision:** 2026-09-08
 
 **Implemented engine versions:** 2.2.0 baseline; 2.3.0 directional; 2.4.0 temporal
 
@@ -417,7 +417,8 @@ itself, a production module.
 * Durable live evidence promotion and inventory verification (implemented)
 * Explicit Coinbase/UTC source contract and boundary signal adapter (implemented)
 * Snapshot BUY/FAK/FOK mechanics with depth, fees, budgets, and timestamp checks (implemented)
-* Temporal execution replay, settlement evidence, and reconciliation
+* Bounded full-bundle book-sequence capture and offline summary (implemented)
+* Sequence-based latency sensitivity, settlement evidence, and reconciliation
 * Documentation-backed experiment and decision registry
 * Locked prospective 2026Q4 baseline (preservation only until window end)
 

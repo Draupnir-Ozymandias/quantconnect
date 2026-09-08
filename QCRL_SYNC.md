@@ -2033,6 +2033,46 @@ Next coding target: bounded read-only timestamped-book recording with metadata
 gaps preserved; then temporal sensitivity analysis separating assumed latency
 from exchange timing supported by evidence. No live-order path is authorized.
 
+## 2026-09-08 — Bounded timestamped-book recorder
+
+Added a finite public recorder for temporal liquidity observations. Each sample
+is a complete raw market bundle: Gamma metadata, CLOB market metadata, and both
+outcome books, each with its own observation time and payload hash. Refreshing
+metadata on every sample prevents a later delay/order-age response from being
+attached retroactively to an earlier book.
+
+Raw schema `qcrl.polymarket_raw_book_sequence.v1` records capture bounds and all
+complete bundles. Derived schema `qcrl.polymarket_book_sequence.v1` verifies
+every nested raw/normalized hash, strictly increasing acquisition times, and
+stable market/token identity, then emits compact metadata and top-of-book
+summaries. Identical payloads remain distinct timed observations. Storage and
+promotion are content-addressed; live inventory verification now supports
+declared sequence artifacts. No live sequence was promoted in this change.
+
+The CLI adds `evidence capture-sequence` and offline `evidence inspect-sequence`.
+Capture is bounded before networking to 2–120 samples, 1–60 integer seconds
+between complete samples, and at most one hour of scheduled pauses. Five
+samples therefore make twenty public GETs. Any failed response aborts without
+storing a partial artifact. Requested interval plus network duration is the
+actual cadence; no fixed-frequency or continuous-liquidity claim is made.
+
+Files created: `execution_truth/book_sequence.py`, `tests/test_book_sequence.py`,
+and `docs/BOOK_SEQUENCE.md`. Files changed: execution package exports,
+acquisition/bundle storage and inventory support, evidence CLI, schema/operator/
+execution/replay documentation, architecture/status/map, and this record.
+Interfaces added: `PublicPolymarketAcquirer.acquire_book_sequence()`,
+`normalize_book_sequence()`, `store_raw_book_sequence()`, `capture-sequence`,
+and `inspect-sequence`. Record fields consumed: none. Assumptions introduced:
+the interval is a pause between complete samples; state and constraints may
+change while identity/outcome mapping may not. Limitations: polling misses
+intervening states and proves no queue, latency, match, fill, or settlement.
+New requests for Workstream A: none. Tests completed: 184 deterministic tests.
+The three existing live artifacts still verify; no credentials or orders used.
+
+Next coding target: sequence-based latency sensitivity using only an observed
+book at or after hypothetical arrival, with polling uncertainty explicit and
+exchange delay remaining unknown unless supported by contemporaneous evidence.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

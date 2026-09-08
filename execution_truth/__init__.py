@@ -12,10 +12,12 @@ from .bundle import (
     normalize_bundle,
     promote_raw_evidence,
     store_raw_bundle,
+    store_raw_book_sequence,
     store_raw_discovery,
     verify_live_evidence_inventory,
 )
 from .discovery import normalize_discovery, verify_raw_discovery
+from .book_sequence import normalize_book_sequence
 from .binding import bind_signal_to_market
 from .taker_replay import replay_taker_buy
 from .signal_adapter import (
@@ -32,6 +34,7 @@ __all__ = [
     "normalize_market_contract",
     "normalize_order_book",
     "normalize_bundle",
+    "normalize_book_sequence",
     "normalize_discovery",
     "verify_raw_discovery",
     "bind_signal_to_market",
@@ -41,6 +44,7 @@ __all__ = [
     "normalize_source_contract",
     "promote_raw_evidence",
     "store_raw_bundle",
+    "store_raw_book_sequence",
     "store_raw_discovery",
     "verify_live_evidence_inventory",
     "PublicPolymarketAcquirer",

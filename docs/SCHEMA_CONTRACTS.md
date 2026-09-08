@@ -16,6 +16,7 @@
 | Polymarket order book | `qcrl.polymarket_order_book.v1` | `execution_truth/contracts.py` | future replay and shadow-decision layers | derived, content-addressed observation |
 | Polymarket raw bundle | `qcrl.polymarket_raw_bundle.v1` | `execution_truth/acquisition.py` | offline normalization and audit | content-addressed raw observation |
 | Polymarket normalized bundle | `qcrl.polymarket_normalized_bundle.v2` | `execution_truth/bundle.py` | timing/replay layers | derived, content-addressed observation |
+| Polymarket raw/normalized book sequence | `qcrl.polymarket_raw_book_sequence.v1` / `qcrl.polymarket_book_sequence.v1` | `execution_truth/book_sequence.py` | temporal sensitivity and audit | ignored raw capture / derived content-addressed summary |
 | Polymarket raw discovery | `qcrl.polymarket_raw_discovery.v1` | `execution_truth/acquisition.py` | discovery normalization and audit | content-addressed raw observation |
 | Polymarket discovery spec/result | `qcrl.polymarket_discovery_spec.v1` / `qcrl.polymarket_discovery_result.v1` | human declaration / `execution_truth/discovery.py` | market-contract acquisition and audit | versioned declaration / derived evidence |
 | Directional source contract/bar | `qcrl.directional_source_contract.v1` / `qcrl.directional_source_bar.v1` | human declaration / future data adapter | boundary signal materialization | versioned declaration / hashed observation |
@@ -87,6 +88,13 @@ coerced booleans or integers. Replay result v2 rejects unknown minimum order
 age as well as unknown delay. Normalized bundle v2 embeds market v3; derive it
 again from raw evidence rather than consuming old normalized contracts.
 See [TAKER_REPLAY.md](TAKER_REPLAY.md) for rules and migration boundaries.
+
+A raw book sequence is a bounded list of complete raw market bundles. It keeps
+every repeated response as an independently timed observation. Its derived
+summary requires stable market/outcome identity and strictly increasing sample
+acquisition times, while allowing state, constraints, and books to change.
+Bounds are 2–120 samples, integer 1–60 second sleeps, and no more than one hour
+of scheduled pauses. See [BOOK_SEQUENCE.md](BOOK_SEQUENCE.md).
 
 ## Research report contract
 

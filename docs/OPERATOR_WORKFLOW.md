@@ -82,6 +82,8 @@ No credentials are used for public Polymarket discovery or market/book capture:
 ```bash
 ./synch.sh evidence capture-discovery <series-id> <target-utc>
 ./synch.sh evidence capture-market <market-id>
+./synch.sh evidence capture-sequence <market-id> --samples 5 --interval-seconds 5
+./synch.sh evidence inspect-sequence .qcrl/execution_truth/raw/<sequence>.json
 ./synch.sh evidence promote .qcrl/execution_truth/raw/<artifact>.json
 ./synch.sh evidence verify
 ```
@@ -92,6 +94,13 @@ revalidates and copies an immutable artifact into
 Add the new artifact's role and limitations to `inventory.json`, then run
 `evidence verify`. Verification requires every tracked raw artifact to be
 declared and every declaration to exist, hash correctly, and replay offline.
+
+Sequence capture is finite and read-only. Each sample refreshes market metadata
+and both books, so `N` samples make `4N` public GETs. The interval is a sleep
+between complete samples, not exact wall-clock cadence. Allowed values are
+2–120 samples, 1–60 seconds, and at most one hour of scheduled sleeps. A failed
+response aborts without persisting a partial artifact. Inspect the local result
+before considering deliberate promotion. See [BOOK_SEQUENCE.md](BOOK_SEQUENCE.md).
 
 To exercise offline taker mechanics, run:
 
