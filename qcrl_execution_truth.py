@@ -1,12 +1,14 @@
 """Operator CLI for public Polymarket evidence capture and promotion."""
 
 import argparse
+import json
 from pathlib import Path
 
 from execution_truth import (
     PublicPolymarketAcquirer,
     normalize_bundle,
     promote_raw_evidence,
+    replay_taker_buy,
     store_raw_bundle,
     store_raw_discovery,
     verify_live_evidence_inventory,
@@ -46,6 +48,18 @@ def verify(args):
     print(f"Verified {count} live evidence artifact(s).")
 
 
+def replay(args):
+    spec_path = Path(args.spec).resolve()
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    if spec.get("schema_version") != "qcrl.taker_replay_example.v1":
+        raise ValueError("unsupported replay example schema")
+    raw_path = spec_path.parent / spec["raw_bundle_path"]
+    raw = json.loads(raw_path.read_text(encoding="utf-8"))
+    results = [replay_taker_buy(raw, request, spec["policy"])
+               for request in spec["requests"]]
+    print(json.dumps(results, indent=2, sort_keys=True))
+
+
 def build_parser():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -66,6 +80,10 @@ def build_parser():
     verify_parser = commands.add_parser("verify")
     verify_parser.add_argument("directory", nargs="?", default=DURABLE_DIR)
     verify_parser.set_defaults(handler=verify)
+
+    replay_parser = commands.add_parser("replay", help="Replay local snapshot mechanics; no network")
+    replay_parser.add_argument("spec")
+    replay_parser.set_defaults(handler=replay)
     return parser
 
 

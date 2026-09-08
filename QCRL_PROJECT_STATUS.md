@@ -1,6 +1,6 @@
 # QCRL Project Status
 
-**As of:** 2026-09-07
+**As of:** 2026-09-08
 **Repository:** `Draupnir-Ozymandias/quantconnect` / `polymarket-martingale`  
 **QuantConnect project:** 33239307  
 **Current research decision:** Hold feature optimization; preserve the locked
@@ -37,7 +37,8 @@ evidence.
 | Campaign manifest/state | `qcrl.campaign.v1` / `qcrl.campaign_state.v1` |
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
 | Execution-truth schemas | market, signal intent, and binding v2; source, source bar, signal decision, book, bundles, discovery, and live inventory v1 |
-| Test suite | 149 deterministic tests passing |
+| Snapshot taker replay | request / policy / result / example v1; mechanics-only |
+| Test suite | 168 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
@@ -289,8 +290,10 @@ weak explanations and dangerous sizing have been rejected before deployment.
    can now be acquired, promoted, inventoried, and replayed. Three live raw
    artifacts are durable Git evidence. No trade, fill, or settlement data is
    ingested.
-2. No bid/ask spread, entry price, market depth, partial fill, no-fill, dynamic
-   fee, or latency model exists.
+2. Snapshot BUY/FAK/FOK replay now estimates entry prices, depth consumption,
+   fees, partial fills, and no fills. Actual matches, temporal liquidity,
+   latency paths, and wallet settlement remain unmodeled. The daily capture
+   omits a delay flag, so its replay is rejected pending explicit evidence.
 3. The signal/market binding contract now separates availability, observation,
    decision, target, and cutoff times. A pure boundary adapter now materializes
    the next UTC-day intent from prior completed bars, but no live data process
@@ -325,8 +328,8 @@ Daily series `41` exists but is incompatible with the current signal because
 its Binance BTC/USDT feed, noon-Eastern anchor, and tie settlement differ.
 Remaining work is:
 
-1. Build deterministic order-book replay for taker entry, fees, depth, partial
-   fill, and no-fill outcomes.
+1. Preserve unknown execution fields in the next market contract and establish
+   delay semantics before collecting book sequences for temporal replay.
 2. Decide whether to authorize a separate Binance noon-to-noon research lane;
    do not retrofit the historical Coinbase evidence.
 3. Add settlement evidence and reconciliation.

@@ -1,0 +1,59 @@
+{
+  "schema_version": "qcrl.taker_replay_example.v1",
+  "evidence_class": "captured_public_observation",
+  "raw_bundle_path": "../../evidence/polymarket/live/raw/market-4293892-a69f00a48676e9442a797f72332330f74f8514ea412559f8c967dbe9afac27b1.json",
+  "policy": {
+    "schema_version": "qcrl.taker_replay_policy.v1",
+    "depth_assumption": "frozen_snapshot",
+    "fee_model": "cash_equivalent_per_level_half_up_5dp",
+    "max_book_age_seconds": 5,
+    "max_market_age_seconds": 60,
+    "max_exchange_age_seconds": 5
+  },
+  "requests": [
+    {
+      "schema_version": "qcrl.taker_replay_request.v1",
+      "case_id": "full",
+      "side": "BUY",
+      "token_id": "61265659607611571989597927562517561686388056537051122315648513183093145440810",
+      "shares": "10",
+      "limit_price": "0.49",
+      "time_in_force": "FAK",
+      "cash_budget": "100",
+      "hypothetical_at_utc": "2026-09-07T22:41:45Z"
+    },
+    {
+      "schema_version": "qcrl.taker_replay_request.v1",
+      "case_id": "partial",
+      "side": "BUY",
+      "token_id": "61265659607611571989597927562517561686388056537051122315648513183093145440810",
+      "shares": "100",
+      "limit_price": "0.49",
+      "time_in_force": "FAK",
+      "cash_budget": "100",
+      "hypothetical_at_utc": "2026-09-07T22:41:45Z"
+    },
+    {
+      "schema_version": "qcrl.taker_replay_request.v1",
+      "case_id": "all_or_nothing",
+      "side": "BUY",
+      "token_id": "61265659607611571989597927562517561686388056537051122315648513183093145440810",
+      "shares": "100",
+      "limit_price": "0.49",
+      "time_in_force": "FOK",
+      "cash_budget": "100",
+      "hypothetical_at_utc": "2026-09-07T22:41:45Z"
+    },
+    {
+      "schema_version": "qcrl.taker_replay_request.v1",
+      "case_id": "below_ask",
+      "side": "BUY",
+      "token_id": "61265659607611571989597927562517561686388056537051122315648513183093145440810",
+      "shares": "10",
+      "limit_price": "0.48",
+      "time_in_force": "FAK",
+      "cash_budget": "100",
+      "hypothetical_at_utc": "2026-09-07T22:41:45Z"
+    }
+  ]
+}

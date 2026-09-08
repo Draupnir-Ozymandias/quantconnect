@@ -93,6 +93,17 @@ Add the new artifact's role and limitations to `inventory.json`, then run
 `evidence verify`. Verification requires every tracked raw artifact to be
 declared and every declaration to exist, hash correctly, and replay offline.
 
+To exercise offline taker mechanics, run:
+
+```bash
+./synch.sh evidence replay execution_truth/specs/synthetic_taker_replay.json
+./synch.sh evidence replay execution_truth/specs/daily_taker_replay.json
+```
+
+These commands print JSON without network access or file writes. The first
+demonstrates fills; the second demonstrates the live capture's missing delay
+metadata. See [TAKER_REPLAY.md](TAKER_REPLAY.md) for expected results.
+
 ## Interpreting campaign state
 
 - `pending`: not submitted.

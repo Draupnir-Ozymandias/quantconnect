@@ -17,6 +17,7 @@ from .bundle import (
 )
 from .discovery import normalize_discovery, verify_raw_discovery
 from .binding import bind_signal_to_market
+from .taker_replay import replay_taker_buy
 from .signal_adapter import (
     materialize_boundary_signal,
     normalize_source_bar,
@@ -34,6 +35,7 @@ __all__ = [
     "normalize_discovery",
     "verify_raw_discovery",
     "bind_signal_to_market",
+    "replay_taker_buy",
     "materialize_boundary_signal",
     "normalize_source_bar",
     "normalize_source_contract",

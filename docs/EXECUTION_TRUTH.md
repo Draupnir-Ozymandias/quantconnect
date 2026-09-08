@@ -1,8 +1,8 @@
 # QCRL Polymarket Execution Truth
 
-**As of:** 2026-09-07
+**As of:** 2026-09-08
 **Status:** public acquisition, explicit discovery, signal binding, durable live
-evidence, and offline normalization implemented
+evidence, offline normalization, and snapshot taker mechanics implemented
 
 ## Purpose
 
@@ -180,10 +180,18 @@ bundle. Tests replay all three on every deterministic suite run.
 6. No incomplete or contradictory observation becomes an eligible decision.
 7. Execution-truth work remains independent of the locked 2026Q4 evidence lane.
 
+## Snapshot taker mechanics
+
+`replay_taker_buy()` now estimates BUY/FAK/FOK execution against captured asks,
+including limit price, available depth, fee estimates, and a cash budget.
+Freshness and exchange timestamps are checked independently. Every output is
+mechanics-only. See [TAKER_REPLAY.md](TAKER_REPLAY.md) for assumptions, schemas,
+sample commands, and the missing-delay-field finding in the daily capture.
+
 ## Next vertical slice
 
-Build a deterministic replay contract around the durable order-book snapshots.
-Do not change the existing evidence declaration to mimic series `41`. If a
-separately declared Binance noon-to-noon research lane is later authorized, it
-starts as new evidence. Replay must model observable price, depth, fees, entry
-delay, partial/no fill, and settlement before shadow execution is considered.
+Preserve unknown execution metadata explicitly in the next market contract,
+verify the meaning of omitted delay fields against authoritative API behavior,
+and acquire timestamped book sequences for temporal replay. Settlement and
+signal-to-execution integration remain subsequent work. Any Binance
+noon-to-noon research lane requires a separate declaration.

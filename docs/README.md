@@ -16,6 +16,7 @@ from becoming an accidental second source of truth.
 | Which ideas failed, remain open, or are locked? | [`HYPOTHESIS_REGISTRY.md`](HYPOTHESIS_REGISTRY.md) |
 | What contracts join engine, runner, and discovery? | [`SCHEMA_CONTRACTS.md`](SCHEMA_CONTRACTS.md) |
 | What defines read-only Polymarket execution truth? | [`EXECUTION_TRUTH.md`](EXECUTION_TRUTH.md) |
+| How are hypothetical taker fills estimated? | [`TAKER_REPLAY.md`](TAKER_REPLAY.md) |
 | How does an operator synchronize and run research? | [`OPERATOR_WORKFLOW.md`](OPERATOR_WORKFLOW.md) |
 | How are experiments declared? | Versioned JSON under [`campaigns/`](../campaigns/) and [`syntheses/`](../syntheses/) |
 

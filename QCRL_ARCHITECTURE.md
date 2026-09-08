@@ -416,7 +416,8 @@ itself, a production module.
 * Contract-driven series/event discovery and signal binding (implemented)
 * Durable live evidence promotion and inventory verification (implemented)
 * Explicit Coinbase/UTC source contract and boundary signal adapter (implemented)
-* Execution replay, settlement evidence, and reconciliation
+* Snapshot BUY/FAK/FOK mechanics with depth, fees, budgets, and timestamp checks (implemented)
+* Temporal execution replay, settlement evidence, and reconciliation
 * Documentation-backed experiment and decision registry
 * Locked prospective 2026Q4 baseline (preservation only until window end)
 

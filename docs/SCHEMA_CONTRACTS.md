@@ -1,6 +1,6 @@
 # QCRL Schema Contracts
 
-**As of:** 2026-09-07
+**As of:** 2026-09-08
 
 ## Contract matrix
 
@@ -23,6 +23,8 @@
 | Directional signal intent | `qcrl.directional_signal_intent.v2` | `execution_truth/signal_adapter.py` | market binding and replay | content-addressed decision input |
 | Polymarket binding policy/result | `qcrl.polymarket_binding_policy.v2` / `qcrl.polymarket_binding_result.v2` | human declaration / `execution_truth/binding.py` | replay and shadow-decision layers | versioned declaration / derived evidence |
 | Polymarket live evidence inventory | `qcrl.polymarket_live_evidence_inventory.v1` | deliberate operator promotion | regression tests and audit | version controlled |
+| Taker replay request/policy/result | `qcrl.taker_replay_request.v1` / `qcrl.taker_replay_policy.v1` / `qcrl.taker_replay_result.v1` | local declaration / `execution_truth/taker_replay.py` | offline mechanics audit | hashed result; output to stdout |
+| Taker replay example | `qcrl.taker_replay_example.v1` | versioned JSON specification | `qcrl_execution_truth.py` | version controlled |
 
 The QCRL engine version and schema versions are different concerns. The clean
 baseline pins engine 2.2.0, most directional campaigns pin 2.3.0, and temporal
@@ -73,6 +75,14 @@ and hash, exact capture time, evidence role, limitations, and normalized hash
 where applicable. Verification fails on an undeclared/missing artifact, path
 escape, schema/hash/time drift, or an offline replay failure. The inventory's
 daily-series finding is compatibility evidence, not signal research evidence.
+
+Replay consumes a complete raw bundle and revalidates it before choosing one
+token book. Requests name share quantity, cash budget, limit, FAK/FOK, and
+hypothetical timestamp. Policy fixes freshness bounds and depth/fee assumptions.
+Results include input hashes, per-level matches, cost estimates, rejection and
+no-fill reasons, and `strategy_eligibility_evaluated=false`. Raw metadata is
+rechecked where the v2 market normalizer supplies defaults. Missing `itode`
+therefore remains unknown for replay. See [TAKER_REPLAY.md](TAKER_REPLAY.md).
 
 ## Research report contract
 

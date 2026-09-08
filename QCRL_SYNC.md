@@ -1960,6 +1960,36 @@ The local push preflight now also rejects tracked Python filenames that shadow
 standard-library modules, and a deterministic repository invariant test guards
 the same rule. Tests completed: 149 deterministic tests passing.
 
+## 2026-09-08 snapshot taker replay
+
+Added `replay_taker_buy(raw_bundle, request, policy)` and an offline
+`./synch.sh evidence replay <example>` command. The kernel revalidates raw
+evidence and estimates BUY execution against sorted asks under price, quantity,
+cash, and freshness constraints. FAK retains partial fills; FOK cancels all
+candidate fills when full quantity cannot be funded or matched. Fee estimates
+use the captured exponent-1 rate and a declared per-level half-up five-decimal
+cash-equivalent model. Every result is hashed and labeled mechanics-only.
+
+The live daily capture omits CLOB `itode`, although market contract v2 defaults
+that omission to false. Replay checks the raw payload and rejects this case as
+`unknown_taker_delay_state`. The five-minute capture explicitly enables delay.
+Neither establishes immediately executable liquidity. A separate synthetic
+fixture demonstrates full, partial, FOK-canceled, and nonmarketable orders;
+captured evidence and research decisions remain unchanged.
+
+Files created or changed: taker replay module, package exports, evidence CLI,
+two runnable specifications, synthetic fixture, tests, schema/status/
+architecture/operator documentation, replay guide, and this record. Interfaces
+added: `replay_taker_buy()`. Record fields consumed: none. Assumptions introduced:
+frozen displayed depth, six-decimal shares, cash-equivalent fees rounded once
+per price level; no actual matching, latency, or settlement claim. Limitations:
+aggregate depth lacks maker match detail, supported fee exponent is 1, unknown
+or enabled delays require more evidence, and replay does not evaluate signal
+eligibility. New requests for Workstream A: none. Tests completed: 168 tests.
+
+Next coding target: explicit unknown metadata and documented delay semantics,
+then timestamped book sequences for temporal execution replay.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

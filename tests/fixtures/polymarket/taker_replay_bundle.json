@@ -1,0 +1,141 @@
+{
+  "acquired_at_utc": "2026-05-04T23:52:00Z",
+  "bundle_sha256": "89e63f623d57c24cc7e580d536a156efefc4bdd520118d2248305ee5d3864ca5",
+  "market_id_requested": "123456",
+  "observations": {
+    "clob_market": {
+      "endpoint": "https://clob.polymarket.com/clob-markets/0x1111111111111111111111111111111111111111111111111111111111111111",
+      "observed_at_utc": "2026-05-04T23:52:00.020000Z",
+      "params": {},
+      "payload": {
+        "c": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "fd": {
+          "e": 1,
+          "r": 0.07,
+          "to": true
+        },
+        "itode": false,
+        "mbf": 0,
+        "mos": 5,
+        "mts": 0.01,
+        "oas": 0,
+        "t": [
+          {
+            "o": "Up",
+            "t": "10001"
+          },
+          {
+            "o": "Down",
+            "t": "10002"
+          }
+        ],
+        "tbf": 0
+      },
+      "payload_sha256": "82a3fa38b8cf1ff354080e43a52b2061e1d7ff9a1a99ea5bbe25cc4bc586692e"
+    },
+    "gamma_market": {
+      "endpoint": "https://gamma-api.polymarket.com/markets/123456",
+      "observed_at_utc": "2026-05-04T23:52:00.010000Z",
+      "params": {},
+      "payload": {
+        "acceptingOrders": true,
+        "active": true,
+        "clobTokenIds": "[\"10001\", \"10002\"]",
+        "closed": false,
+        "conditionId": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "description": "Resolves Up if the specified resolution price is greater than the starting price; otherwise Down.",
+        "enableOrderBook": true,
+        "endDate": "2026-05-04T23:55:00Z",
+        "eventStartTime": "2026-05-04T23:50:00Z",
+        "feesEnabled": true,
+        "id": "123456",
+        "outcomes": "[\"Up\", \"Down\"]",
+        "question": "Bitcoin Up or Down - documented contract fixture",
+        "questionID": "0x2222222222222222222222222222222222222222222222222222222222222222",
+        "resolutionSource": "Documented fixture price source",
+        "slug": "btc-updown-fixture-1777938600",
+        "startDate": "2026-05-04T23:49:00Z"
+      },
+      "payload_sha256": "6b474e485662a4bb5ab504121f06603ddbd05a3a5ab642bc19126683842abe4c"
+    },
+    "order_books": [
+      {
+        "endpoint": "https://clob.polymarket.com/book",
+        "observed_at_utc": "2026-05-04T23:52:00.030000Z",
+        "params": {
+          "token_id": "10001"
+        },
+        "payload": {
+          "asks": [
+            {
+              "price": "0.60",
+              "size": "200"
+            },
+            {
+              "price": "0.50",
+              "size": "100"
+            }
+          ],
+          "asset_id": "10001",
+          "bids": [
+            {
+              "price": "0.44",
+              "size": "200"
+            },
+            {
+              "price": "0.45",
+              "size": "100"
+            }
+          ],
+          "hash": "0xdocumentedfixturebookhash",
+          "last_trade_price": "0.45",
+          "market": "0x1111111111111111111111111111111111111111111111111111111111111111",
+          "min_order_size": "5",
+          "neg_risk": false,
+          "tick_size": "0.01",
+          "timestamp": "1777938720000"
+        },
+        "payload_sha256": "87070b5a793a1e5da682c26456984e432e18e5bc906a8e5e9b6d1d453cbe0ba2"
+      },
+      {
+        "endpoint": "https://clob.polymarket.com/book",
+        "observed_at_utc": "2026-05-04T23:52:00.040000Z",
+        "params": {
+          "token_id": "10002"
+        },
+        "payload": {
+          "asks": [
+            {
+              "price": "0.60",
+              "size": "200"
+            },
+            {
+              "price": "0.50",
+              "size": "100"
+            }
+          ],
+          "asset_id": "10002",
+          "bids": [
+            {
+              "price": "0.44",
+              "size": "200"
+            },
+            {
+              "price": "0.45",
+              "size": "100"
+            }
+          ],
+          "hash": "0xdocumentedfixturebookhash",
+          "last_trade_price": "0.45",
+          "market": "0x1111111111111111111111111111111111111111111111111111111111111111",
+          "min_order_size": "5",
+          "neg_risk": false,
+          "tick_size": "0.01",
+          "timestamp": "1777938720000"
+        },
+        "payload_sha256": "4c8f0e451325d1fbc857e95a1d4674430d1eebb2506e5e74e6ce4d757bf248bd"
+      }
+    ]
+  },
+  "schema_version": "qcrl.polymarket_raw_bundle.v1"
+}
