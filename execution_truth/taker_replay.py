@@ -13,7 +13,7 @@ from .contracts import ContractError, payload_hash
 
 REQUEST_SCHEMA = "qcrl.taker_replay_request.v1"
 POLICY_SCHEMA = "qcrl.taker_replay_policy.v1"
-RESULT_SCHEMA = "qcrl.taker_replay_result.v1"
+RESULT_SCHEMA = "qcrl.taker_replay_result.v2"
 SHARE_STEP = Decimal("0.000001")
 FEE_STEP = Decimal("0.00001")
 
@@ -129,24 +129,26 @@ def _replay(raw_bundle, request, policy):
     if not _time(market["terms"]["event_start_at_utc"]) <= at < _time(market["terms"]["end_at_utc"]):
         reasons.append("outside_market_window")
     state = market["state"]
-    gamma = observations["gamma_market"]["payload"]
     if (state["active"] is not True or state["closed"] is not False
-            or state["order_book_enabled"] is not True or gamma.get("acceptingOrders") is not True):
+            or state["order_book_enabled"] is not True or state["accepting_orders"] is not True):
         reasons.append("market_not_orderable")
-    clob = observations["clob_market"]["payload"]
-    if type(clob.get("itode")) is not bool:
+    if state["accepting_orders"] is None:
+        reasons.append("unknown_order_acceptance_state")
+    if constraints["taker_order_delay_enabled"] is None:
         reasons.append("unknown_taker_delay_state")
-    elif clob["itode"]:
+    elif constraints["taker_order_delay_enabled"]:
         reasons.append("taker_delay_requires_temporal_replay")
-    if constraints["minimum_order_age_seconds"] != 0:
+    if constraints["minimum_order_age_seconds"] is None:
+        reasons.append("unknown_minimum_order_age")
+    elif constraints["minimum_order_age_seconds"] != 0:
         reasons.append("order_age_constraint_unsupported")
     if book["negative_risk"]:
         reasons.append("negative_risk_unsupported")
     if curve["exponent"] != "1":
         reasons.append("fee_curve_exponent_unsupported")
-    if type(gamma.get("feesEnabled")) is not bool:
+    if state["fees_enabled"] is None:
         reasons.append("fee_enablement_unknown")
-    elif not gamma["feesEnabled"] and rate != 0:
+    elif not state["fees_enabled"] and rate != 0:
         reasons.append("fee_enablement_disagrees_with_curve")
 
     fills = []

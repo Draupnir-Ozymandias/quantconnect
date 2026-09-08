@@ -140,6 +140,47 @@ class TakerReplayTests(unittest.TestCase):
         revise(raw, "clob_market", fd={"r": 0, "e": 1, "to": True})
         self.assertEqual("0", replay_taker_buy(raw, request(), policy())["fee_estimate"])
 
+    def test_missing_or_null_execution_fields_fail_closed(self):
+        for name, key, reason in [
+            ("clob_market", "itode", "unknown_taker_delay_state"),
+            ("clob_market", "oas", "unknown_minimum_order_age"),
+            ("gamma_market", "acceptingOrders", "unknown_order_acceptance_state"),
+            ("gamma_market", "feesEnabled", "fee_enablement_unknown"),
+        ]:
+            for missing in [True, False]:
+                with self.subTest(key=key, missing=missing):
+                    raw = raw_bundle()
+                    if missing:
+                        raw["observations"][name]["payload"].pop(key, None)
+                        revise(raw, name)
+                    else:
+                        revise(raw, name, **{key: None})
+                    result = replay_taker_buy(raw, request(), policy())
+                    self.assertEqual("qcrl.taker_replay_result.v2", result["schema_version"])
+                    self.assertEqual("rejected", result["status"])
+                    self.assertIn(reason, result["reasons"])
+                    self.assertEqual([], result["fills"])
+                    self.assertEqual("0", result["cash_required_estimate"])
+
+    def test_explicit_nonzero_order_age_is_not_a_zero_delay(self):
+        raw = raw_bundle()
+        revise(raw, "clob_market", oas=1)
+        result = replay_taker_buy(raw, request(), policy())
+        self.assertEqual("rejected", result["status"])
+        self.assertIn("order_age_constraint_unsupported", result["reasons"])
+        self.assertNotIn("unknown_minimum_order_age", result["reasons"])
+
+    def test_malformed_execution_metadata_cannot_produce_estimated_fills(self):
+        for name, updates in [("clob_market", {"itode": "false"}),
+                              ("clob_market", {"oas": 0.5}),
+                              ("gamma_market", {"acceptingOrders": "true"}),
+                              ("gamma_market", {"feesEnabled": 1})]:
+            with self.subTest(updates=updates):
+                raw = raw_bundle()
+                revise(raw, name, **updates)
+                with self.assertRaises(ContractError):
+                    replay_taker_buy(raw, request(), policy())
+
     def test_empty_asks_produce_no_fill(self):
         raw = raw_bundle()
         item = raw["observations"]["order_books"][0]

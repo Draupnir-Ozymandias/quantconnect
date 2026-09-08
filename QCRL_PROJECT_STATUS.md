@@ -36,9 +36,9 @@ evidence.
 | Normalized record schema | `qcrl.experiment_record.v5` |
 | Campaign manifest/state | `qcrl.campaign.v1` / `qcrl.campaign_state.v1` |
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
-| Execution-truth schemas | market, signal intent, and binding v2; source, source bar, signal decision, book, bundles, discovery, and live inventory v1 |
-| Snapshot taker replay | request / policy / result / example v1; mechanics-only |
-| Test suite | 168 deterministic tests passing |
+| Execution-truth schemas | market v3; normalized bundle, signal intent, and binding v2; source, source bar, signal decision, book, raw bundle, discovery, and live inventory v1 |
+| Snapshot taker replay | result v2; request / policy / example v1; mechanics-only |
+| Test suite | 176 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
@@ -293,7 +293,9 @@ weak explanations and dangerous sizing have been rejected before deployment.
 2. Snapshot BUY/FAK/FOK replay now estimates entry prices, depth consumption,
    fees, partial fills, and no fills. Actual matches, temporal liquidity,
    latency paths, and wallet settlement remain unmodeled. The daily capture
-   omits a delay flag, so its replay is rejected pending explicit evidence.
+   omits delay and minimum-age fields, so its replay is rejected pending explicit
+   evidence. Market v3 preserves unknowns and rejects malformed execution flags;
+   the five-minute capture also lacks order-age evidence.
 3. The signal/market binding contract now separates availability, observation,
    decision, target, and cutoff times. A pure boundary adapter now materializes
    the next UTC-day intent from prior completed bars, but no live data process
@@ -328,8 +330,9 @@ Daily series `41` exists but is incompatible with the current signal because
 its Binance BTC/USDT feed, noon-Eastern anchor, and tie settlement differ.
 Remaining work is:
 
-1. Preserve unknown execution fields in the next market contract and establish
-   delay semantics before collecting book sequences for temporal replay.
+1. Build a bounded read-only timestamped-book recorder, retaining unknown
+   execution fields. Establish actual delay semantics before claiming temporal
+   replay of exchange execution; assumed latency must be labeled separately.
 2. Decide whether to authorize a separate Binance noon-to-noon research lane;
    do not retrofit the historical Coinbase evidence.
 3. Add settlement evidence and reconciliation.

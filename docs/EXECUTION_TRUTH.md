@@ -20,13 +20,13 @@ an architecture or an authoritative resolution source.
 `execution_truth/contracts.py` implements two pure-Python normalization
 contracts:
 
-- `qcrl.polymarket_market_contract.v2` joins Gamma market identity, terms, and
+- `qcrl.polymarket_market_contract.v3` joins Gamma market identity, terms, and
   state to CLOB V2 outcomes, constraints, and fee parameters.
 - `qcrl.polymarket_order_book.v1` binds a full-depth CLOB book to one validated
   market outcome.
 - `qcrl.polymarket_raw_bundle.v1` preserves separately timed raw Gamma, CLOB
   market-information, and two-book observations.
-- `qcrl.polymarket_normalized_bundle.v1` verifies and replays those observations
+- `qcrl.polymarket_normalized_bundle.v2` verifies and replays those observations
   offline.
 
 All contracts preserve canonical hashes of their raw source payloads and hash
@@ -97,7 +97,8 @@ The first live bundle was captured on 2026-09-07 for Gamma market `4309046`:
 - raw bundle SHA-256:
   `a9c40ee7c38a6dad0f3482b4c0c9676dd4865bc26f7042f713b080bf141fc912`;
 - normalized bundle SHA-256:
-  `bd7b59542b8b93d94c7525b255d567ba09e5175e6a3e6b287940663c86d3a6a6`.
+  `2958d62063a64c2d543ef42d391ea331bbb75e04c009b5efcc8a90d1553d46fa`
+  (normalized bundle v2 / market contract v3).
 
 The raw file has now been deliberately promoted to
 `evidence/polymarket/live/raw/` and is Git-synchronized. Its inventory retains
@@ -109,7 +110,9 @@ Market contract v1 treated Gamma `startDate` as the outcome-window start. A
 live response disproved that interpretation: its `startDate` preceded the
 five-minute market by many hours, while `eventStartTime` exactly named the
 outcome window. Version 2 preserves both fields separately and only
-`event_start_at_utc` may anchor outcome timing. Version 1 must not be consumed.
+`event_start_at_utc` may anchor outcome timing. Version 3 retains that correction
+and replaces inferred execution-field defaults with unknowns. Versions 1 and 2
+must not be consumed as current market contracts; regenerate from raw evidence.
 
 ## Discovery probe and timeframe boundary
 
@@ -190,8 +193,9 @@ sample commands, and the missing-delay-field finding in the daily capture.
 
 ## Next vertical slice
 
-Preserve unknown execution metadata explicitly in the next market contract,
-verify the meaning of omitted delay fields against authoritative API behavior,
-and acquire timestamped book sequences for temporal replay. Settlement and
+Unknown execution metadata is now preserved explicitly in market contract v3;
+the API reference supplies no omitted-field default. Build a bounded read-only
+timestamped-book recorder with explicit metadata gaps and observation times
+to support temporal replay research. Settlement and
 signal-to-execution integration remain subsequent work. Any Binance
 noon-to-noon research lane requires a separate declaration.

@@ -9,7 +9,7 @@
         "cannot prove fill or settlement",
         "incompatible with the Coinbase source and midnight-UTC QCRL bar anchor"
       ],
-      "normalized_sha256": "2d5f3b97685fe124191592c1175d15a71140909c4f34ed13231a872e25b58460",
+      "normalized_sha256": "8b11f8a53e03f29cb803c8c12ad3fb5b7920b00e32c2b774265dfdd7a9cc87fc",
       "path": "raw/market-4293892-a69f00a48676e9442a797f72332330f74f8514ea412559f8c967dbe9afac27b1.json",
       "schema_version": "qcrl.polymarket_raw_bundle.v1",
       "subject": {
@@ -28,7 +28,7 @@
         "five-minute horizon is incompatible with the current daily QCRL signal",
         "cannot prove fill or settlement"
       ],
-      "normalized_sha256": "bd7b59542b8b93d94c7525b255d567ba09e5175e6a3e6b287940663c86d3a6a6",
+      "normalized_sha256": "2958d62063a64c2d543ef42d391ea331bbb75e04c009b5efcc8a90d1553d46fa",
       "path": "raw/market-4309046-a9c40ee7c38a6dad0f3482b4c0c9676dd4865bc26f7042f713b080bf141fc912.json",
       "schema_version": "qcrl.polymarket_raw_bundle.v1",
       "subject": {

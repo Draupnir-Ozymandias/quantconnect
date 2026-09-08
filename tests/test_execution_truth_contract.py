@@ -53,6 +53,68 @@ class ExecutionTruthContractTests(unittest.TestCase):
         )
         self.assertEqual(first, second)
 
+    def test_optional_execution_booleans_preserve_known_and_unknown_states(self):
+        for origin, key, section, field in [
+            ("gamma", "acceptingOrders", "state", "accepting_orders"),
+            ("gamma", "feesEnabled", "state", "fees_enabled"),
+            ("clob", "itode", "constraints", "taker_order_delay_enabled"),
+        ]:
+            for value in [True, False, None, "absent"]:
+                with self.subTest(key=key, value=value):
+                    gamma = fixture("gamma_market.json")
+                    clob = fixture("clob_market_info.json")
+                    source = gamma if origin == "gamma" else clob
+                    if value == "absent":
+                        source.pop(key, None)
+                    else:
+                        source[key] = value
+                    contract = normalize_market_contract(gamma, clob, OBSERVED_AT)
+                    self.assertIs(None if value == "absent" else value,
+                                  contract[section][field])
+
+    def test_optional_execution_booleans_reject_coercion(self):
+        for key in ["acceptingOrders", "feesEnabled", "itode"]:
+            for value in ["false", "true", "", 0, 1, [], {}]:
+                with self.subTest(key=key, value=value):
+                    gamma = fixture("gamma_market.json")
+                    clob = fixture("clob_market_info.json")
+                    (clob if key == "itode" else gamma)[key] = value
+                    with self.assertRaises(ContractError):
+                        normalize_market_contract(gamma, clob, OBSERVED_AT)
+
+    def test_minimum_order_age_preserves_unknown_and_integer_seconds(self):
+        for value in [None, "absent", 0, 1, 123]:
+            with self.subTest(value=value):
+                clob = fixture("clob_market_info.json")
+                if value == "absent":
+                    clob.pop("oas")
+                else:
+                    clob["oas"] = value
+                contract = normalize_market_contract(fixture("gamma_market.json"),
+                                                     clob, OBSERVED_AT)
+                self.assertEqual(None if value == "absent" else value,
+                                 contract["constraints"]["minimum_order_age_seconds"])
+
+    def test_minimum_order_age_rejects_coercion_and_truncation(self):
+        for value in [False, True, -1, 0.0, 0.5, "0", "1", "", [], {}]:
+            with self.subTest(value=value):
+                clob = fixture("clob_market_info.json")
+                clob["oas"] = value
+                with self.assertRaisesRegex(ContractError, "oas must be"):
+                    normalize_market_contract(fixture("gamma_market.json"),
+                                              clob, OBSERVED_AT)
+
+    def test_unknown_and_disabled_contracts_have_distinct_hashes(self):
+        gamma = fixture("gamma_market.json")
+        clob = fixture("clob_market_info.json")
+        clob.pop("itode")
+        before = copy.deepcopy(clob)
+        unknown = normalize_market_contract(gamma, clob, OBSERVED_AT)
+        self.assertEqual(before, clob)
+        clob["itode"] = False
+        disabled = normalize_market_contract(gamma, clob, OBSERVED_AT)
+        self.assertNotEqual(unknown["contract_sha256"], disabled["contract_sha256"])
+
     def test_market_contract_rejects_token_identity_drift(self):
         clob = fixture("clob_market_info.json")
         clob["t"][0]["t"] = "unexpected-token"

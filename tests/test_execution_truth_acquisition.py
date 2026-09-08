@@ -90,7 +90,7 @@ class ExecutionTruthAcquisitionTests(unittest.TestCase):
         raw = self.acquirer.acquire_market_bundle("123456")
         normalized = normalize_bundle(raw)
         self.assertEqual(
-            "qcrl.polymarket_market_contract.v2",
+            "qcrl.polymarket_market_contract.v3",
             normalized["market_contract"]["schema_version"],
         )
         self.assertEqual({"Up", "Down"}, {

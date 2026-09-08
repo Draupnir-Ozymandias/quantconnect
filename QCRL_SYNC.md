@@ -1990,6 +1990,49 @@ eligibility. New requests for Workstream A: none. Tests completed: 168 tests.
 Next coding target: explicit unknown metadata and documented delay semantics,
 then timestamped book sequences for temporal execution replay.
 
+## 2026-09-08 — Preserve unknown execution metadata
+
+Continued the snapshot-replay follow-up by checking the official CLOB market
+info reference. It defines `itode` as delay enablement and `oas` as minimum
+order age; it supplies neither omitted-field defaults nor a crypto matching
+delay duration. No zero-delay assumption is authorized by that evidence.
+
+Market contract v3 replaces absent/null execution fields with explicit unknowns
+and rejects malformed booleans or order-age values. This includes Gamma
+`acceptingOrders` / `feesEnabled` and CLOB `itode` / `oas`. Replay result v2
+consumes those normalized values and rejects unknown order age, unknown order
+acceptance, and the previously blocked unknown delay or fee state. An explicit
+nonzero minimum age remains unsupported by snapshot mechanics. Minimum age
+and exchange matching delay are not interchangeable.
+
+The daily raw capture omits both `itode` and `oas`; the five-minute raw capture
+enables delay but also omits `oas`. Neither has been modified or supplemented
+with later observations. Normalized bundle v2 embeds market v3. Inventory
+derived hashes were deliberately regenerated:
+
+- Daily `4293892`: prior `2d5f3b97685fe124191592c1175d15a71140909c4f34ed13231a872e25b58460`;
+  current `8b11f8a53e03f29cb803c8c12ad3fb5b7920b00e32c2b774265dfdd7a9cc87fc`.
+- Five-minute `4309046`: prior `bd7b59542b8b93d94c7525b255d567ba09e5175e6a3e6b287940663c86d3a6a6`;
+  current `2958d62063a64c2d543ef42d391ea331bbb75e04c009b5efcc8a90d1553d46fa`.
+
+Raw hashes remain unchanged. Old normalized contracts are superseded and must
+be regenerated from raw input, not relabeled. Requests, policies, raw evidence,
+research schemas, and the locked 2026Q4 campaign are unchanged.
+
+Files changed: execution contract/bundle/replay modules; contract, acquisition,
+and replay tests; live evidence inventory; current status/schema/execution/
+replay documentation; this record. Engine interfaces added: none. Record fields
+consumed: none. Assumptions introduced: missing and null normalize to unknown;
+raw hashes retain the distinction. Limitations: delay semantics remain
+unresolved, and no new market observation, order, fill, or settlement is claimed.
+New requests for Workstream A: none. Tests completed: 176 deterministic tests;
+all three live artifacts verify; daily replay explicitly rejects both missing
+timing fields. See `docs/TAKER_REPLAY.md` for authoritative source links.
+
+Next coding target: bounded read-only timestamped-book recording with metadata
+gaps preserved; then temporal sensitivity analysis separating assumed latency
+from exchange timing supported by evidence. No live-order path is authorized.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

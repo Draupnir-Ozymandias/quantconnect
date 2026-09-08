@@ -1,4 +1,4 @@
-# Snapshot taker replay v1
+# Snapshot taker replay — result v2
 
 `execution_truth/taker_replay.py` provides
 `replay_taker_buy(raw_bundle, request, policy)`. It verifies and normalizes the
@@ -50,11 +50,44 @@ competing orders, cancellation, maker queues, hidden liquidity, latency paths,
 actual settlement, or profitability. Delay-enabled markets and nonzero order
 age constraints require a temporal model and are rejected here.
 
-The daily capture for market `4293892` omits CLOB `itode`. Market contract v2
-currently defaults that absence to false. Replay rechecks the raw response and
-returns `unknown_taker_delay_state`; absence cannot establish zero delay. The
-five-minute capture explicitly sets the flag true and also cannot support this
-immediate execution model. Existing raw observations and schemas are preserved.
+The daily capture for market `4293892` omits CLOB `itode` and `oas`. The
+five-minute capture explicitly enables delay but also omits `oas`. Market
+contract v3 preserves missing/null values as unknown; replay result v2 rejects
+unknown order age as well as unknown delay. Raw observations are unchanged.
+
+## Execution metadata contract (2026-09-08)
+
+The official [CLOB market-info reference](https://docs.polymarket.com/api-reference/markets/get-clob-market-info)
+describes `itode` as delay enablement and `oas` as minimum order age in integer
+seconds. It does not document omitted-field defaults or a delay duration for
+these crypto captures. The [order lifecycle](https://docs.polymarket.com/concepts/order-lifecycle)
+describes a sports-market delay; that is not evidence for crypto timing.
+Minimum order age is not treated as the matching-delay duration.
+
+Market contract v3 uses these rules:
+
+- `itode`, `acceptingOrders`, and `feesEnabled`: boolean or unknown (`null`).
+  Absent and explicit null both normalize to unknown; raw source hashes retain
+  that distinction. Strings, numbers, containers, and empty strings are errors.
+- `oas`: nonnegative integer seconds or unknown. No boolean coercion, numeric
+  string conversion, or fractional truncation is permitted.
+- Snapshot replay requires explicit accepting-orders true, delay false, and
+  order age zero. Fee enablement must also be known and consistent with the
+  captured curve. Unknown values produce hashed rejected results with no fills;
+  malformed source values raise `ContractError` before an estimate is produced.
+
+This supersedes market contract v2's false/zero defaults. Normalized bundle v2
+embeds market v3, and replay result v2 records the tightened semantics. Requests,
+policies, examples, raw bundles, and book structure retain their existing
+versions. Re-normalization changes derived contract/book/bundle hashes, not raw
+evidence hashes; the live inventory pins the new derived hashes. Old normalized
+contracts must be regenerated from raw evidence, not relabeled as v3.
+
+Next: a bounded read-only timestamped-book recorder, preserving metadata gaps
+and observation times. Temporal replay must distinguish assumed latency from
+verified exchange delay and must not infer the latter from missing fields or
+backfill an old capture with metadata observed later. Neither snapshot polling
+nor these guardrails establishes actual execution or settlement.
 
 ## Runnable examples
 
@@ -78,7 +111,8 @@ from the three captured artifacts under `evidence/polymarket/live/`.
 | Below ask | 100 shares | 0.49 | Unfilled | 0 |
 
 The live daily example returns four rejections with
-`unknown_taker_delay_state`. These are expected evidence-completeness results.
+`unknown_taker_delay_state` and `unknown_minimum_order_age`. These are expected
+evidence-completeness results.
 No artificial signal is attached to either example, and daily series 41
 remains incompatible with the current QCRL signal.
 

@@ -12,10 +12,10 @@
 | Campaign state | `qcrl.campaign_state.v1` | `qcrl_campaign.py` | runner, collector, validator, analyzers | ignored `.qcrl/` state |
 | Methodology | `qcrl.methodology.lookahead_free.v1` | runtime metadata | validators and analysts | embedded in report/record |
 | Synthesis specifications | type-specific `*.v1` schemas | human-authored JSON | `qcrl_synthesis.py`, specialized engines | version controlled |
-| Polymarket market contract | `qcrl.polymarket_market_contract.v2` | `execution_truth/contracts.py` | order-book normalization; future timing/replay layers | derived, content-addressed observation |
+| Polymarket market contract | `qcrl.polymarket_market_contract.v3` | `execution_truth/contracts.py` | order-book normalization; timing/replay layers | derived, content-addressed observation |
 | Polymarket order book | `qcrl.polymarket_order_book.v1` | `execution_truth/contracts.py` | future replay and shadow-decision layers | derived, content-addressed observation |
 | Polymarket raw bundle | `qcrl.polymarket_raw_bundle.v1` | `execution_truth/acquisition.py` | offline normalization and audit | content-addressed raw observation |
-| Polymarket normalized bundle | `qcrl.polymarket_normalized_bundle.v1` | `execution_truth/bundle.py` | future timing/replay layers | derived, content-addressed observation |
+| Polymarket normalized bundle | `qcrl.polymarket_normalized_bundle.v2` | `execution_truth/bundle.py` | timing/replay layers | derived, content-addressed observation |
 | Polymarket raw discovery | `qcrl.polymarket_raw_discovery.v1` | `execution_truth/acquisition.py` | discovery normalization and audit | content-addressed raw observation |
 | Polymarket discovery spec/result | `qcrl.polymarket_discovery_spec.v1` / `qcrl.polymarket_discovery_result.v1` | human declaration / `execution_truth/discovery.py` | market-contract acquisition and audit | versioned declaration / derived evidence |
 | Directional source contract/bar | `qcrl.directional_source_contract.v1` / `qcrl.directional_source_bar.v1` | human declaration / future data adapter | boundary signal materialization | versioned declaration / hashed observation |
@@ -23,7 +23,7 @@
 | Directional signal intent | `qcrl.directional_signal_intent.v2` | `execution_truth/signal_adapter.py` | market binding and replay | content-addressed decision input |
 | Polymarket binding policy/result | `qcrl.polymarket_binding_policy.v2` / `qcrl.polymarket_binding_result.v2` | human declaration / `execution_truth/binding.py` | replay and shadow-decision layers | versioned declaration / derived evidence |
 | Polymarket live evidence inventory | `qcrl.polymarket_live_evidence_inventory.v1` | deliberate operator promotion | regression tests and audit | version controlled |
-| Taker replay request/policy/result | `qcrl.taker_replay_request.v1` / `qcrl.taker_replay_policy.v1` / `qcrl.taker_replay_result.v1` | local declaration / `execution_truth/taker_replay.py` | offline mechanics audit | hashed result; output to stdout |
+| Taker replay request/policy/result | `qcrl.taker_replay_request.v1` / `qcrl.taker_replay_policy.v1` / `qcrl.taker_replay_result.v2` | local declaration / `execution_truth/taker_replay.py` | offline mechanics audit | hashed result; output to stdout |
 | Taker replay example | `qcrl.taker_replay_example.v1` | versioned JSON specification | `qcrl_execution_truth.py` | version controlled |
 
 The QCRL engine version and schema versions are different concerns. The clean
@@ -80,9 +80,13 @@ Replay consumes a complete raw bundle and revalidates it before choosing one
 token book. Requests name share quantity, cash budget, limit, FAK/FOK, and
 hypothetical timestamp. Policy fixes freshness bounds and depth/fee assumptions.
 Results include input hashes, per-level matches, cost estimates, rejection and
-no-fill reasons, and `strategy_eligibility_evaluated=false`. Raw metadata is
-rechecked where the v2 market normalizer supplies defaults. Missing `itode`
-therefore remains unknown for replay. See [TAKER_REPLAY.md](TAKER_REPLAY.md).
+no-fill reasons, and `strategy_eligibility_evaluated=false`. Market v3 replaces
+v2's execution-field defaults with explicit unknowns for missing/null `itode`,
+`oas`, `acceptingOrders`, and `feesEnabled`. Malformed values are errors, not
+coerced booleans or integers. Replay result v2 rejects unknown minimum order
+age as well as unknown delay. Normalized bundle v2 embeds market v3; derive it
+again from raw evidence rather than consuming old normalized contracts.
+See [TAKER_REPLAY.md](TAKER_REPLAY.md) for rules and migration boundaries.
 
 ## Research report contract
 

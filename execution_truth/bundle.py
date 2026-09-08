@@ -13,7 +13,7 @@ from .contracts import (
 from .discovery import verify_raw_discovery
 
 
-NORMALIZED_BUNDLE_SCHEMA = "qcrl.polymarket_normalized_bundle.v1"
+NORMALIZED_BUNDLE_SCHEMA = "qcrl.polymarket_normalized_bundle.v2"
 LIVE_INVENTORY_SCHEMA = "qcrl.polymarket_live_evidence_inventory.v1"
 
 

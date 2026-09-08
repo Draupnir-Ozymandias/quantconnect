@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 
 
-MARKET_CONTRACT_SCHEMA = "qcrl.polymarket_market_contract.v2"
+MARKET_CONTRACT_SCHEMA = "qcrl.polymarket_market_contract.v3"
 ORDER_BOOK_SCHEMA = "qcrl.polymarket_order_book.v1"
 
 GAMMA_MARKET_ENDPOINT = "https://gamma-api.polymarket.com/markets/{id}"
@@ -97,6 +97,23 @@ def _bool(mapping, key, context):
     value = _required(mapping, key, context)
     if not isinstance(value, bool):
         raise ContractError(f"{context}.{key} must be boolean")
+    return value
+
+
+def _optional_bool(mapping, key, context):
+    """Missing or null is unknown, never an implied disabled setting."""
+    if mapping.get(key) is None:
+        return None
+    return _bool(mapping, key, context)
+
+
+def _optional_order_age(mapping):
+    value = mapping.get("oas")
+    if value is None:
+        return None
+    # Do not truncate fractions or coerce booleans/numeric strings.
+    if type(value) is not int or value < 0:
+        raise ContractError("clob_market.oas must be a nonnegative integer or null")
     return value
 
 
@@ -205,7 +222,8 @@ def normalize_market_contract(gamma_payload, clob_payload, observed_at_utc):
             "order_book_enabled": _bool(
                 gamma_payload, "enableOrderBook", "gamma"
             ),
-            "accepting_orders": bool(gamma_payload.get("acceptingOrders", False)),
+            "accepting_orders": _optional_bool(gamma_payload, "acceptingOrders", "gamma"),
+            "fees_enabled": _optional_bool(gamma_payload, "feesEnabled", "gamma"),
         },
         "outcomes": gamma_outcomes,
         "constraints": {
@@ -237,8 +255,8 @@ def normalize_market_contract(gamma_payload, clob_payload, observed_at_utc):
                 ),
                 "taker_only": _bool(fee, "to", "clob_market.fd"),
             },
-            "taker_order_delay_enabled": bool(clob_payload.get("itode", False)),
-            "minimum_order_age_seconds": int(clob_payload.get("oas", 0)),
+            "taker_order_delay_enabled": _optional_bool(clob_payload, "itode", "clob_market"),
+            "minimum_order_age_seconds": _optional_order_age(clob_payload),
         },
         "sources": {
             "gamma": {
