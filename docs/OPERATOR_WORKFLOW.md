@@ -121,6 +121,18 @@ These commands print JSON without network access or file writes. The first
 demonstrates fills; the second demonstrates the live capture's missing delay
 metadata. See [TAKER_REPLAY.md](TAKER_REPLAY.md) for expected results.
 
+To evaluate declared latency assumptions against the promoted sequences:
+
+```bash
+./synch.sh evidence latency execution_truth/specs/latency_15m_live_20260909.json
+./synch.sh evidence latency execution_truth/specs/latency_daily_live_20260909.json
+```
+
+These commands are offline, deterministic, and read-only. `evaluated` means a
+suitable post-arrival observation was selected; inspect the nested mechanics
+status, which remains rejected when delay or minimum-age evidence is unknown or
+unsupported. See [LATENCY_SENSITIVITY.md](LATENCY_SENSITIVITY.md).
+
 ## Interpreting campaign state
 
 - `pending`: not submitted.

@@ -103,11 +103,11 @@ wallet settlement, or profitability. Exchange delay remains unknown unless
 contemporaneous authoritative evidence defines it. Temporal sensitivity models
 must label assumed latency separately from verified exchange behavior.
 
-## Next boundary
+## Sequence consumer
 
-The next implementation may consume a verified sequence to ask counterfactual
-questions such as “what displayed execution would remain after 1, 5, or 10
-seconds?” It must choose only an observation at or after the assumed arrival
-time, disclose polling uncertainty, and retain snapshot replay's mechanics-only
-label. It must not interpolate unseen books or convert an assumed latency into
-an execution claim.
+The implemented latency-sensitivity layer consumes a verified sequence to ask
+counterfactual questions such as “what displayed mechanics are observed after
+1, 5, or 10 seconds?” It chooses only an observation at or after assumed
+arrival, discloses polling uncertainty, and retains mechanics-only labeling. It
+does not interpolate unseen books or convert assumed latency into an execution
+claim. See [LATENCY_SENSITIVITY.md](LATENCY_SENSITIVITY.md).

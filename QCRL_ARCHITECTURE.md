@@ -2,7 +2,7 @@
 
 # QuantConnect Research Laboratory (QCRL)
 
-**Document revision:** 2026-09-08
+**Document revision:** 2026-09-09
 
 **Implemented engine versions:** 2.2.0 baseline; 2.3.0 directional; 2.4.0 temporal
 
@@ -419,7 +419,8 @@ itself, a production module.
 * Snapshot BUY/FAK/FOK mechanics with depth, fees, budgets, and timestamp checks (implemented)
 * Bounded full-bundle book-sequence capture and offline summary (implemented)
 * Exact public event/market slug resolution with ambiguity rejection (implemented)
-* Sequence-based latency sensitivity, settlement evidence, and reconciliation
+* Sequence-based assumed-latency sensitivity with polling gaps (implemented)
+* Repeated temporal evidence, settlement evidence, and reconciliation
 * Documentation-backed experiment and decision registry
 * Locked prospective 2026Q4 baseline (preservation only until window end)
 

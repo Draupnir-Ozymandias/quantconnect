@@ -198,9 +198,10 @@ API reference supplies no omitted-field default. A bounded read-only recorder
 now captures complete, independently timed market/book bundles and derives a
 hashed sequence summary without inferring missing intervals. See
 [BOOK_SEQUENCE.md](BOOK_SEQUENCE.md). Exact event/market slug resolution is
-also public, hashed, and fails on ambiguous multi-market events. Next, add
-sequence-based latency
-sensitivity that selects only observed books at or after hypothetical arrival
-and labels polling uncertainty. Settlement and
+also public, hashed, and fails on ambiguous multi-market events. Sequence-based
+latency sensitivity now selects only observed books at or after hypothetical
+arrival, reports polling uncertainty, and preserves snapshot replay's timing
+rejections. See [LATENCY_SENSITIVITY.md](LATENCY_SENSITIVITY.md). Repeated
+predeclared temporal observations, settlement, and
 signal-to-execution integration remain subsequent work. Any Binance
 noon-to-noon research lane requires a separate declaration.

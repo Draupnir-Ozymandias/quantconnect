@@ -2109,6 +2109,49 @@ compatibility or execution. New requests for Workstream A: none. Tests completed
 Next coding target remains sequence-based latency sensitivity after a small
 public integration capture from a currently open single-market event.
 
+## 2026-09-09 — Promoted temporal evidence and latency sensitivity
+
+Promoted two exact public slug resolutions and their bounded five-sample book
+sequences into the durable live evidence ledger. The 15-minute market is
+`4364938`, with normalized sequence hash
+`bf31ec40cc144879dc2cfd34a683d5f991aca78dd1989702dd2be8cb7d1310a9`;
+the daily market is `4338480`, with normalized sequence hash
+`2db13fc463dc78e266b17b66280d78cb15410e34af47b438ba7c505f83494604`.
+Inventory verification now covers seven content-addressed raw artifacts. The
+15-minute market uses a Chainlink BTC/USD 60-second TWAP and the daily market
+uses Binance BTC/USDT with a non-midnight-UTC window, so neither observation is
+silently treated as compatible with the frozen Coinbase daily research lane.
+
+Added deterministic sequence-based latency sensitivity. A versioned policy
+declares unique increasing integer latency assumptions and a maximum acceptable
+observation lag. For each hypothetical arrival, the engine selects only the
+first requested-token book observed at or after that arrival, preserves the
+prior observation and polling bracket, and runs the existing guarded taker
+mechanics on the selected observation. It never interpolates an unseen book or
+equates an assumed latency with measured exchange behavior. Both live examples
+exercise the selection path but their nested replays reject: the 15-minute
+market requires temporal delay handling and lacks minimum-order-age evidence;
+the daily market lacks both delay-state and minimum-order-age evidence.
+
+Files created: `execution_truth/latency_sensitivity.py`,
+`tests/test_latency_sensitivity.py`, `docs/LATENCY_SENSITIVITY.md`, two live
+latency specifications, and four promoted raw evidence artifacts. Files changed:
+execution package exports, evidence CLI, live inventory, schema/operator/book/
+execution documentation, architecture/status, and this record. Interface added:
+`evaluate_latency_sensitivity()` and `evidence latency`. Record fields consumed:
+raw sequence sample and per-book observation times, token IDs, and normalized
+market/replay fields. Assumptions introduced: declared latency is relative to
+the request decision time, and the first later observation is the only admissible
+proxy. Limitations: five polls do not estimate latency distributions, continuous
+liquidity, queue state, matching, fills, or settlement. New requests for
+Workstream A: none. Tests completed: 200 deterministic tests; all seven live
+artifacts verify; both live latency outputs are deterministic.
+
+Next coding target: collect repeated predeclared sequences across market phases,
+then add descriptive cross-sequence stability analysis without tuning the
+latency grid to these two small captures. No credentials or order path is
+authorized.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

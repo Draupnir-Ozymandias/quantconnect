@@ -25,6 +25,7 @@ from .discovery import (
 from .book_sequence import normalize_book_sequence
 from .binding import bind_signal_to_market
 from .taker_replay import replay_taker_buy
+from .latency_sensitivity import evaluate_latency_sensitivity
 from .signal_adapter import (
     materialize_boundary_signal,
     normalize_source_bar,
@@ -45,6 +46,7 @@ __all__ = [
     "verify_raw_slug_resolution",
     "bind_signal_to_market",
     "replay_taker_buy",
+    "evaluate_latency_sensitivity",
     "materialize_boundary_signal",
     "normalize_source_bar",
     "normalize_source_contract",

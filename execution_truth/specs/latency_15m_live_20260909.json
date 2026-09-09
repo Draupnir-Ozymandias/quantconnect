@@ -1,0 +1,28 @@
+{
+  "latency_policy": {
+    "latencies_seconds": [0, 1, 5, 10, 15, 20],
+    "max_observation_lag_seconds": 6,
+    "schema_version": "qcrl.latency_sensitivity_policy.v1",
+    "selection_rule": "first_selected_book_observed_at_or_after_arrival"
+  },
+  "raw_sequence_path": "../../evidence/polymarket/live/raw/sequence-market-4364938-af03a8ff918c4b77247e903692330a2c7363a3a352672897105e6b1a92e9b6b6.json",
+  "replay_policy": {
+    "depth_assumption": "frozen_snapshot",
+    "fee_model": "cash_equivalent_per_level_half_up_5dp",
+    "max_book_age_seconds": 5,
+    "max_exchange_age_seconds": 5,
+    "max_market_age_seconds": 5,
+    "schema_version": "qcrl.taker_replay_policy.v1"
+  },
+  "request": {
+    "cash_budget": "1000",
+    "hypothetical_at_utc": "2026-09-09T14:38:46.595408Z",
+    "limit_price": "0.99",
+    "schema_version": "qcrl.taker_replay_request.v1",
+    "shares": "10",
+    "side": "BUY",
+    "time_in_force": "FAK",
+    "token_id": "106116934173134213013626613535671900201662004288750090813609326975001152667341"
+  },
+  "schema_version": "qcrl.latency_sensitivity_example.v1"
+}

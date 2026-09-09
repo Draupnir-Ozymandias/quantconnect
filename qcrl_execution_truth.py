@@ -6,6 +6,7 @@ from pathlib import Path
 
 from execution_truth import (
     PublicPolymarketAcquirer,
+    evaluate_latency_sensitivity,
     normalize_bundle,
     normalize_book_sequence,
     promote_raw_evidence,
@@ -100,6 +101,19 @@ def replay(args):
     print(json.dumps(results, indent=2, sort_keys=True))
 
 
+def latency(args):
+    spec_path = Path(args.spec).resolve()
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    if spec.get("schema_version") != "qcrl.latency_sensitivity_example.v1":
+        raise ValueError("unsupported latency sensitivity example schema")
+    raw_path = spec_path.parent / spec["raw_sequence_path"]
+    raw = json.loads(raw_path.read_text(encoding="utf-8"))
+    result = evaluate_latency_sensitivity(
+        raw, spec["request"], spec["replay_policy"], spec["latency_policy"]
+    )
+    print(json.dumps(result, indent=2, sort_keys=True))
+
+
 def build_parser():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -146,6 +160,12 @@ def build_parser():
     replay_parser = commands.add_parser("replay", help="Replay local snapshot mechanics; no network")
     replay_parser.add_argument("spec")
     replay_parser.set_defaults(handler=replay)
+
+    latency_parser = commands.add_parser(
+        "latency", help="Evaluate assumed latency against observed sequence books"
+    )
+    latency_parser.add_argument("spec")
+    latency_parser.set_defaults(handler=latency)
     return parser
 
 

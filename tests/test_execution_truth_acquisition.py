@@ -125,7 +125,7 @@ class ExecutionTruthAcquisitionTests(unittest.TestCase):
             ))
 
     def test_checked_in_live_evidence_inventory_replays(self):
-        self.assertEqual(3, verify_live_evidence_inventory(LIVE_EVIDENCE))
+        self.assertEqual(7, verify_live_evidence_inventory(LIVE_EVIDENCE))
 
 
 if __name__ == "__main__":

@@ -27,6 +27,7 @@
 | Polymarket live evidence inventory | `qcrl.polymarket_live_evidence_inventory.v1` | deliberate operator promotion | regression tests and audit | version controlled |
 | Taker replay request/policy/result | `qcrl.taker_replay_request.v1` / `qcrl.taker_replay_policy.v1` / `qcrl.taker_replay_result.v2` | local declaration / `execution_truth/taker_replay.py` | offline mechanics audit | hashed result; output to stdout |
 | Taker replay example | `qcrl.taker_replay_example.v1` | versioned JSON specification | `qcrl_execution_truth.py` | version controlled |
+| Latency sensitivity policy/result/example | `qcrl.latency_sensitivity_policy.v1` / `qcrl.latency_sensitivity_result.v1` / `qcrl.latency_sensitivity_example.v1` | versioned declaration / `execution_truth/latency_sensitivity.py` | execution-truth audit | declaration versioned; result printed and hashed |
 
 The QCRL engine version and schema versions are different concerns. The clean
 baseline pins engine 2.2.0, most directional campaigns pin 2.3.0, and temporal
@@ -96,6 +97,15 @@ summary requires stable market/outcome identity and strictly increasing sample
 acquisition times, while allowing state, constraints, and books to change.
 Bounds are 2–120 samples, integer 1–60 second sleeps, and no more than one hour
 of scheduled pauses. See [BOOK_SEQUENCE.md](BOOK_SEQUENCE.md).
+
+Latency sensitivity treats the taker request's hypothetical timestamp as its
+decision reference, adds declared integer delays, and selects only the first
+requested-token book observed at or after each arrival. It reports post-arrival
+observation lag and polling bracket, applies a maximum lag, and delegates
+mechanics to fail-closed taker replay at the selected observation time. It never
+interpolates or carries a prior book forward. An evaluated row may contain a
+rejected mechanics result. See
+[LATENCY_SENSITIVITY.md](LATENCY_SENSITIVITY.md).
 
 Slug resolution is an exact, hashed lookup rather than semantic discovery.
 Event and market slugs use their distinct official Gamma endpoints. An event

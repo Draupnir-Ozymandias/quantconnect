@@ -1,6 +1,6 @@
 # QCRL Project Status
 
-**As of:** 2026-09-08
+**As of:** 2026-09-09
 **Repository:** `Draupnir-Ozymandias/quantconnect` / `polymarket-martingale`  
 **QuantConnect project:** 33239307  
 **Current research decision:** Hold feature optimization; preserve the locked
@@ -36,9 +36,9 @@ evidence.
 | Normalized record schema | `qcrl.experiment_record.v5` |
 | Campaign manifest/state | `qcrl.campaign.v1` / `qcrl.campaign_state.v1` |
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
-| Execution-truth schemas | market v3; normalized bundle, signal intent, binding, and replay result v2; source, source bar, signal decision, book, raw bundle, raw/normalized book sequence, raw slug resolution, discovery, and live inventory v1 |
+| Execution-truth schemas | market v3; normalized bundle, signal intent, binding, and replay result v2; source, source bar, signal decision, book, raw bundle, raw/normalized book sequence, raw slug resolution, discovery, live inventory, and latency policy/result v1 |
 | Snapshot taker replay | result v2; request / policy / example v1; mechanics-only |
-| Test suite | 192 deterministic tests passing |
+| Test suite | 200 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
@@ -287,9 +287,10 @@ weak explanations and dangerous sizing have been rejected before deployment.
 ## Known Gaps and Risks
 
 1. Public Polymarket series/event discovery, market metadata, and order books
-   can now be acquired, promoted, inventoried, and replayed. Three live raw
-   artifacts are durable Git evidence. No trade, fill, or settlement data is
-   ingested.
+   can now be acquired, promoted, inventoried, and replayed. Seven live raw
+   artifacts are durable Git evidence, including 15-minute and daily slug
+   resolutions and five-sample sequences. No trade, fill, or settlement data
+   is ingested.
 2. Snapshot BUY/FAK/FOK replay now estimates entry prices, depth consumption,
    fees, partial fills, and no fills. Actual matches, temporal liquidity,
    latency paths, and wallet settlement remain unmodeled. The daily capture
@@ -304,14 +305,18 @@ weak explanations and dangerous sizing have been rejected before deployment.
    bundles, with independently timed metadata and both books. It remains a
    polling record—not continuous liquidity, delay, fill, or settlement evidence.
    Exact event/market slug resolution is hashed; ambiguous events are rejected.
-5. QCRL uses its own synthetic bankroll and submits no LEAN portfolio orders;
+5. Sequence-based latency sensitivity now maps declared hypothetical arrival
+   times to the first observed book at or after arrival and exposes the polling
+   bracket and observation lag. The two promoted sequences contain only five
+   samples each, so they support mechanics auditing, not latency calibration.
+6. QCRL uses its own synthetic bankroll and submits no LEAN portfolio orders;
    standard LEAN portfolio statistics are not strategy objectives here.
-6. Polymarket is not implemented as a LEAN brokerage or execution adapter.
-7. Manual defaults still select EMA 5/10 and QCRL 2.3.0, while the current
+7. Polymarket is not implemented as a LEAN brokerage or execution adapter.
+8. Manual defaults still select EMA 5/10 and QCRL 2.3.0, while the current
    candidate is unfiltered and temporal manifests use 2.4.0.
-8. The estimated 8.43% friction capacity assumes constant cost per wager and
+9. The estimated 8.43% friction capacity assumes constant cost per wager and
    cannot be translated directly into expected Polymarket profitability.
-9. The 2026Q4 prospective sample is future evidence and must not be run
+10. The 2026Q4 prospective sample is future evidence and must not be run
    partially or modified after its October 1 start.
 
 ## Current Guardrails
@@ -334,9 +339,9 @@ Daily series `41` exists but is incompatible with the current signal because
 its Binance BTC/USDT feed, noon-Eastern anchor, and tie settlement differ.
 Remaining work is:
 
-1. Add sequence-based latency sensitivity using only observed books at or after
-   hypothetical arrival. Preserve polling uncertainty and keep assumed latency
-   separate from exchange timing supported by evidence.
+1. Collect repeated, predeclared read-only sequences across market phases before
+   analyzing spread, depth, displacement, and polling-gap stability. Do not tune
+   latency assumptions against the two existing five-sample captures.
 2. Decide whether to authorize a separate Binance noon-to-noon research lane;
    do not retrofit the historical Coinbase evidence.
 3. Add settlement evidence and reconciliation.
@@ -357,6 +362,7 @@ The Q4 evidence lane and execution-infrastructure lane must remain independent.
 - `docs/SCHEMA_CONTRACTS.md` — producer/consumer compatibility contracts
 - `docs/EXECUTION_TRUTH.md` — Polymarket observation boundary and invariants
 - `docs/BOOK_SEQUENCE.md` — bounded book-sequence capture and evidence meaning
+- `docs/LATENCY_SENSITIVITY.md` — observed-book latency selection and limits
 - `docs/OPERATOR_WORKFLOW.md` — exact Git, GitHub, QuantConnect, and campaign flow
 - `campaigns/` — immutable experiment declarations
 - `syntheses/` — versioned cross-campaign analysis declarations
