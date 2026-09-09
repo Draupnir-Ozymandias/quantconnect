@@ -420,7 +420,8 @@ itself, a production module.
 * Bounded full-bundle book-sequence capture and offline summary (implemented)
 * Exact public event/market slug resolution with ambiguity rejection (implemented)
 * Sequence-based assumed-latency sensitivity with polling gaps (implemented)
-* Repeated temporal evidence, settlement evidence, and reconciliation
+* Predeclared early/middle/late capture protocol with resumable state (implemented)
+* Cross-sequence temporal description, settlement evidence, and reconciliation
 * Documentation-backed experiment and decision registry
 * Locked prospective 2026Q4 baseline (preservation only until window end)
 

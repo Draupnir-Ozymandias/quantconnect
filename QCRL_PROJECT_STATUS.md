@@ -36,9 +36,9 @@ evidence.
 | Normalized record schema | `qcrl.experiment_record.v5` |
 | Campaign manifest/state | `qcrl.campaign.v1` / `qcrl.campaign_state.v1` |
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
-| Execution-truth schemas | market v3; normalized bundle, signal intent, binding, and replay result v2; source, source bar, signal decision, book, raw bundle, raw/normalized book sequence, raw slug resolution, discovery, live inventory, and latency policy/result v1 |
+| Execution-truth schemas | market v3; normalized bundle, signal intent, binding, and replay result v2; source, source bar, signal decision, book, raw bundle, raw/normalized book sequence, raw slug resolution, discovery, live inventory, latency policy/result, and phase-capture protocol/state/status v1 |
 | Snapshot taker replay | result v2; request / policy / example v1; mechanics-only |
-| Test suite | 200 deterministic tests passing |
+| Test suite | 207 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
@@ -309,14 +309,17 @@ weak explanations and dangerous sizing have been rejected before deployment.
    times to the first observed book at or after arrival and exposes the polling
    bracket and observation lag. The two promoted sequences contain only five
    samples each, so they support mechanics auditing, not latency calibration.
-6. QCRL uses its own synthetic bankroll and submits no LEAN portfolio orders;
+6. The first predeclared phase protocol locks early, middle, and late sequences
+   for the September 11 daily market. It is an upcoming one-market compatibility
+   audit; no phase evidence exists until the declared captures complete.
+7. QCRL uses its own synthetic bankroll and submits no LEAN portfolio orders;
    standard LEAN portfolio statistics are not strategy objectives here.
-7. Polymarket is not implemented as a LEAN brokerage or execution adapter.
-8. Manual defaults still select EMA 5/10 and QCRL 2.3.0, while the current
+8. Polymarket is not implemented as a LEAN brokerage or execution adapter.
+9. Manual defaults still select EMA 5/10 and QCRL 2.3.0, while the current
    candidate is unfiltered and temporal manifests use 2.4.0.
-9. The estimated 8.43% friction capacity assumes constant cost per wager and
+10. The estimated 8.43% friction capacity assumes constant cost per wager and
    cannot be translated directly into expected Polymarket profitability.
-10. The 2026Q4 prospective sample is future evidence and must not be run
+11. The 2026Q4 prospective sample is future evidence and must not be run
    partially or modified after its October 1 start.
 
 ## Current Guardrails
@@ -339,14 +342,16 @@ Daily series `41` exists but is incompatible with the current signal because
 its Binance BTC/USDT feed, noon-Eastern anchor, and tie settlement differ.
 Remaining work is:
 
-1. Collect repeated, predeclared read-only sequences across market phases before
-   analyzing spread, depth, displacement, and polling-gap stability. Do not tune
-   latency assumptions against the two existing five-sample captures.
-2. Decide whether to authorize a separate Binance noon-to-noon research lane;
+1. Complete the locked September 11 early/middle/late public capture protocol.
+   Preserve missed phases as missing evidence and do not retime the declaration.
+2. After complete phase evidence exists, add descriptive spread, depth,
+   displacement, and polling-gap comparisons. Do not tune latency assumptions
+   against the existing small captures.
+3. Decide whether to authorize a separate Binance noon-to-noon research lane;
    do not retrofit the historical Coinbase evidence.
-3. Add settlement evidence and reconciliation.
-4. Connect the boundary adapter to a read-only live data process.
-5. Add shadow decisions before any authenticated order path.
+4. Add settlement evidence and reconciliation.
+5. Connect the boundary adapter to a read-only live data process.
+6. Add shadow decisions before any authenticated order path.
 
 The Q4 evidence lane and execution-infrastructure lane must remain independent.
 
@@ -363,6 +368,7 @@ The Q4 evidence lane and execution-infrastructure lane must remain independent.
 - `docs/EXECUTION_TRUTH.md` — Polymarket observation boundary and invariants
 - `docs/BOOK_SEQUENCE.md` — bounded book-sequence capture and evidence meaning
 - `docs/LATENCY_SENSITIVITY.md` — observed-book latency selection and limits
+- `docs/CAPTURE_PROTOCOL.md` — locked phase timing and resumable capture state
 - `docs/OPERATOR_WORKFLOW.md` — exact Git, GitHub, QuantConnect, and campaign flow
 - `campaigns/` — immutable experiment declarations
 - `syntheses/` — versioned cross-campaign analysis declarations

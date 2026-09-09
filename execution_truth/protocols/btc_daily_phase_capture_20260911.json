@@ -1,0 +1,46 @@
+{
+  "schema_version": "qcrl.book_sequence_capture_protocol.v1",
+  "protocol_id": "btc-daily-phase-capture-20260911-v1",
+  "locked_at_utc": "2026-09-09T15:25:00Z",
+  "evidence_role": "daily_temporal_liquidity_compatibility_audit",
+  "market": {
+    "slug": "bitcoin-up-or-down-on-september-11-2026",
+    "reference_kind": "market",
+    "event_start_at_utc": "2026-09-10T16:00:00Z",
+    "event_end_at_utc": "2026-09-11T16:00:00Z",
+    "resolution_source": "https://www.binance.com/en/trade/BTC_USDT",
+    "research_compatibility": "incompatible_with_coinbase_midnight_utc_qcrl_signal"
+  },
+  "captures": [
+    {
+      "capture_id": "early",
+      "phase": "early",
+      "scheduled_at_utc": "2026-09-10T17:00:00Z",
+      "start_tolerance_seconds": 600,
+      "samples": 12,
+      "interval_seconds": 5
+    },
+    {
+      "capture_id": "middle",
+      "phase": "middle",
+      "scheduled_at_utc": "2026-09-11T04:00:00Z",
+      "start_tolerance_seconds": 600,
+      "samples": 12,
+      "interval_seconds": 5
+    },
+    {
+      "capture_id": "late",
+      "phase": "late",
+      "scheduled_at_utc": "2026-09-11T15:00:00Z",
+      "start_tolerance_seconds": 600,
+      "samples": 12,
+      "interval_seconds": 5
+    }
+  ],
+  "limitations": [
+    "each sequence is discrete public polling rather than continuous liquidity",
+    "three within-market phases from one daily market do not establish cross-market stability",
+    "Binance noon-Eastern resolution is incompatible with the Coinbase midnight-UTC QCRL signal",
+    "no queue position, latency distribution, fill, settlement, or profitability is established"
+  ]
+}

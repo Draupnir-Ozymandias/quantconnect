@@ -111,3 +111,8 @@ counterfactual questions such as “what displayed mechanics are observed after
 arrival, discloses polling uncertainty, and retains mechanics-only labeling. It
 does not interpolate unseen books or convert assumed latency into an execution
 claim. See [LATENCY_SENSITIVITY.md](LATENCY_SENSITIVITY.md).
+
+For repeated evidence, the capture-protocol layer locks exact early, middle,
+and late start windows before observation, rejects missed or retimed phases,
+and records resumable local state. See
+[CAPTURE_PROTOCOL.md](CAPTURE_PROTOCOL.md).

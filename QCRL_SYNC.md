@@ -2152,6 +2152,51 @@ then add descriptive cross-sequence stability analysis without tuning the
 latency grid to these two small captures. No credentials or order path is
 authorized.
 
+## 2026-09-09 — Predeclared market-phase capture protocol
+
+Added a versioned early/middle/late capture protocol so temporal evidence is no
+longer selected at convenient post-hoc times. Protocol v1 binds one exact slug,
+event window, resolution source, evidence role, lock time, and three ordered
+phase captures. Each capture has an exact UTC start, bounded start tolerance,
+sample count, and interval. Phase labels must fall in their corresponding third
+of the market window, and the complete allowed schedule must end before market
+close. A missed capture is reported as `missed` and cannot be retimed under the
+same protocol.
+
+Local state v1 is hashed and bound to the exact protocol hash. Execution is
+explicit per phase and first re-resolves the market slug. Event start, end, and
+resolution source must exactly match the locked declaration before any sequence
+requests. Only a complete sequence stores the contemporaneous resolution and
+sequence and atomically records their paths and raw/normalized hashes. Status
+and dry-run commands make no network requests; `--execute` is required for the
+bounded public acquisition. Nothing is promoted automatically.
+
+The first locked protocol targets the September 11, 2026 daily BTC market. It
+declares 12 five-second samples at 17:00 UTC September 10, 04:00 UTC September
+11, and 15:00 UTC September 11, each with a ten-minute start tolerance. This is
+a Binance noon-Eastern compatibility audit and remains incompatible with the
+frozen Coinbase midnight-UTC QCRL signal. It is one-market evidence, not a
+cross-market stability sample.
+
+Files created: `execution_truth/capture_protocol.py`,
+`tests/test_capture_protocol.py`, `docs/CAPTURE_PROTOCOL.md`, and
+`execution_truth/protocols/btc_daily_phase_capture_20260911.json`. Files changed:
+execution package exports, evidence CLI, schema/book/operator/execution docs,
+architecture/status/map, and this record. Interfaces added:
+`validate_capture_protocol()`, `capture_protocol_status()`,
+`execute_protocol_capture()`, `protocol-status`, and `protocol-capture`. Record
+fields consumed: exact slug kind, event bounds, resolution source, phase start,
+tolerance, sample count, and polling interval. Assumptions introduced: thirds of
+the market duration define early/middle/late; a ten-minute operator window is
+acceptable for the locked daily audit. Limitations: no waiting daemon, retries,
+automatic promotion, continuous book, cross-market inference, queue, fill, or
+settlement. New requests for Workstream A: none. Tests completed: 207
+deterministic tests; the protocol status and dry run contact no public endpoint.
+
+Next target: complete the three declared captures. Only then add descriptive
+cross-sequence spread, depth, displacement, metadata, and polling-gap analysis,
+with missing phases retained rather than imputed.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

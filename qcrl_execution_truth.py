@@ -6,7 +6,10 @@ from pathlib import Path
 
 from execution_truth import (
     PublicPolymarketAcquirer,
+    capture_protocol_status,
     evaluate_latency_sensitivity,
+    execute_protocol_capture,
+    load_capture_state,
     normalize_bundle,
     normalize_book_sequence,
     promote_raw_evidence,
@@ -23,6 +26,7 @@ PROJECT_DIR = Path(__file__).resolve().parent
 LOCAL_RAW_DIR = PROJECT_DIR / ".qcrl" / "execution_truth" / "raw"
 DURABLE_DIR = PROJECT_DIR / "evidence" / "polymarket" / "live"
 DURABLE_RAW_DIR = DURABLE_DIR / "raw"
+PROTOCOL_STATE_DIR = PROJECT_DIR / ".qcrl" / "execution_truth" / "capture_protocols"
 
 
 def capture_discovery(args):
@@ -114,6 +118,38 @@ def latency(args):
     print(json.dumps(result, indent=2, sort_keys=True))
 
 
+def _protocol_inputs(spec_value):
+    spec_path = Path(spec_value).resolve()
+    protocol = json.loads(spec_path.read_text(encoding="utf-8"))
+    state_path = PROTOCOL_STATE_DIR / protocol.get("protocol_id", "invalid") / "state.json"
+    return protocol, state_path
+
+
+def protocol_status(args):
+    protocol, state_path = _protocol_inputs(args.spec)
+    state = load_capture_state(protocol, state_path)
+    result = capture_protocol_status(protocol, state)
+    print(json.dumps(result, indent=2, sort_keys=True))
+
+
+def protocol_capture(args):
+    protocol, state_path = _protocol_inputs(args.spec)
+    state = load_capture_state(protocol, state_path)
+    status = capture_protocol_status(protocol, state)
+    selected = next((item for item in status["captures"]
+                     if item["capture_id"] == args.capture_id), None)
+    if selected is None:
+        raise ValueError(f"capture_id is not declared: {args.capture_id}")
+    if not args.execute:
+        print(json.dumps(selected, indent=2, sort_keys=True))
+        print("Dry run only. No public requests made; add --execute to capture.")
+        return
+    result = execute_protocol_capture(
+        protocol, args.capture_id, LOCAL_RAW_DIR, state_path
+    )
+    print(json.dumps(result, indent=2, sort_keys=True))
+
+
 def build_parser():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -166,6 +202,20 @@ def build_parser():
     )
     latency_parser.add_argument("spec")
     latency_parser.set_defaults(handler=latency)
+
+    protocol_status_parser = commands.add_parser(
+        "protocol-status", help="Inspect a predeclared sequence-capture protocol"
+    )
+    protocol_status_parser.add_argument("spec")
+    protocol_status_parser.set_defaults(handler=protocol_status)
+
+    protocol_capture_parser = commands.add_parser(
+        "protocol-capture", help="Run one eligible predeclared public capture"
+    )
+    protocol_capture_parser.add_argument("spec")
+    protocol_capture_parser.add_argument("capture_id")
+    protocol_capture_parser.add_argument("--execute", action="store_true")
+    protocol_capture_parser.set_defaults(handler=protocol_capture)
     return parser
 
 

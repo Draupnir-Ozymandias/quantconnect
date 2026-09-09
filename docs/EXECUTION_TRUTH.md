@@ -201,7 +201,9 @@ hashed sequence summary without inferring missing intervals. See
 also public, hashed, and fails on ambiguous multi-market events. Sequence-based
 latency sensitivity now selects only observed books at or after hypothetical
 arrival, reports polling uncertainty, and preserves snapshot replay's timing
-rejections. See [LATENCY_SENSITIVITY.md](LATENCY_SENSITIVITY.md). Repeated
-predeclared temporal observations, settlement, and
-signal-to-execution integration remain subsequent work. Any Binance
-noon-to-noon research lane requires a separate declaration.
+rejections. See [LATENCY_SENSITIVITY.md](LATENCY_SENSITIVITY.md). A versioned
+capture protocol now locks one sequence in each third of an exact market
+window, records only complete acquisitions, and marks missed windows without
+retiming them. See [CAPTURE_PROTOCOL.md](CAPTURE_PROTOCOL.md). Cross-sequence
+description, settlement, and signal-to-execution integration remain subsequent
+work. Any Binance noon-to-noon research lane requires a separate declaration.

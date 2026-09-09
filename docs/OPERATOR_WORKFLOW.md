@@ -133,6 +133,26 @@ suitable post-arrival observation was selected; inspect the nested mechanics
 status, which remains rejected when delay or minimum-age evidence is unknown or
 unsupported. See [LATENCY_SENSITIVITY.md](LATENCY_SENSITIVITY.md).
 
+To operate a locked early/middle/late sequence protocol, first inspect its
+current eligibility without networking:
+
+```bash
+./synch.sh evidence protocol-status \
+  execution_truth/protocols/btc_daily_phase_capture_20260911.json
+```
+
+Then run the named phase inside its declared ten-minute start window:
+
+```bash
+./synch.sh evidence protocol-capture \
+  execution_truth/protocols/btc_daily_phase_capture_20260911.json early --execute
+```
+
+Omitting `--execute` is a dry run. The command never waits for a future window
+and never retimes a missed phase. Repeat with `middle` and `late` only at their
+declared times. Outputs remain ignored local evidence until inspected, promoted,
+and inventoried deliberately. See [CAPTURE_PROTOCOL.md](CAPTURE_PROTOCOL.md).
+
 ## Interpreting campaign state
 
 - `pending`: not submitted.

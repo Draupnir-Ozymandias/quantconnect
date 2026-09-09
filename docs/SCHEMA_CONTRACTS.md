@@ -1,6 +1,6 @@
 # QCRL Schema Contracts
 
-**As of:** 2026-09-08
+**As of:** 2026-09-09
 
 ## Contract matrix
 
@@ -28,6 +28,7 @@
 | Taker replay request/policy/result | `qcrl.taker_replay_request.v1` / `qcrl.taker_replay_policy.v1` / `qcrl.taker_replay_result.v2` | local declaration / `execution_truth/taker_replay.py` | offline mechanics audit | hashed result; output to stdout |
 | Taker replay example | `qcrl.taker_replay_example.v1` | versioned JSON specification | `qcrl_execution_truth.py` | version controlled |
 | Latency sensitivity policy/result/example | `qcrl.latency_sensitivity_policy.v1` / `qcrl.latency_sensitivity_result.v1` / `qcrl.latency_sensitivity_example.v1` | versioned declaration / `execution_truth/latency_sensitivity.py` | execution-truth audit | declaration versioned; result printed and hashed |
+| Book-sequence capture protocol/state/status | `qcrl.book_sequence_capture_protocol.v1` / `qcrl.book_sequence_capture_state.v1` / `qcrl.book_sequence_capture_status.v1` | versioned declaration / `execution_truth/capture_protocol.py` | bounded public sequence acquisition | protocol versioned; state ignored; status derived |
 
 The QCRL engine version and schema versions are different concerns. The clean
 baseline pins engine 2.2.0, most directional campaigns pin 2.3.0, and temporal
@@ -113,6 +114,14 @@ must contain exactly one market; multi-market selection is rejected. The
 artifact preserves the requested slug, reference kind, endpoint response,
 observation time, payload hash, and resolved numeric market ID. It does not
 assert source/timeframe compatibility or strategy eligibility.
+
+A capture protocol locks one exact market and one early, middle, and late
+sequence before observation. Each phase has an exact start, bounded tolerance,
+and existing finite sequence limits. Status distinguishes `not_open`,
+`eligible`, `missed`, and `collected`; it never retimes a missed phase. Local
+state is hashed and bound to the exact protocol hash. Execution re-resolves the
+slug and requires exact event-window and resolution-source agreement before
+book polling. See [CAPTURE_PROTOCOL.md](CAPTURE_PROTOCOL.md).
 
 ## Research report contract
 

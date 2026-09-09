@@ -26,6 +26,12 @@ from .book_sequence import normalize_book_sequence
 from .binding import bind_signal_to_market
 from .taker_replay import replay_taker_buy
 from .latency_sensitivity import evaluate_latency_sensitivity
+from .capture_protocol import (
+    capture_protocol_status,
+    execute_protocol_capture,
+    load_capture_state,
+    validate_capture_protocol,
+)
 from .signal_adapter import (
     materialize_boundary_signal,
     normalize_source_bar,
@@ -47,6 +53,10 @@ __all__ = [
     "bind_signal_to_market",
     "replay_taker_buy",
     "evaluate_latency_sensitivity",
+    "capture_protocol_status",
+    "execute_protocol_capture",
+    "load_capture_state",
+    "validate_capture_protocol",
     "materialize_boundary_signal",
     "normalize_source_bar",
     "normalize_source_contract",

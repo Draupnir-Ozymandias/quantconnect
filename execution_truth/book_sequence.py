@@ -15,7 +15,7 @@ MAX_INTERVAL_SECONDS = 60
 MAX_SCHEDULE_SECONDS = 3600
 
 
-def _limits(sample_count, interval_seconds):
+def validate_sequence_limits(sample_count, interval_seconds):
     if type(sample_count) is not int or not 2 <= sample_count <= MAX_SAMPLES:
         raise AcquisitionError(f"sample_count must be an integer from 2 to {MAX_SAMPLES}")
     if type(interval_seconds) is not int or not 1 <= interval_seconds <= MAX_INTERVAL_SECONDS:
@@ -28,7 +28,7 @@ def _limits(sample_count, interval_seconds):
 
 def acquire_book_sequence(acquirer, market_id, sample_count, interval_seconds, sleeper=None):
     """Capture a finite sequence of complete public market bundles."""
-    _limits(sample_count, interval_seconds)
+    validate_sequence_limits(sample_count, interval_seconds)
     market_id = str(market_id).strip()
     if not market_id or not market_id.isdigit():
         raise AcquisitionError("market_id must be numeric")
@@ -72,7 +72,7 @@ def normalize_book_sequence(raw_sequence):
     count = raw_sequence.get("requested_sample_count")
     interval = raw_sequence.get("requested_interval_seconds")
     try:
-        _limits(count, interval)
+        validate_sequence_limits(count, interval)
     except AcquisitionError as exc:
         raise ContractError(str(exc)) from exc
     market_id = str(raw_sequence.get("market_id_requested") or "").strip()
