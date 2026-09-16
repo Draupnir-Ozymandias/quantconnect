@@ -76,3 +76,24 @@ followed by descriptive stability of spreads, depth, price displacement, and
 polling gaps. Actual fills require authenticated shadow or minimal-risk execution
 evidence under a separately authorized operating policy; they cannot be derived
 from public books alone.
+
+## September 15 phase application
+
+The unchanged `[0, 1, 5, 10, 15, 20]` second grid and six-second maximum
+observation lag are declared separately for the promoted early, middle, and late
+sequences:
+
+```bash
+./synch.sh evidence latency execution_truth/specs/latency_daily_20260915_early.json
+./synch.sh evidence latency execution_truth/specs/latency_daily_20260915_middle.json
+./synch.sh evidence latency execution_truth/specs/latency_daily_20260915_late.json
+```
+
+Their deterministic result hashes are respectively
+`d861eba79e941b5ee77c300237d7ffb5fea437ebfab69fa900958811404cc98b`,
+`56e3ffb50c980f952934e65d0a792f4ebb9f4fae1fc91328390e08314bf37b0c`,
+and `c074674d450594692519aa27eca92bb07017cbed960630a7e4026b64ec477e08`.
+All six rows in every phase select an observed book within policy, but nested
+mechanics reject both unknown taker-delay state and unknown minimum order age.
+The displayed Up asks are `0.58`, `0.21`, and `0.001` across early, middle, and
+late; those are phase observations, not measured latency effects.

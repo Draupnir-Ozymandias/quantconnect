@@ -421,7 +421,10 @@ itself, a production module.
 * Exact public event/market slug resolution with ambiguity rejection (implemented)
 * Sequence-based assumed-latency sensitivity with polling gaps (implemented)
 * Predeclared early/middle/late capture protocol with resumable state (implemented)
-* Cross-sequence temporal description, settlement evidence, and reconciliation
+* Within-market phase stability description (implemented)
+* Fixed-grid phase latency replay (implemented; mechanics reject unknown timing metadata)
+* Prospectively locked multi-date BTC capture cohort (in collection)
+* Cross-market temporal aggregation, settlement evidence, and reconciliation
 * Documentation-backed experiment and decision registry
 * Locked prospective 2026Q4 baseline (preservation only until window end)
 

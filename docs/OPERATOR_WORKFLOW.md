@@ -164,6 +164,19 @@ run the offline descriptive comparison:
 The analyzer rejects missing phases and never imputes absent book sides. See
 [PHASE_STABILITY.md](PHASE_STABILITY.md).
 
+The unchanged latency grid can be replayed over each September 15 phase with:
+
+```bash
+for phase in early middle late; do
+  ./synch.sh evidence latency \
+    "execution_truth/specs/latency_daily_20260915_${phase}.json"
+done
+```
+
+The next BTC cohort is locked in the September 18, 20, and 22 protocol files.
+Operate each named phase only in its declared window; automation does not relax
+the protocol's independent timing and market-term checks.
+
 ## Interpreting campaign state
 
 - `pending`: not submitted.

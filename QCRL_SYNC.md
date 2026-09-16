@@ -2224,6 +2224,42 @@ offline. Next coding target: repeat the locked protocol across independent
 markets before any cross-market claim,
 then apply the fixed latency grid per phase without tuning it to these captures.
 
+## 2026-09-16 — Fixed-grid phase latency and multi-date BTC locks
+
+Reconciled the phase-capture record: September 11 collected early and missed
+middle/late; September 13 collected early/late and missed middle; September 15
+is the first complete promoted early/middle/late market. Missing phases remain
+missing and were not retimed or imputed.
+
+Applied the existing `[0, 1, 5, 10, 15, 20]` second latency grid and six-second
+maximum observation lag independently to all three September 15 sequences. All
+eighteen rows selected an observed book within policy, while every nested replay
+rejected `unknown_taker_delay_state` and `unknown_minimum_order_age`. Result
+hashes are `d861eba79e...98b` early, `56e3ffb50c...b0c` middle, and
+`c074674d45...e08` late. Up asks were stable within each short capture at 0.58,
+0.21, and 0.001 respectively; this is market-phase displacement, not measured
+latency or fill evidence.
+
+Locked three additional BTC daily protocols ending September 18, 20, and 22.
+They hold the asset, Binance source, noon-Eastern daily window, relative phase
+times, ten-minute tolerance, twelve samples, and five-second interval constant
+while varying market date across weekday and weekend conditions. A second asset
+is intentionally excluded from this cohort and would require a separate
+declaration.
+
+Files created or changed: three latency specifications, three capture protocols,
+latency regression coverage, status/architecture/sync, and latency/capture/
+operator documentation. Interfaces added: none. Record fields consumed: the
+three promoted September 15 sequences. Assumptions introduced: none beyond the
+already locked latency and capture policies. Limitations: replay timing metadata
+remains unknown; one complete plus three prospective markets cannot yet support
+a cross-market verdict. New requests for Workstream A: none. Tests completed:
+210 deterministic tests; all 13 promoted artifacts verify offline.
+
+Next target: execute the nine prospectively scheduled phase captures, preserve
+misses, promote complete evidence deliberately, and only then implement a
+cross-market descriptive aggregate.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

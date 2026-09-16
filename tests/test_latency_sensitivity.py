@@ -196,6 +196,36 @@ class LatencySensitivityTests(unittest.TestCase):
         self.assertEqual(one["result_sha256"], two["result_sha256"])
         self.assertEqual("qcrl.latency_sensitivity_result.v1", one["schema_version"])
 
+    def test_september_15_phases_share_the_locked_latency_grid(self):
+        expected_hashes = {
+            "early": "d861eba79e941b5ee77c300237d7ffb5fea437ebfab69fa900958811404cc98b",
+            "middle": "56e3ffb50c980f952934e65d0a792f4ebb9f4fae1fc91328390e08314bf37b0c",
+            "late": "c074674d450594692519aa27eca92bb07017cbed960630a7e4026b64ec477e08",
+        }
+        policies = []
+        for phase, expected_hash in expected_hashes.items():
+            with self.subTest(phase=phase):
+                spec_path = (ROOT / "execution_truth" / "specs"
+                             / f"latency_daily_20260915_{phase}.json")
+                spec = json.loads(spec_path.read_text())
+                raw = json.loads((spec_path.parent / spec["raw_sequence_path"]).read_text())
+                result = evaluate_latency_sensitivity(
+                    raw, spec["request"], spec["replay_policy"],
+                    spec["latency_policy"],
+                )
+                policies.append(spec["latency_policy"])
+                self.assertEqual(expected_hash, result["result_sha256"])
+                self.assertEqual(6, len(result["results"]))
+                self.assertTrue(all(
+                    row["status"] == "evaluated"
+                    and row["mechanics_result"]["status"] == "rejected"
+                    and set(row["mechanics_result"]["reasons"]) == {
+                        "unknown_taker_delay_state", "unknown_minimum_order_age"
+                    }
+                    for row in result["results"]
+                ))
+        self.assertTrue(all(policy == policies[0] for policy in policies[1:]))
+
 
 if __name__ == "__main__":
     unittest.main()

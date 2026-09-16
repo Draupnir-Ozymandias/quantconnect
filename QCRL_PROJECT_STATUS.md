@@ -38,7 +38,7 @@ evidence.
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
 | Execution-truth schemas | market v3; normalized bundle, signal intent, binding, and replay result v2; source, source bar, signal decision, book, raw bundle, raw/normalized book sequence, raw slug resolution, discovery, live inventory, latency policy/result, phase-capture protocol/state/status, and phase-stability spec/result v1 |
 | Snapshot taker replay | result v2; request / policy / example v1; mechanics-only |
-| Test suite | 209 deterministic tests passing |
+| Test suite | 210 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
@@ -290,10 +290,10 @@ weak explanations and dangerous sizing have been rejected before deployment.
 ## Known Gaps and Risks
 
 1. Public Polymarket series/event discovery, market metadata, and order books
-   can now be acquired, promoted, inventoried, and replayed. Seven live raw
-   artifacts are durable Git evidence, including 15-minute and daily slug
-   resolutions and five-sample sequences. No trade, fill, or settlement data
-   is ingested.
+   can now be acquired, promoted, inventoried, and replayed. Thirteen live raw
+   artifacts are durable Git evidence, including the complete September 15
+   early/middle/late daily cohort. No trade, fill, or settlement data is
+   ingested.
 2. Snapshot BUY/FAK/FOK replay now estimates entry prices, depth consumption,
    fees, partial fills, and no fills. Actual matches, temporal liquidity,
    latency paths, and wallet settlement remain unmodeled. The daily capture
@@ -308,13 +308,15 @@ weak explanations and dangerous sizing have been rejected before deployment.
    bundles, with independently timed metadata and both books. It remains a
    polling record—not continuous liquidity, delay, fill, or settlement evidence.
    Exact event/market slug resolution is hashed; ambiguous events are rejected.
-5. Sequence-based latency sensitivity now maps declared hypothetical arrival
-   times to the first observed book at or after arrival and exposes the polling
-   bracket and observation lag. The two promoted sequences contain only five
-   samples each, so they support mechanics auditing, not latency calibration.
-6. The first predeclared phase protocol locks early, middle, and late sequences
-   for the September 11 daily market. It is an upcoming one-market compatibility
-   audit; no phase evidence exists until the declared captures complete.
+5. Sequence-based latency sensitivity maps declared hypothetical arrival times
+   to the first observed book at or after arrival and exposes polling uncertainty.
+   The fixed grid has been applied to all three September 15 phases; all eighteen
+   mechanics rows reject unknown delay and minimum-age state rather than claiming
+   fills. These observations do not calibrate a latency distribution.
+6. September 11 captured only early; September 13 captured early and late; both
+   missed phases remain missing. September 15 is the first complete promoted
+   phase cohort. Three additional BTC daily protocols ending September 18, 20,
+   and 22 are locked prospectively with identical timing and sampling.
 7. QCRL uses its own synthetic bankroll and submits no LEAN portfolio orders;
    standard LEAN portfolio statistics are not strategy objectives here.
 8. Polymarket is not implemented as a LEAN brokerage or execution adapter.
@@ -345,11 +347,10 @@ Daily series `41` exists but is incompatible with the current signal because
 its Binance BTC/USDT feed, noon-Eastern anchor, and tie settlement differ.
 Remaining work is:
 
-1. Complete the locked September 11 early/middle/late public capture protocol.
-   Preserve missed phases as missing evidence and do not retime the declaration.
-2. After complete phase evidence exists, add descriptive spread, depth,
-   displacement, and polling-gap comparisons. Do not tune latency assumptions
-   against the existing small captures.
+1. Complete the locked September 18, 20, and 22 BTC daily phase protocols.
+   Preserve any missed phases as missing evidence and do not retime declarations.
+2. Promote and inventory complete evidence, then add cross-market descriptive
+   aggregation only after multiple complete markets exist.
 3. Decide whether to authorize a separate Binance noon-to-noon research lane;
    do not retrofit the historical Coinbase evidence.
 4. Add settlement evidence and reconciliation.
@@ -372,6 +373,7 @@ The Q4 evidence lane and execution-infrastructure lane must remain independent.
 - `docs/BOOK_SEQUENCE.md` — bounded book-sequence capture and evidence meaning
 - `docs/LATENCY_SENSITIVITY.md` — observed-book latency selection and limits
 - `docs/CAPTURE_PROTOCOL.md` — locked phase timing and resumable capture state
+- `docs/PHASE_STABILITY.md` — within-market early/middle/late description
 - `docs/OPERATOR_WORKFLOW.md` — exact Git, GitHub, QuantConnect, and campaign flow
 - `campaigns/` — immutable experiment declarations
 - `syntheses/` — versioned cross-campaign analysis declarations

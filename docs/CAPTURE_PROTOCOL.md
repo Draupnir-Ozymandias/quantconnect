@@ -91,3 +91,20 @@ must not be used to reinterpret or optimize the research signal.
 The next gate is implemented as the deterministic phase-stability analyzer.
 Missing phases are rejected rather than imputed, and one-sided books retain null
 spread/midpoint values. See [PHASE_STABILITY.md](PHASE_STABILITY.md).
+
+## Cross-market BTC cohort extension
+
+September 11 retained only early, and September 13 retained early and late;
+their missing phases remain missed. September 15 is the first complete market.
+Three new protocols keep asset, Binance resolution source, daily window, phase
+times, tolerance, sample count, and interval fixed while varying only market date:
+
+| Market ending | Early capture | Middle capture | Late capture |
+|---|---|---|---|
+| Sep 18 | Sep 17 17:00 UTC | Sep 18 04:00 UTC | Sep 18 15:00 UTC |
+| Sep 20 | Sep 19 17:00 UTC | Sep 20 04:00 UTC | Sep 20 15:00 UTC |
+| Sep 22 | Sep 21 17:00 UTC | Sep 22 04:00 UTC | Sep 22 15:00 UTC |
+
+Each start has the existing ten-minute tolerance. These dates span weekday and
+weekend conditions without introducing a second asset. Other assets require a
+separate cohort declaration after BTC cross-market mechanics are characterized.
