@@ -153,6 +153,17 @@ and never retimes a missed phase. Repeat with `middle` and `late` only at their
 declared times. Outputs remain ignored local evidence until inspected, promoted,
 and inventoried deliberately. See [CAPTURE_PROTOCOL.md](CAPTURE_PROTOCOL.md).
 
+After all three declared sequences are deliberately promoted and inventoried,
+run the offline descriptive comparison:
+
+```bash
+./synch.sh evidence phase-stability \
+  execution_truth/specs/phase_stability_daily_20260915.json
+```
+
+The analyzer rejects missing phases and never imputes absent book sides. See
+[PHASE_STABILITY.md](PHASE_STABILITY.md).
+
 ## Interpreting campaign state
 
 - `pending`: not submitted.

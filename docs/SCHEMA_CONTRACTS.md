@@ -1,6 +1,6 @@
 # QCRL Schema Contracts
 
-**As of:** 2026-09-09
+**As of:** 2026-09-16
 
 ## Contract matrix
 
@@ -29,6 +29,7 @@
 | Taker replay example | `qcrl.taker_replay_example.v1` | versioned JSON specification | `qcrl_execution_truth.py` | version controlled |
 | Latency sensitivity policy/result/example | `qcrl.latency_sensitivity_policy.v1` / `qcrl.latency_sensitivity_result.v1` / `qcrl.latency_sensitivity_example.v1` | versioned declaration / `execution_truth/latency_sensitivity.py` | execution-truth audit | declaration versioned; result printed and hashed |
 | Book-sequence capture protocol/state/status | `qcrl.book_sequence_capture_protocol.v1` / `qcrl.book_sequence_capture_state.v1` / `qcrl.book_sequence_capture_status.v1` | versioned declaration / `execution_truth/capture_protocol.py` | bounded public sequence acquisition | protocol versioned; state ignored; status derived |
+| Phase-sequence stability spec/result | `qcrl.phase_sequence_stability_spec.v1` / `qcrl.phase_sequence_stability.v1` | versioned declaration / `execution_truth/phase_stability.py` | descriptive execution-truth audit | specification versioned; result printed and hashed |
 
 The QCRL engine version and schema versions are different concerns. The clean
 baseline pins engine 2.2.0, most directional campaigns pin 2.3.0, and temporal
@@ -98,6 +99,11 @@ summary requires stable market/outcome identity and strictly increasing sample
 acquisition times, while allowing state, constraints, and books to change.
 Bounds are 2–120 samples, integer 1–60 second sleeps, and no more than one hour
 of scheduled pauses. See [BOOK_SEQUENCE.md](BOOK_SEQUENCE.md).
+
+Phase stability consumes exactly one early, middle, and late sequence sharing
+one market identity. It describes price, spread, displayed depth, missing book
+sides, metadata stability, snapshot changes, and polling gaps without imputing
+missing phases or one-sided prices. See [PHASE_STABILITY.md](PHASE_STABILITY.md).
 
 Latency sensitivity treats the taker request's hypothetical timestamp as its
 decision reference, adds declared integer delays, and selects only the first

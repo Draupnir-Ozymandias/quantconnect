@@ -205,5 +205,8 @@ rejections. See [LATENCY_SENSITIVITY.md](LATENCY_SENSITIVITY.md). A versioned
 capture protocol now locks one sequence in each third of an exact market
 window, records only complete acquisitions, and marks missed windows without
 retiming them. See [CAPTURE_PROTOCOL.md](CAPTURE_PROTOCOL.md). Cross-sequence
-description, settlement, and signal-to-execution integration remain subsequent
-work. Any Binance noon-to-noon research lane requires a separate declaration.
+description is implemented by the offline phase-stability analyzer, including
+explicit one-sided-book and missing-phase handling. See
+[PHASE_STABILITY.md](PHASE_STABILITY.md). Cross-market repetition, settlement,
+and signal-to-execution integration remain subsequent work. Any Binance
+noon-to-noon research lane requires a separate declaration.

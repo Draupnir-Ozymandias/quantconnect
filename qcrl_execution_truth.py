@@ -6,6 +6,7 @@ from pathlib import Path
 
 from execution_truth import (
     PublicPolymarketAcquirer,
+    analyze_phase_sequences,
     capture_protocol_status,
     evaluate_latency_sensitivity,
     execute_protocol_capture,
@@ -118,6 +119,18 @@ def latency(args):
     print(json.dumps(result, indent=2, sort_keys=True))
 
 
+def phase_stability(args):
+    spec_path = Path(args.spec).resolve()
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    if spec.get("schema_version") != "qcrl.phase_sequence_stability_spec.v1":
+        raise ValueError("unsupported phase stability spec schema")
+    sequences = {
+        phase: json.loads((spec_path.parent / path).resolve().read_text(encoding="utf-8"))
+        for phase, path in spec.get("phases", {}).items()
+    }
+    print(json.dumps(analyze_phase_sequences(sequences), indent=2, sort_keys=True))
+
+
 def _protocol_inputs(spec_value):
     spec_path = Path(spec_value).resolve()
     protocol = json.loads(spec_path.read_text(encoding="utf-8"))
@@ -202,6 +215,12 @@ def build_parser():
     )
     latency_parser.add_argument("spec")
     latency_parser.set_defaults(handler=latency)
+
+    phase_parser = commands.add_parser(
+        "phase-stability", help="Describe predeclared early/middle/late sequences"
+    )
+    phase_parser.add_argument("spec")
+    phase_parser.set_defaults(handler=phase_stability)
 
     protocol_status_parser = commands.add_parser(
         "protocol-status", help="Inspect a predeclared sequence-capture protocol"

@@ -80,14 +80,14 @@ A future protocol is a new file and new protocol ID.
 
 These three sequences remain one-market evidence. They can reveal whether
 displayed spread, depth, price, metadata, and polling gaps differ across that
-market's life, but cannot establish cross-market stability. They are not
-automatically promoted into Git. After completion, inspect all paths and hashes,
-then decide explicitly whether to promote and inventory the six raw artifacts.
+market's life, but cannot establish cross-market stability. The complete
+September 15 capture was inspected, deliberately promoted, and inventoried as
+six raw artifacts.
 
 The daily contract uses Binance BTC/USDT and a noon-Eastern boundary. It remains
 incompatible with the frozen Coinbase BTCUSD midnight-UTC signal. This protocol
 must not be used to reinterpret or optimize the research signal.
 
-Only after complete, verified phase evidence exists should QCRL add a
-cross-sequence descriptive analyzer. Missing phases must be reported as missing,
-not imputed.
+The next gate is implemented as the deterministic phase-stability analyzer.
+Missing phases are rejected rather than imputed, and one-sided books retain null
+spread/midpoint values. See [PHASE_STABILITY.md](PHASE_STABILITY.md).

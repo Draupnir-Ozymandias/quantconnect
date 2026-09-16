@@ -2197,6 +2197,33 @@ Next target: complete the three declared captures. Only then add descriptive
 cross-sequence spread, depth, displacement, metadata, and polling-gap analysis,
 with missing phases retained rather than imputed.
 
+## 2026-09-16 — Promoted complete daily phase evidence and stability analysis
+
+Deliberately promoted the September 15 market's three predeclared slug
+resolutions and three 12-sample book sequences. The live evidence inventory now
+declares 13 artifacts and replays all of them offline. Added deterministic
+early/middle/late description for price, spread, midpoint, top size, displayed
+depth, book changes, execution metadata, polling gaps, and cross-phase midpoint
+displacement. Missing phases are rejected; one-sided books retain null
+spread/midpoint results rather than being imputed.
+
+Files created or changed: six promoted raw artifacts, live inventory,
+`execution_truth/phase_stability.py`, a September 15 phase-stability spec,
+tests, CLI/package exports, phase-stability documentation, schema/operator/
+capture/execution documentation, project status, and this record. Interface
+added: `analyze_phase_sequences()` and `evidence phase-stability`. Record fields
+consumed: normalized full book depth, best sides, exchange hashes, snapshot
+hashes, acquisition times, capture bounds, sample cadence, identity, and
+execution metadata. Assumptions introduced: none beyond descriptive use of the
+first available two-sided midpoint as a phase anchor. Limitations: one complete
+market does not establish cross-market stability; displayed depth is not fill
+evidence; polling gaps are not latency; Binance noon-Eastern remains incompatible
+with the Coinbase midnight-UTC signal. New requests for Workstream A: none.
+Tests completed: 209 deterministic tests; all 13 promoted artifacts replay
+offline. Next coding target: repeat the locked protocol across independent
+markets before any cross-market claim,
+then apply the fixed latency grid per phase without tuning it to these captures.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

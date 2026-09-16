@@ -1,6 +1,6 @@
 # QCRL Project Status
 
-**As of:** 2026-09-09
+**As of:** 2026-09-16
 **Repository:** `Draupnir-Ozymandias/quantconnect` / `polymarket-martingale`  
 **QuantConnect project:** 33239307  
 **Current research decision:** Hold feature optimization; preserve the locked
@@ -36,9 +36,9 @@ evidence.
 | Normalized record schema | `qcrl.experiment_record.v5` |
 | Campaign manifest/state | `qcrl.campaign.v1` / `qcrl.campaign_state.v1` |
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
-| Execution-truth schemas | market v3; normalized bundle, signal intent, binding, and replay result v2; source, source bar, signal decision, book, raw bundle, raw/normalized book sequence, raw slug resolution, discovery, live inventory, latency policy/result, and phase-capture protocol/state/status v1 |
+| Execution-truth schemas | market v3; normalized bundle, signal intent, binding, and replay result v2; source, source bar, signal decision, book, raw bundle, raw/normalized book sequence, raw slug resolution, discovery, live inventory, latency policy/result, phase-capture protocol/state/status, and phase-stability spec/result v1 |
 | Snapshot taker replay | result v2; request / policy / example v1; mechanics-only |
-| Test suite | 207 deterministic tests passing |
+| Test suite | 209 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
@@ -116,8 +116,11 @@ trade.
   timestamps and completed validation artifacts.
 - One 2026Q4 prospective case is pending by design and must remain unexecuted
   until its evaluation window is complete.
-- Local Git, GitHub, and QuantConnect were synchronized at the time of this
-  report.
+- Local Git is authoritative; the new protocol and execution-truth evidence have
+  not been synchronized to GitHub or QuantConnect.
+- The September 15 daily market has complete promoted early/middle/late evidence;
+  the durable live inventory now declares 13 artifacts and the offline
+  phase-stability analyzer preserves one-sided books without imputation.
 
 ## Research Findings
 

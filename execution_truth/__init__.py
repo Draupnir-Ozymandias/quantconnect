@@ -26,6 +26,7 @@ from .book_sequence import normalize_book_sequence
 from .binding import bind_signal_to_market
 from .taker_replay import replay_taker_buy
 from .latency_sensitivity import evaluate_latency_sensitivity
+from .phase_stability import analyze_phase_sequences
 from .capture_protocol import (
     capture_protocol_status,
     execute_protocol_capture,
@@ -53,6 +54,7 @@ __all__ = [
     "bind_signal_to_market",
     "replay_taker_buy",
     "evaluate_latency_sensitivity",
+    "analyze_phase_sequences",
     "capture_protocol_status",
     "execute_protocol_capture",
     "load_capture_state",
