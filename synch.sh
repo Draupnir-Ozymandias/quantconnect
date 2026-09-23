@@ -161,7 +161,8 @@ push_cloud() {
     local upload_parent
     local upload_project
     local relative_path
-    upload_parent="$(mktemp -d "${TMPDIR:-/tmp}/qcrl-qc-upload.XXXXXX")"
+    mkdir -p "$PROJECT_DIR/.qcrl"
+    upload_parent="$(mktemp -d "$PROJECT_DIR/.qcrl/qc-upload.XXXXXX")"
     upload_project="$upload_parent/$PROJECT_NAME"
     mkdir -p "$upload_project"
     cp "$PROJECT_DIR/config.json" "$upload_project/config.json"
@@ -171,7 +172,7 @@ push_cloud() {
     done < <(qc_source_files)
 
     if (
-        cd "$upload_parent"
+        cd "$WORKSPACE_DIR"
         lean cloud push --project "$upload_project"
     ); then
         rm -rf "$upload_parent"
