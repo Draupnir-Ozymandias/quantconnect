@@ -2355,6 +2355,50 @@ Next coding target: independently reconcile the declared Binance one-minute
 candle closes, then replace agent-scheduled strict captures with a
 network-preauthorized local recorder before locking another cohort.
 
+## 2026-09-23 — Independent resolution source and local capture worker
+
+Added a public Binance resolution-source lane that requests exactly one
+BTCUSDT one-minute kline at each market's declared start and end boundaries.
+The offline contract verifies request parameters, millisecond open/close times,
+payload hashes, source, symbol, interval, market ID, and the exact 24-hour
+window before deriving Up, Down, or Split. Four content-addressed artifacts
+expand the durable inventory to 35. Their calculated outcomes are Down, Up,
+Down, and Up for September 15, 18, 20, and 22, matching all four platform
+payout records. The deterministic cohort hash is
+`abb31376d2b1afd7152cb34e6521104005528393c72675e533ceb6a7f88d31e5`.
+
+Added a local capture worker for future OS-scheduled protocols. It retries only
+transient `AcquisitionError` failures with bounded exponential backoff, refuses
+to sleep past the locked start deadline, preserves atomic capture state, and
+returns a hashed attempt report. Contract, identity, term-drift, and timing
+errors remain immediately fatal. An inert launchd template is checked in but
+has no calendar trigger and was not installed; no future protocol or schedule
+was activated.
+
+Files created or changed: Binance acquisition/normalization/reconciliation,
+capture worker, CLI/package/storage/inventory integration, one versioned cohort
+specification, four promoted raw artifacts, two focused test modules, launchd
+template, resolution/worker documentation, schema/operator/capture/settlement
+documentation, architecture/status, and this record. Interfaces added:
+`PublicBinanceAcquirer`, `normalize_resolution_candles()`,
+`reconcile_binance_settlement()`, `reconcile_binance_cohort()`,
+`run_capture_with_retries()`, `capture-binance-resolution`,
+`binance-settlement-cohort`, and `protocol-capture-retry`. Record fields
+consumed: exact event boundaries, Binance kline open/close timestamps and close
+price, platform winner, market ID, and capture deadline. Assumptions introduced:
+the named final one-minute candles are represented by klines opening exactly at
+the two declared boundaries. Limitations: later public API observations do not
+prove original-time availability or audit Polymarket's internal oracle; local
+retry cannot overcome categorical host network denial or hard scheduler delay.
+New requests for Workstream A: none. Tests completed: 232 deterministic tests;
+all 35 promoted artifacts verify offline.
+
+Next coding target: do not tune signals from these observations. Before another
+prospective cohort, declare dates first, instantiate network-preauthorized local
+schedules from the inert template, and perform a dry-run/network smoke test.
+The next execution-truth analysis should then quantify terminal-price path and
+resolution timing only if it can be declared before capture.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

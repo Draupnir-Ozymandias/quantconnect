@@ -203,6 +203,24 @@ Reconcile promoted public settlement evidence with:
   execution_truth/specs/settlement_cohort_daily_20260915_20260922.json
 ```
 
+Independently reproduce the declared Binance boundary-candle outcome with:
+
+```bash
+./synch.sh evidence binance-settlement-cohort \
+  execution_truth/specs/binance_settlement_cohort_daily_20260915_20260922.json
+```
+
+For a future locked protocol, use the transport-only retry worker from a
+network-capable local scheduler. Always preview first and execute only inside
+the declared window:
+
+```bash
+./synch.sh evidence protocol-capture-retry \
+  execution_truth/protocols/<future-protocol>.json <capture-id>
+```
+
+See `docs/LOCAL_CAPTURE_WORKER.md`; no future schedule is currently active.
+
 See [LATENCY_BATCH.md](LATENCY_BATCH.md) and
 [SETTLEMENT_RECONCILIATION.md](SETTLEMENT_RECONCILIATION.md).
 

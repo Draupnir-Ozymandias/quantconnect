@@ -427,7 +427,9 @@ itself, a production module.
 * Coverage-aware cross-market temporal aggregation (implemented; descriptive only)
 * Fixed-grid cross-market phase latency batch (implemented; mechanics fail closed)
 * Public platform settlement evidence and latest-book reconciliation (implemented)
-* Independent Binance resolution-source reconciliation and wallet settlement evidence
+* Independent Binance resolution-source candle reconciliation (implemented)
+* Deadline-aware local capture worker with bounded transport-only retries (implemented)
+* Wallet settlement evidence (not implemented)
 * Documentation-backed experiment and decision registry
 * Locked prospective 2026Q4 baseline (preservation only until window end)
 

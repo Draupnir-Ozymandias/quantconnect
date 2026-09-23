@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>__LABEL__</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>__PYTHON__</string>
+    <string>__PROJECT_DIR__/qcrl_execution_truth.py</string>
+    <string>protocol-capture-retry</string>
+    <string>__PROJECT_DIR__/execution_truth/protocols/__PROTOCOL__.json</string>
+    <string>__CAPTURE_ID__</string>
+    <string>--max-attempts</string>
+    <string>4</string>
+    <string>--initial-backoff-seconds</string>
+    <string>5</string>
+    <string>--max-backoff-seconds</string>
+    <string>30</string>
+    <string>--execute</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>__PROJECT_DIR__</string>
+  <key>StandardOutPath</key>
+  <string>__LOG_DIR__/__LABEL__.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>__LOG_DIR__/__LABEL__.err.log</string>
+</dict>
+</plist>

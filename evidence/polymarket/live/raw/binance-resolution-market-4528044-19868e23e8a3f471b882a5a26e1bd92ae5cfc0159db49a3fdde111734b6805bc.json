@@ -1,0 +1,69 @@
+{
+  "acquired_at_utc": "2026-09-23T19:55:02.361097Z",
+  "declared_resolution_source": "https://www.binance.com/en/trade/BTC_USDT",
+  "event_end_at_utc": "2026-09-15T16:00:00Z",
+  "event_start_at_utc": "2026-09-14T16:00:00Z",
+  "interval": "1m",
+  "market_id": "4528044",
+  "observations": {
+    "end_candle": {
+      "endpoint": "https://data-api.binance.vision/api/v3/klines",
+      "observed_at_utc": "2026-09-23T19:55:03.988780Z",
+      "params": {
+        "endTime": 1789488059999,
+        "interval": "1m",
+        "limit": 1,
+        "startTime": 1789488000000,
+        "symbol": "BTCUSDT"
+      },
+      "payload": [
+        [
+          1789488000000,
+          "76512.01000000",
+          "76536.01000000",
+          "76457.60000000",
+          "76457.61000000",
+          "14.96718000",
+          1789488059999,
+          "1144975.84795990",
+          2700,
+          "7.67013000",
+          "586774.83064660",
+          "0"
+        ]
+      ],
+      "payload_sha256": "73af4386db1d7437bbdada8fcfa4d62d11f54b12e6600511bd64a2aba51ddfc3"
+    },
+    "start_candle": {
+      "endpoint": "https://data-api.binance.vision/api/v3/klines",
+      "observed_at_utc": "2026-09-23T19:55:03.286081Z",
+      "params": {
+        "endTime": 1789401659999,
+        "interval": "1m",
+        "limit": 1,
+        "startTime": 1789401600000,
+        "symbol": "BTCUSDT"
+      },
+      "payload": [
+        [
+          1789401600000,
+          "78578.02000000",
+          "78605.85000000",
+          "78558.00000000",
+          "78558.01000000",
+          "15.95195000",
+          1789401659999,
+          "1253657.38152620",
+          3393,
+          "9.32233000",
+          "732633.70315430",
+          "0"
+        ]
+      ],
+      "payload_sha256": "9bfda926a57128a342386468798df3feafd5e9a700b231d519503fe89fc5be21"
+    }
+  },
+  "resolution_candles_sha256": "19868e23e8a3f471b882a5a26e1bd92ae5cfc0159db49a3fdde111734b6805bc",
+  "schema_version": "qcrl.binance_raw_resolution_candles.v1",
+  "symbol": "BTCUSDT"
+}

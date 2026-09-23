@@ -34,6 +34,9 @@
 | Cross-market phase stability spec/result | `qcrl.cross_market_phase_stability_spec.v1` / `qcrl.cross_market_phase_stability.v1` | versioned declaration / `execution_truth/cross_market_phase.py` | coverage-aware descriptive execution-truth audit | specification versioned; result printed and hashed |
 | Raw/normalized settlement | `qcrl.polymarket_raw_settlement.v1` / `qcrl.polymarket_settlement.v1` | public Gamma+CLOB acquisition / `execution_truth/settlement.py` | settlement reconciliation and inventory audit | content-addressed raw observation / derived record |
 | Settlement reconciliation/cohort | `qcrl.polymarket_settlement_reconciliation.v1` / `qcrl.polymarket_settlement_cohort.v1` | `execution_truth/settlement.py` | execution-truth audit | result printed and hashed |
+| Raw/normalized Binance resolution candles | `qcrl.binance_raw_resolution_candles.v1` / `qcrl.binance_resolution_candles.v1` | public Binance acquisition / `execution_truth/binance_resolution.py` | independent resolution reconciliation and inventory audit | content-addressed raw observations / derived record |
+| Binance settlement reconciliation/cohort | `qcrl.binance_settlement_reconciliation.v1` / `qcrl.binance_settlement_cohort.v1` | `execution_truth/binance_resolution.py` | resolution-source consistency audit | result printed and hashed |
+| Capture worker report | `qcrl.capture_worker_report.v1` | `execution_truth/capture_worker.py` | local scheduler log | derived, not promoted as market evidence |
 
 The QCRL engine version and schema versions are different concerns. The clean
 baseline pins engine 2.2.0, most directional campaigns pin 2.3.0, and temporal

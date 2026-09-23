@@ -13,6 +13,7 @@ from .bundle import (
     promote_raw_evidence,
     store_raw_bundle,
     store_raw_book_sequence,
+    store_raw_binance_resolution,
     store_raw_discovery,
     store_raw_slug_resolution,
     store_raw_settlement,
@@ -36,6 +37,7 @@ from .capture_protocol import (
     load_capture_state,
     validate_capture_protocol,
 )
+from .capture_worker import run_capture_with_retries
 from .signal_adapter import (
     materialize_boundary_signal,
     normalize_source_bar,
@@ -45,6 +47,12 @@ from .settlement import (
     normalize_settlement,
     reconcile_settlement,
     reconcile_settlement_cohort,
+)
+from .binance_resolution import (
+    PublicBinanceAcquirer,
+    normalize_resolution_candles,
+    reconcile_binance_cohort,
+    reconcile_binance_settlement,
 )
 
 __all__ = [
@@ -69,12 +77,14 @@ __all__ = [
     "execute_protocol_capture",
     "load_capture_state",
     "validate_capture_protocol",
+    "run_capture_with_retries",
     "materialize_boundary_signal",
     "normalize_source_bar",
     "normalize_source_contract",
     "promote_raw_evidence",
     "store_raw_bundle",
     "store_raw_book_sequence",
+    "store_raw_binance_resolution",
     "store_raw_discovery",
     "store_raw_slug_resolution",
     "store_raw_settlement",
@@ -83,4 +93,8 @@ __all__ = [
     "normalize_settlement",
     "reconcile_settlement",
     "reconcile_settlement_cohort",
+    "PublicBinanceAcquirer",
+    "normalize_resolution_candles",
+    "reconcile_binance_cohort",
+    "reconcile_binance_settlement",
 ]

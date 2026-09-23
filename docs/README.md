@@ -24,6 +24,8 @@ from becoming an accidental second source of truth.
 | How are early/middle/late sequences compared? | [`PHASE_STABILITY.md`](PHASE_STABILITY.md) |
 | How are locked phases compared across markets? | [`CROSS_MARKET_PHASES.md`](CROSS_MARKET_PHASES.md) |
 | How is public resolution state reconciled? | [`SETTLEMENT_RECONCILIATION.md`](SETTLEMENT_RECONCILIATION.md) |
+| How are Binance boundary candles independently checked? | [`BINANCE_RESOLUTION.md`](BINANCE_RESOLUTION.md) |
+| How are transient capture failures retried locally? | [`LOCAL_CAPTURE_WORKER.md`](LOCAL_CAPTURE_WORKER.md) |
 | How does an operator synchronize and run research? | [`OPERATOR_WORKFLOW.md`](OPERATOR_WORKFLOW.md) |
 | How are experiments declared? | Versioned JSON under [`campaigns/`](../campaigns/) and [`syntheses/`](../syntheses/) |
 

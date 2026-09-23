@@ -1,0 +1,69 @@
+{
+  "acquired_at_utc": "2026-09-23T19:55:05.628069Z",
+  "declared_resolution_source": "https://www.binance.com/en/trade/BTC_USDT",
+  "event_end_at_utc": "2026-09-20T16:00:00Z",
+  "event_start_at_utc": "2026-09-19T16:00:00Z",
+  "interval": "1m",
+  "market_id": "4689506",
+  "observations": {
+    "end_candle": {
+      "endpoint": "https://data-api.binance.vision/api/v3/klines",
+      "observed_at_utc": "2026-09-23T19:55:07.042442Z",
+      "params": {
+        "endTime": 1789920059999,
+        "interval": "1m",
+        "limit": 1,
+        "startTime": 1789920000000,
+        "symbol": "BTCUSDT"
+      },
+      "payload": [
+        [
+          1789920000000,
+          "80912.00000000",
+          "80926.01000000",
+          "80869.54000000",
+          "80869.54000000",
+          "7.50036000",
+          1789920059999,
+          "606798.16405590",
+          1661,
+          "2.09335000",
+          "169355.65791760",
+          "0"
+        ]
+      ],
+      "payload_sha256": "3ee845765c034cb41d38d515b3ff3612534852512c0b5676fcf61d202a489e7e"
+    },
+    "start_candle": {
+      "endpoint": "https://data-api.binance.vision/api/v3/klines",
+      "observed_at_utc": "2026-09-23T19:55:06.333314Z",
+      "params": {
+        "endTime": 1789833659999,
+        "interval": "1m",
+        "limit": 1,
+        "startTime": 1789833600000,
+        "symbol": "BTCUSDT"
+      },
+      "payload": [
+        [
+          1789833600000,
+          "81636.01000000",
+          "81650.00000000",
+          "81624.88000000",
+          "81624.88000000",
+          "4.07660000",
+          1789833659999,
+          "332809.43352160",
+          1008,
+          "1.33562000",
+          "109044.20050930",
+          "0"
+        ]
+      ],
+      "payload_sha256": "98adfafc3ed370b0de08e914ffd7f8d3e80f5c42f7f67039865c64c980daefe8"
+    }
+  },
+  "resolution_candles_sha256": "95234882b2bff3c6e3e689d31fa04edf2fadd8f9898d4eac78561a19c995ef7e",
+  "schema_version": "qcrl.binance_raw_resolution_candles.v1",
+  "symbol": "BTCUSDT"
+}

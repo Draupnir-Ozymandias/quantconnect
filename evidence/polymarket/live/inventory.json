@@ -633,6 +633,86 @@
         "status": "resolved",
         "winner": "Up"
       }
+    },
+    {
+      "artifact_sha256": "19868e23e8a3f471b882a5a26e1bd92ae5cfc0159db49a3fdde111734b6805bc",
+      "captured_at_utc": "2026-09-23T19:55:02.361097Z",
+      "evidence_role": "independent_public_resolution_source_reconciliation",
+      "limitations": [
+        "later public Binance REST observation does not prove data availability at the original resolution instant",
+        "does not audit Polymarket's internal oracle process, execution, or profitability"
+      ],
+      "normalized_sha256": "11c626ce3de98563620a27e2d551b9b886310ff95609a7dc307665a15113f6b5",
+      "path": "raw/binance-resolution-market-4528044-19868e23e8a3f471b882a5a26e1bd92ae5cfc0159db49a3fdde111734b6805bc.json",
+      "schema_version": "qcrl.binance_raw_resolution_candles.v1",
+      "subject": {
+        "computed_outcome": "Down",
+        "end_close": "76457.61",
+        "event_end_at_utc": "2026-09-15T16:00:00Z",
+        "event_start_at_utc": "2026-09-14T16:00:00Z",
+        "market_id": "4528044",
+        "start_close": "78558.01"
+      }
+    },
+    {
+      "artifact_sha256": "042256ad73d919d8905a8c972f7d3512010470bfabb7d0d89be9185e837e52df",
+      "captured_at_utc": "2026-09-23T19:55:04.097831Z",
+      "evidence_role": "independent_public_resolution_source_reconciliation",
+      "limitations": [
+        "later public Binance REST observation does not prove data availability at the original resolution instant",
+        "does not audit Polymarket's internal oracle process, execution, or profitability"
+      ],
+      "normalized_sha256": "543dd263608a2e43d5ba48d416a7de83f410e5cf830bdac4734e4cb38b6f50c3",
+      "path": "raw/binance-resolution-market-4617749-042256ad73d919d8905a8c972f7d3512010470bfabb7d0d89be9185e837e52df.json",
+      "schema_version": "qcrl.binance_raw_resolution_candles.v1",
+      "subject": {
+        "computed_outcome": "Up",
+        "end_close": "80705.44",
+        "event_end_at_utc": "2026-09-18T16:00:00Z",
+        "event_start_at_utc": "2026-09-17T16:00:00Z",
+        "market_id": "4617749",
+        "start_close": "76764.23"
+      }
+    },
+    {
+      "artifact_sha256": "95234882b2bff3c6e3e689d31fa04edf2fadd8f9898d4eac78561a19c995ef7e",
+      "captured_at_utc": "2026-09-23T19:55:05.628069Z",
+      "evidence_role": "independent_public_resolution_source_reconciliation",
+      "limitations": [
+        "later public Binance REST observation does not prove data availability at the original resolution instant",
+        "does not audit Polymarket's internal oracle process, execution, or profitability"
+      ],
+      "normalized_sha256": "3936760eade85c49c48b655b071d9e70558b5b1fd831e2a4b3a79475f5ba4652",
+      "path": "raw/binance-resolution-market-4689506-95234882b2bff3c6e3e689d31fa04edf2fadd8f9898d4eac78561a19c995ef7e.json",
+      "schema_version": "qcrl.binance_raw_resolution_candles.v1",
+      "subject": {
+        "computed_outcome": "Down",
+        "end_close": "80869.54",
+        "event_end_at_utc": "2026-09-20T16:00:00Z",
+        "event_start_at_utc": "2026-09-19T16:00:00Z",
+        "market_id": "4689506",
+        "start_close": "81624.88"
+      }
+    },
+    {
+      "artifact_sha256": "ec117455fa4b71ab74c068bffd16f5c4e7120fd72687c2c498f66a7e204a96af",
+      "captured_at_utc": "2026-09-23T19:55:07.146190Z",
+      "evidence_role": "independent_public_resolution_source_reconciliation",
+      "limitations": [
+        "later public Binance REST observation does not prove data availability at the original resolution instant",
+        "does not audit Polymarket's internal oracle process, execution, or profitability"
+      ],
+      "normalized_sha256": "c2af1e30491ca26c27d6d90eb41798f41f23ca1ec4835ef7c3937c4fee6d1358",
+      "path": "raw/binance-resolution-market-4761727-ec117455fa4b71ab74c068bffd16f5c4e7120fd72687c2c498f66a7e204a96af.json",
+      "schema_version": "qcrl.binance_raw_resolution_candles.v1",
+      "subject": {
+        "computed_outcome": "Up",
+        "end_close": "86420.26",
+        "event_end_at_utc": "2026-09-22T16:00:00Z",
+        "event_start_at_utc": "2026-09-21T16:00:00Z",
+        "market_id": "4761727",
+        "start_close": "85910.99"
+      }
     }
   ],
   "compatibility_findings": [

@@ -6,8 +6,9 @@ exact market slug, resolution source, event interval, early/middle/late start
 times, start tolerances, sample counts, and polling intervals before capture.
 
 It remains an unauthenticated, public, read-only evidence process. It contains
-no credentials, order submission, background daemon, automatic retry, or
-promotion step.
+no credentials, order submission, background daemon, or automatic promotion.
+The optional local worker adds bounded transport-only retries without changing
+the protocol contract.
 
 ## Contracts
 
@@ -127,3 +128,7 @@ that tolerates scheduler dispatch latency. Prefer a local OS scheduler or
 dedicated capture service for strict timing. Application retries alone cannot
 repair a sandbox that categorically blocks DNS, and historical protocol windows
 must never be widened after observation.
+
+The repository now includes a deadline-aware worker and inert launchd template
+for the next prospectively locked cohort. No future protocol or schedule has
+been activated. See [LOCAL_CAPTURE_WORKER.md](LOCAL_CAPTURE_WORKER.md).

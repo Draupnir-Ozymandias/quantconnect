@@ -152,6 +152,13 @@ def store_raw_settlement(raw_settlement, directory):
     )
 
 
+def store_raw_binance_resolution(raw_resolution, directory):
+    """Store immutable independently acquired Binance candle evidence."""
+    from .binance_resolution import store_raw_resolution_candles
+
+    return store_raw_resolution_candles(raw_resolution, directory)
+
+
 def promote_raw_evidence(source, directory):
     """Verify and copy one raw artifact into the durable evidence directory."""
     source = Path(source)
@@ -171,6 +178,8 @@ def promote_raw_evidence(source, directory):
         return store_raw_slug_resolution(artifact, directory)
     if schema == "qcrl.polymarket_raw_settlement.v1":
         return store_raw_settlement(artifact, directory)
+    if schema == "qcrl.binance_raw_resolution_candles.v1":
+        return store_raw_binance_resolution(artifact, directory)
     raise ContractError("unsupported raw evidence schema")
 
 
@@ -246,6 +255,13 @@ def verify_live_evidence_inventory(directory):
             normalized = normalize_settlement(artifact)
             artifact_hash = artifact.get("settlement_sha256")
             if normalized["settlement_record_sha256"] != entry.get("normalized_sha256"):
+                raise ContractError(f"inventory normalized hash mismatch: {relative}")
+        elif schema == "qcrl.binance_raw_resolution_candles.v1":
+            from .binance_resolution import normalize_resolution_candles
+
+            normalized = normalize_resolution_candles(artifact)
+            artifact_hash = artifact.get("resolution_candles_sha256")
+            if normalized["resolution_record_sha256"] != entry.get("normalized_sha256"):
                 raise ContractError(f"inventory normalized hash mismatch: {relative}")
         else:
             raise ContractError(f"unsupported inventory artifact: {relative}")

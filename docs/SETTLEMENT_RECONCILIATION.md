@@ -36,5 +36,6 @@ from QCRL decisions. September 22 also demonstrates that an aligned direction
 does not imply a near-terminal price.
 
 This layer verifies Polymarket's reported payout state and joins it to prior
-public evidence. It does not independently recalculate the Binance candles,
-prove a trade fill, observe wallet credit or redemption, or establish profit.
+public evidence. Independent public Binance candle comparison is now a separate
+contract documented in [BINANCE_RESOLUTION.md](BINANCE_RESOLUTION.md). Neither
+layer proves a trade fill, wallet credit or redemption, or profit.

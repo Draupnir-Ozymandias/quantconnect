@@ -6,6 +6,7 @@ from pathlib import Path
 
 from execution_truth import (
     PublicPolymarketAcquirer,
+    PublicBinanceAcquirer,
     analyze_cross_market_phases,
     analyze_phase_sequences,
     capture_protocol_status,
@@ -15,12 +16,16 @@ from execution_truth import (
     load_capture_state,
     normalize_bundle,
     normalize_book_sequence,
+    normalize_resolution_candles,
     normalize_settlement,
     promote_raw_evidence,
     replay_taker_buy,
+    run_capture_with_retries,
     reconcile_settlement_cohort,
+    reconcile_binance_cohort,
     store_raw_bundle,
     store_raw_book_sequence,
+    store_raw_binance_resolution,
     store_raw_discovery,
     store_raw_slug_resolution,
     store_raw_settlement,
@@ -70,6 +75,17 @@ def capture_settlement(args):
     print(f"status={normalized['status']}")
     if normalized["winner"]:
         print(f"winner={normalized['winner']['label']}")
+
+
+def capture_binance_resolution(args):
+    artifact = PublicBinanceAcquirer().acquire_resolution_candles(
+        args.market_id, args.event_start_at_utc, args.event_end_at_utc
+    )
+    path = store_raw_binance_resolution(artifact, LOCAL_RAW_DIR)
+    normalized = normalize_resolution_candles(artifact)
+    print(path)
+    print(f"normalized_sha256={normalized['resolution_record_sha256']}")
+    print(f"computed_outcome={normalized['computed_outcome']}")
 
 
 def resolve_slug(args):
@@ -213,6 +229,23 @@ def settlement_cohort(args):
     print(json.dumps(reconcile_settlement_cohort(markets), indent=2, sort_keys=True))
 
 
+def binance_settlement_cohort(args):
+    spec_path = Path(args.spec).resolve()
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    if spec.get("schema_version") != "qcrl.binance_settlement_cohort_spec.v1":
+        raise ValueError("unsupported Binance settlement cohort spec schema")
+    markets = {
+        label: {
+            key: json.loads(
+                (spec_path.parent / paths[key]).resolve().read_text(encoding="utf-8")
+            )
+            for key in ("candles", "settlement")
+        }
+        for label, paths in spec.get("markets", {}).items()
+    }
+    print(json.dumps(reconcile_binance_cohort(markets), indent=2, sort_keys=True))
+
+
 def _protocol_inputs(spec_value):
     spec_path = Path(spec_value).resolve()
     protocol = json.loads(spec_path.read_text(encoding="utf-8"))
@@ -245,6 +278,29 @@ def protocol_capture(args):
     print(json.dumps(result, indent=2, sort_keys=True))
 
 
+def protocol_capture_retry(args):
+    protocol, state_path = _protocol_inputs(args.spec)
+    state = load_capture_state(protocol, state_path)
+    status = capture_protocol_status(protocol, state)
+    selected = next((item for item in status["captures"]
+                     if item["capture_id"] == args.capture_id), None)
+    if selected is None:
+        raise ValueError(f"capture_id is not declared: {args.capture_id}")
+    if not args.execute:
+        print(json.dumps(selected, indent=2, sort_keys=True))
+        print("Dry run only. No public requests made; add --execute to run the retry worker.")
+        return
+    report = run_capture_with_retries(
+        protocol, args.capture_id, LOCAL_RAW_DIR, state_path,
+        max_attempts=args.max_attempts,
+        initial_backoff_seconds=args.initial_backoff_seconds,
+        max_backoff_seconds=args.max_backoff_seconds,
+    )
+    print(json.dumps(report, indent=2, sort_keys=True))
+    if report["status"] != "collected":
+        raise SystemExit(1)
+
+
 def build_parser():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -267,6 +323,12 @@ def build_parser():
     settlement = commands.add_parser("capture-settlement")
     settlement.add_argument("market_id")
     settlement.set_defaults(handler=capture_settlement)
+
+    binance = commands.add_parser("capture-binance-resolution")
+    binance.add_argument("market_id")
+    binance.add_argument("event_start_at_utc")
+    binance.add_argument("event_end_at_utc")
+    binance.set_defaults(handler=capture_binance_resolution)
 
     slug = commands.add_parser("resolve-slug")
     slug.add_argument("slug")
@@ -329,6 +391,13 @@ def build_parser():
     settlement_cohort_parser.add_argument("spec")
     settlement_cohort_parser.set_defaults(handler=settlement_cohort)
 
+    binance_cohort_parser = commands.add_parser(
+        "binance-settlement-cohort",
+        help="Reconcile exact public Binance boundary candles to platform settlements",
+    )
+    binance_cohort_parser.add_argument("spec")
+    binance_cohort_parser.set_defaults(handler=binance_settlement_cohort)
+
     protocol_status_parser = commands.add_parser(
         "protocol-status", help="Inspect a predeclared sequence-capture protocol"
     )
@@ -342,6 +411,18 @@ def build_parser():
     protocol_capture_parser.add_argument("capture_id")
     protocol_capture_parser.add_argument("--execute", action="store_true")
     protocol_capture_parser.set_defaults(handler=protocol_capture)
+
+    retry_parser = commands.add_parser(
+        "protocol-capture-retry",
+        help="Run one eligible capture with bounded transport-only retries",
+    )
+    retry_parser.add_argument("spec")
+    retry_parser.add_argument("capture_id")
+    retry_parser.add_argument("--max-attempts", type=int, default=4)
+    retry_parser.add_argument("--initial-backoff-seconds", type=int, default=5)
+    retry_parser.add_argument("--max-backoff-seconds", type=int, default=30)
+    retry_parser.add_argument("--execute", action="store_true")
+    retry_parser.set_defaults(handler=protocol_capture_retry)
     return parser
 
 

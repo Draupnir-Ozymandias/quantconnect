@@ -36,9 +36,9 @@ evidence.
 | Normalized record schema | `qcrl.experiment_record.v5` |
 | Campaign manifest/state | `qcrl.campaign.v1` / `qcrl.campaign_state.v1` |
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
-| Execution-truth schemas | market v3; normalized bundle, signal intent, binding, and replay result v2; source, source bar, signal decision, book, raw bundle, raw/normalized book sequence, raw slug resolution, discovery, live inventory, latency policy/result/batch, phase-capture protocol/state/status, phase stability, cross-market phase, and settlement/reconciliation contracts v1 |
+| Execution-truth schemas | market v3; normalized bundle, signal intent, binding, and replay result v2; source, source bar, signal decision, book, raw bundle, raw/normalized book sequence, raw slug resolution, discovery, live inventory, latency policy/result/batch, phase-capture protocol/state/status/worker report, phase stability, cross-market phase, platform settlement, and Binance resolution/reconciliation contracts v1 |
 | Snapshot taker replay | result v2; request / policy / example v1; mechanics-only |
-| Test suite | 221 deterministic tests passing |
+| Test suite | 232 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
@@ -116,9 +116,9 @@ trade.
   timestamps and completed validation artifacts.
 - One 2026Q4 prospective case is pending by design and must remain unexecuted
   until its evaluation window is complete.
-- Local Git is authoritative; the cross-market phase layer is synchronized at
-  commit `e5332c2`. The latency-batch and settlement additions are uncommitted.
-- The durable live inventory declares and verifies 31 artifacts. September 15
+- Local Git remains authoritative; GitHub and QuantConnect synchronization is
+  performed only from committed, tested state.
+- The durable live inventory declares and verifies 35 artifacts. September 15
   and 18 have complete promoted early/middle/late evidence; September 20 and 22
   retain promoted early/late evidence with middle explicitly missing.
 - The coverage-aware cross-market analyzer uses 10 sequences across four
@@ -129,7 +129,13 @@ trade.
   six rows additionally reject stale exchange-book timestamps.
 - Four public settlement records report two Up and two Down winners. Each
   latest observed book favored the eventual platform winner, without implying
-  signal accuracy, fills, or independent Binance verification.
+  signal accuracy or fills.
+- Eight exact Binance one-minute boundary candles independently reproduce all
+  four platform outcomes (4 matches, 0 mismatches). This supports public-source
+  consistency, not an audit of Polymarket's internal oracle process.
+- A local capture worker now provides bounded, deadline-aware retries for
+  transient acquisition failures. Contract and timing failures remain
+  non-retryable, and no future capture schedule is active.
 
 ## Research Findings
 

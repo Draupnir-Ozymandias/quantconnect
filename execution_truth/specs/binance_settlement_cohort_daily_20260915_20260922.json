@@ -1,0 +1,21 @@
+{
+  "schema_version": "qcrl.binance_settlement_cohort_spec.v1",
+  "markets": {
+    "2026-09-15": {
+      "candles": "../../evidence/polymarket/live/raw/binance-resolution-market-4528044-19868e23e8a3f471b882a5a26e1bd92ae5cfc0159db49a3fdde111734b6805bc.json",
+      "settlement": "../../evidence/polymarket/live/raw/settlement-market-4528044-41e2aafd84f6aefa8854b77e368e5112bdeff4f4e132fb9f935770efb16d5ef6.json"
+    },
+    "2026-09-18": {
+      "candles": "../../evidence/polymarket/live/raw/binance-resolution-market-4617749-042256ad73d919d8905a8c972f7d3512010470bfabb7d0d89be9185e837e52df.json",
+      "settlement": "../../evidence/polymarket/live/raw/settlement-market-4617749-113dd7a79af8b138d727ccc5a2edc4b42a2cefbb4b7c365190c01ef3f9ff4e74.json"
+    },
+    "2026-09-20": {
+      "candles": "../../evidence/polymarket/live/raw/binance-resolution-market-4689506-95234882b2bff3c6e3e689d31fa04edf2fadd8f9898d4eac78561a19c995ef7e.json",
+      "settlement": "../../evidence/polymarket/live/raw/settlement-market-4689506-da66685eb696a8291776c0d158b2ef47829826e347dfe75d40b378abbf754464.json"
+    },
+    "2026-09-22": {
+      "candles": "../../evidence/polymarket/live/raw/binance-resolution-market-4761727-ec117455fa4b71ab74c068bffd16f5c4e7120fd72687c2c498f66a7e204a96af.json",
+      "settlement": "../../evidence/polymarket/live/raw/settlement-market-4761727-341a6033a50cda13d746801d59c30cd25eb570608c99742410e5129679bdab4f.json"
+    }
+  }
+}
