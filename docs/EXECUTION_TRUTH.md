@@ -207,6 +207,9 @@ window, records only complete acquisitions, and marks missed windows without
 retiming them. See [CAPTURE_PROTOCOL.md](CAPTURE_PROTOCOL.md). Cross-sequence
 description is implemented by the offline phase-stability analyzer, including
 explicit one-sided-book and missing-phase handling. See
-[PHASE_STABILITY.md](PHASE_STABILITY.md). Cross-market repetition, settlement,
-and signal-to-execution integration remain subsequent work. Any Binance
-noon-to-noon research lane requires a separate declaration.
+[PHASE_STABILITY.md](PHASE_STABILITY.md). Coverage-aware cross-market
+aggregation now separates two complete markets from two partial markets and
+flags degraded polling cadence without excluding the artifact. See
+[CROSS_MARKET_PHASES.md](CROSS_MARKET_PHASES.md). Settlement and
+signal-to-execution integration remain subsequent work. Any Binance noon-to-noon
+research lane requires a separate declaration.

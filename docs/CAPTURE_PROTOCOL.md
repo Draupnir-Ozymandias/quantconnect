@@ -95,9 +95,10 @@ spread/midpoint values. See [PHASE_STABILITY.md](PHASE_STABILITY.md).
 ## Cross-market BTC cohort extension
 
 September 11 retained only early, and September 13 retained early and late;
-their missing phases remain missed. September 15 is the first complete market.
-Three new protocols keep asset, Binance resolution source, daily window, phase
-times, tolerance, sample count, and interval fixed while varying only market date:
+their missing phases remain missed. September 15 and September 18 are complete.
+September 20 and 22 retained early and late but missed middle. The later three
+protocols kept asset, Binance resolution source, daily window, phase times,
+tolerance, sample count, and interval fixed while varying only market date:
 
 | Market ending | Early capture | Middle capture | Late capture |
 |---|---|---|---|
@@ -108,3 +109,5 @@ times, tolerance, sample count, and interval fixed while varying only market dat
 Each start has the existing ten-minute tolerance. These dates span weekday and
 weekend conditions without introducing a second asset. Other assets require a
 separate cohort declaration after BTC cross-market mechanics are characterized.
+The coverage-aware result is documented in
+[CROSS_MARKET_PHASES.md](CROSS_MARKET_PHASES.md).

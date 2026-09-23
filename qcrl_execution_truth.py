@@ -6,6 +6,7 @@ from pathlib import Path
 
 from execution_truth import (
     PublicPolymarketAcquirer,
+    analyze_cross_market_phases,
     analyze_phase_sequences,
     capture_protocol_status,
     evaluate_latency_sensitivity,
@@ -131,6 +132,24 @@ def phase_stability(args):
     print(json.dumps(analyze_phase_sequences(sequences), indent=2, sort_keys=True))
 
 
+def cross_market_phases(args):
+    spec_path = Path(args.spec).resolve()
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    if spec.get("schema_version") != "qcrl.cross_market_phase_stability_spec.v1":
+        raise ValueError("unsupported cross-market phase stability spec schema")
+    markets = {
+        label: {
+            phase: (
+                json.loads((spec_path.parent / path).resolve().read_text(encoding="utf-8"))
+                if path is not None else None
+            )
+            for phase, path in phases.items()
+        }
+        for label, phases in spec.get("markets", {}).items()
+    }
+    print(json.dumps(analyze_cross_market_phases(markets), indent=2, sort_keys=True))
+
+
 def _protocol_inputs(spec_value):
     spec_path = Path(spec_value).resolve()
     protocol = json.loads(spec_path.read_text(encoding="utf-8"))
@@ -221,6 +240,13 @@ def build_parser():
     )
     phase_parser.add_argument("spec")
     phase_parser.set_defaults(handler=phase_stability)
+
+    cross_market_parser = commands.add_parser(
+        "cross-market-phases",
+        help="Describe aligned phases across complete and partial markets",
+    )
+    cross_market_parser.add_argument("spec")
+    cross_market_parser.set_defaults(handler=cross_market_phases)
 
     protocol_status_parser = commands.add_parser(
         "protocol-status", help="Inspect a predeclared sequence-capture protocol"

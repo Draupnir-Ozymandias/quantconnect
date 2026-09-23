@@ -21,6 +21,7 @@ from becoming an accidental second source of truth.
 | How is assumed latency tested against observed books? | [`LATENCY_SENSITIVITY.md`](LATENCY_SENSITIVITY.md) |
 | How are capture times locked before observation? | [`CAPTURE_PROTOCOL.md`](CAPTURE_PROTOCOL.md) |
 | How are early/middle/late sequences compared? | [`PHASE_STABILITY.md`](PHASE_STABILITY.md) |
+| How are locked phases compared across markets? | [`CROSS_MARKET_PHASES.md`](CROSS_MARKET_PHASES.md) |
 | How does an operator synchronize and run research? | [`OPERATOR_WORKFLOW.md`](OPERATOR_WORKFLOW.md) |
 | How are experiments declared? | Versioned JSON under [`campaigns/`](../campaigns/) and [`syntheses/`](../syntheses/) |
 

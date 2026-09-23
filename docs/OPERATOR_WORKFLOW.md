@@ -177,6 +177,18 @@ The next BTC cohort is locked in the September 18, 20, and 22 protocol files.
 Operate each named phase only in its declared window; automation does not relax
 the protocol's independent timing and market-term checks.
 
+After promotion and inventory verification, reproduce the coverage-aware
+cross-market description with:
+
+```bash
+./synch.sh evidence cross-market-phases \
+  execution_truth/specs/cross_market_phase_daily_20260915_20260922.json
+```
+
+September 20 and 22 retain explicit `null` middle phases. They contribute
+observed early and late cells but never complete-market paths. See
+[CROSS_MARKET_PHASES.md](CROSS_MARKET_PHASES.md).
+
 ## Interpreting campaign state
 
 - `pending`: not submitted.

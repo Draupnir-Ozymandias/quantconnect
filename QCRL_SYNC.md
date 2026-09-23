@@ -2260,6 +2260,51 @@ Next target: execute the nine prospectively scheduled phase captures, preserve
 misses, promote complete evidence deliberately, and only then implement a
 cross-market descriptive aggregate.
 
+## 2026-09-23 — Promoted multi-date evidence and cross-market phase analysis
+
+Reconciled the locked September 18, 20, and 22 protocols without retiming or
+imputation. September 18 completed early, middle, and late. September 20 and 22
+each completed early and late while middle remained missed. Deliberately
+promoted all 14 valid raw artifacts—seven exact slug resolutions and seven
+12-sample sequences—rather than selecting only complete markets. The durable
+inventory now declares and replays 27 artifacts offline.
+
+Added a coverage-aware cross-market phase analyzer and a versioned specification
+covering September 15–22. It requires exact phase keys, explicit `null` misses,
+at least two complete distinct markets, matching daily duration/source/outcome
+shape, and actual capture placement within the declared phase. Partial markets
+contribute only observed phase aggregates; complete early-to-middle-to-late
+paths are reported separately. The deterministic result hash is
+`e3bdac21b4cbc44aeddbfc8b0357d15368b6d3489a0feb4210f63fc6b743d5bf`.
+
+All four early observations were two-sided, with Up first midpoints from 0.495
+to 0.575 and spreads from 0.01 to 0.02. Only two middle cells exist; both had a
+0.01 spread, but their Up anchors diverged at 0.205 and 0.735. Late state was
+heterogeneous: two markets were one-sided, two retained both sides, and three
+of four were one-sided or at a directional extreme. Displayed depth varied by
+more than an order of magnitude. One September 18 late polling gap was
+1007.056607 seconds; the artifact is retained but labeled degraded cadence.
+
+Files created or changed: 14 promoted raw artifacts, live inventory,
+`execution_truth/cross_market_phase.py`, the four-market specification, tests,
+CLI/package exports, cross-market documentation, schema/operator/capture/
+execution/phase documentation, architecture/status, and this record. Interface
+added: `analyze_cross_market_phases()` and `evidence cross-market-phases`.
+Record fields consumed: normalized market identity and contract terms, capture
+and sample times, requested cadence, execution metadata, full displayed depth,
+best sides, spreads, and midpoints. Assumption introduced: a sequence receives a
+cadence warning when its maximum polling gap exceeds twice its requested
+interval; the warning does not exclude evidence. Limitations: two complete
+markets do not establish stability; partial phases remain partial; directional
+extremes are not signal evidence; Binance noon-Eastern remains incompatible
+with QCRL's Coinbase midnight-UTC lane; public books do not establish fills,
+settlement, or profitability. New requests for Workstream A: none. Tests
+completed: 214 deterministic tests; all 27 promoted artifacts verify offline.
+
+Next coding target: version a batch application of the unchanged latency grid
+over every observed phase, then add public settlement evidence and terminal
+market reconciliation without credentials or orders.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

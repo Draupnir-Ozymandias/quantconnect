@@ -260,6 +260,307 @@
         "requested_sample_count": 12,
         "resolution_source": "https://www.binance.com/en/trade/BTC_USDT"
       }
+    },
+    {
+      "artifact_sha256": "13cd046ba56b26a7d93d8bc72dd8eab4086549325dfabf1e919804528ced753f",
+      "captured_at_utc": "2026-09-17T17:00:53.256312Z",
+      "evidence_role": "daily_phase_market_identity_resolution",
+      "limitations": [
+        "exact market-slug lookup at the predeclared early phase only",
+        "does not establish Coinbase midnight-UTC signal compatibility",
+        "does not prove order-book availability, execution, fill, or settlement"
+      ],
+      "path": "raw/market-slug-bitcoin-up-or-down-on-september-18-2026-13cd046ba56b26a7d93d8bc72dd8eab4086549325dfabf1e919804528ced753f.json",
+      "schema_version": "qcrl.polymarket_raw_slug_resolution.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260918-v1",
+        "market_id": "4617749",
+        "phase": "early",
+        "reference_kind": "market",
+        "slug": "bitcoin-up-or-down-on-september-18-2026"
+      }
+    },
+    {
+      "artifact_sha256": "b575fea51cd4354b9793442dcd7a7e6b00ed8d375bcbf1bf1792b2cf921c4e7a",
+      "captured_at_utc": "2026-09-17T17:00:53.385777Z",
+      "evidence_role": "daily_phase_temporal_liquidity_compatibility_audit",
+      "limitations": [
+        "twelve discrete early-phase samples do not establish continuous liquidity",
+        "one phase from one market does not establish cross-market stability",
+        "Binance noon-Eastern contract is incompatible with the current Coinbase midnight-UTC signal",
+        "cannot prove queue position, fill, latency, settlement, or profitability"
+      ],
+      "normalized_sha256": "d0bee36f667480661d75b895ef83fcc258d98412825c4045548d3c6611134545",
+      "path": "raw/sequence-market-4617749-b575fea51cd4354b9793442dcd7a7e6b00ed8d375bcbf1bf1792b2cf921c4e7a.json",
+      "schema_version": "qcrl.polymarket_raw_book_sequence.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260918-v1",
+        "event_end_at_utc": "2026-09-18T16:00:00Z",
+        "event_start_at_utc": "2026-09-17T16:00:00Z",
+        "market_id": "4617749",
+        "phase": "early",
+        "requested_interval_seconds": 5,
+        "requested_sample_count": 12,
+        "resolution_source": "https://www.binance.com/en/trade/BTC_USDT"
+      }
+    },
+    {
+      "artifact_sha256": "f05683a4f6bec9371f2b96969a885cc9300685147e2d292553d6f20257a2e88d",
+      "captured_at_utc": "2026-09-18T04:08:26.009144Z",
+      "evidence_role": "daily_phase_market_identity_resolution",
+      "limitations": [
+        "exact market-slug lookup at the predeclared middle phase only",
+        "does not establish Coinbase midnight-UTC signal compatibility",
+        "does not prove order-book availability, execution, fill, or settlement"
+      ],
+      "path": "raw/market-slug-bitcoin-up-or-down-on-september-18-2026-f05683a4f6bec9371f2b96969a885cc9300685147e2d292553d6f20257a2e88d.json",
+      "schema_version": "qcrl.polymarket_raw_slug_resolution.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260918-v1",
+        "market_id": "4617749",
+        "phase": "middle",
+        "reference_kind": "market",
+        "slug": "bitcoin-up-or-down-on-september-18-2026"
+      }
+    },
+    {
+      "artifact_sha256": "6fa3c113bacf6f5e4a66eee3c810655cadb88f5317d525932724a31e4153b7a6",
+      "captured_at_utc": "2026-09-18T04:08:26.107287Z",
+      "evidence_role": "daily_phase_temporal_liquidity_compatibility_audit",
+      "limitations": [
+        "twelve discrete middle-phase samples do not establish continuous liquidity",
+        "one phase from one market does not establish cross-market stability",
+        "Binance noon-Eastern contract is incompatible with the current Coinbase midnight-UTC signal",
+        "cannot prove queue position, fill, latency, settlement, or profitability"
+      ],
+      "normalized_sha256": "9187244fbcac23ba07fbb5da8e1254d8df2528d850f10166e8d1357ebae04b00",
+      "path": "raw/sequence-market-4617749-6fa3c113bacf6f5e4a66eee3c810655cadb88f5317d525932724a31e4153b7a6.json",
+      "schema_version": "qcrl.polymarket_raw_book_sequence.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260918-v1",
+        "event_end_at_utc": "2026-09-18T16:00:00Z",
+        "event_start_at_utc": "2026-09-17T16:00:00Z",
+        "market_id": "4617749",
+        "phase": "middle",
+        "requested_interval_seconds": 5,
+        "requested_sample_count": 12,
+        "resolution_source": "https://www.binance.com/en/trade/BTC_USDT"
+      }
+    },
+    {
+      "artifact_sha256": "82d555f1f387db478f6103c80a515821641030ff554f5ca311addb0acfaa8325",
+      "captured_at_utc": "2026-09-18T15:08:31.887202Z",
+      "evidence_role": "daily_phase_market_identity_resolution",
+      "limitations": [
+        "exact market-slug lookup at the predeclared late phase only",
+        "does not establish Coinbase midnight-UTC signal compatibility",
+        "does not prove order-book availability, execution, fill, or settlement"
+      ],
+      "path": "raw/market-slug-bitcoin-up-or-down-on-september-18-2026-82d555f1f387db478f6103c80a515821641030ff554f5ca311addb0acfaa8325.json",
+      "schema_version": "qcrl.polymarket_raw_slug_resolution.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260918-v1",
+        "market_id": "4617749",
+        "phase": "late",
+        "reference_kind": "market",
+        "slug": "bitcoin-up-or-down-on-september-18-2026"
+      }
+    },
+    {
+      "artifact_sha256": "dca9908a112cf9ae2b1e45efad92bd8c659db136c53ba1008686d915d1baaee5",
+      "captured_at_utc": "2026-09-18T15:08:31.980381Z",
+      "evidence_role": "daily_phase_temporal_liquidity_compatibility_audit",
+      "limitations": [
+        "twelve discrete late-phase samples do not establish continuous liquidity",
+        "one polling gap was about 1007 seconds, so the sequence is degraded-cadence evidence",
+        "Binance noon-Eastern contract is incompatible with the current Coinbase midnight-UTC signal",
+        "cannot prove queue position, fill, latency, settlement, or profitability"
+      ],
+      "normalized_sha256": "a765bd15f6442fa5de61bb3e683439d1d022f13bcaf3d7563e249685dea26042",
+      "path": "raw/sequence-market-4617749-dca9908a112cf9ae2b1e45efad92bd8c659db136c53ba1008686d915d1baaee5.json",
+      "schema_version": "qcrl.polymarket_raw_book_sequence.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260918-v1",
+        "event_end_at_utc": "2026-09-18T16:00:00Z",
+        "event_start_at_utc": "2026-09-17T16:00:00Z",
+        "market_id": "4617749",
+        "phase": "late",
+        "requested_interval_seconds": 5,
+        "requested_sample_count": 12,
+        "resolution_source": "https://www.binance.com/en/trade/BTC_USDT"
+      }
+    },
+    {
+      "artifact_sha256": "92ffe654838080484931987b04672521e03d4604467a2802808a7361ad9a0993",
+      "captured_at_utc": "2026-09-19T17:00:43.944827Z",
+      "evidence_role": "daily_phase_market_identity_resolution",
+      "limitations": [
+        "exact market-slug lookup at the predeclared early phase only",
+        "the market's middle phase was missed and remains missing",
+        "does not prove order-book availability, execution, fill, or settlement"
+      ],
+      "path": "raw/market-slug-bitcoin-up-or-down-on-september-20-2026-92ffe654838080484931987b04672521e03d4604467a2802808a7361ad9a0993.json",
+      "schema_version": "qcrl.polymarket_raw_slug_resolution.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260920-v1",
+        "market_id": "4689506",
+        "phase": "early",
+        "reference_kind": "market",
+        "slug": "bitcoin-up-or-down-on-september-20-2026"
+      }
+    },
+    {
+      "artifact_sha256": "91b9d739712be14b884a60a3c4f425305c794fa240812d92d69aa4fe3b8bf040",
+      "captured_at_utc": "2026-09-19T17:00:44.142589Z",
+      "evidence_role": "daily_phase_temporal_liquidity_compatibility_audit",
+      "limitations": [
+        "twelve discrete early-phase samples do not establish continuous liquidity",
+        "the market's middle phase was missed and remains missing",
+        "Binance noon-Eastern contract is incompatible with the current Coinbase midnight-UTC signal",
+        "cannot prove queue position, fill, latency, settlement, or profitability"
+      ],
+      "normalized_sha256": "7664d48ec2374d1eb1569bc3c9ff2ae228ba64fdb4cbc7ab6e03bb1aa3f758d1",
+      "path": "raw/sequence-market-4689506-91b9d739712be14b884a60a3c4f425305c794fa240812d92d69aa4fe3b8bf040.json",
+      "schema_version": "qcrl.polymarket_raw_book_sequence.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260920-v1",
+        "event_end_at_utc": "2026-09-20T16:00:00Z",
+        "event_start_at_utc": "2026-09-19T16:00:00Z",
+        "market_id": "4689506",
+        "phase": "early",
+        "requested_interval_seconds": 5,
+        "requested_sample_count": 12,
+        "resolution_source": "https://www.binance.com/en/trade/BTC_USDT"
+      }
+    },
+    {
+      "artifact_sha256": "1022ef261479e94223459df8e205688e1ab488404348ea4c6fa9b19f1fb4c806",
+      "captured_at_utc": "2026-09-20T15:00:50.139832Z",
+      "evidence_role": "daily_phase_market_identity_resolution",
+      "limitations": [
+        "exact market-slug lookup at the predeclared late phase only",
+        "the market's middle phase was missed and remains missing",
+        "does not prove order-book availability, execution, fill, or settlement"
+      ],
+      "path": "raw/market-slug-bitcoin-up-or-down-on-september-20-2026-1022ef261479e94223459df8e205688e1ab488404348ea4c6fa9b19f1fb4c806.json",
+      "schema_version": "qcrl.polymarket_raw_slug_resolution.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260920-v1",
+        "market_id": "4689506",
+        "phase": "late",
+        "reference_kind": "market",
+        "slug": "bitcoin-up-or-down-on-september-20-2026"
+      }
+    },
+    {
+      "artifact_sha256": "ad242618de1dd136e18a60e1f1cbf0b7f0bd6fdaee6c0d6382d903315cb2ef3e",
+      "captured_at_utc": "2026-09-20T15:00:50.235340Z",
+      "evidence_role": "daily_phase_temporal_liquidity_compatibility_audit",
+      "limitations": [
+        "twelve discrete late-phase samples do not establish continuous liquidity",
+        "the market's middle phase was missed and remains missing",
+        "Binance noon-Eastern contract is incompatible with the current Coinbase midnight-UTC signal",
+        "cannot prove queue position, fill, latency, settlement, or profitability"
+      ],
+      "normalized_sha256": "d3c6e48175711a5e8fc6455e16a63ed016da076323205698e0d0f06f29ecbb53",
+      "path": "raw/sequence-market-4689506-ad242618de1dd136e18a60e1f1cbf0b7f0bd6fdaee6c0d6382d903315cb2ef3e.json",
+      "schema_version": "qcrl.polymarket_raw_book_sequence.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260920-v1",
+        "event_end_at_utc": "2026-09-20T16:00:00Z",
+        "event_start_at_utc": "2026-09-19T16:00:00Z",
+        "market_id": "4689506",
+        "phase": "late",
+        "requested_interval_seconds": 5,
+        "requested_sample_count": 12,
+        "resolution_source": "https://www.binance.com/en/trade/BTC_USDT"
+      }
+    },
+    {
+      "artifact_sha256": "8e37c097e950ac9b452217823101884b2dbcc6d082e213a5fcdbf8a062f007c1",
+      "captured_at_utc": "2026-09-21T17:02:26.827355Z",
+      "evidence_role": "daily_phase_market_identity_resolution",
+      "limitations": [
+        "exact market-slug lookup at the predeclared early phase only",
+        "the market's middle phase was missed and remains missing",
+        "does not prove order-book availability, execution, fill, or settlement"
+      ],
+      "path": "raw/market-slug-bitcoin-up-or-down-on-september-22-2026-8e37c097e950ac9b452217823101884b2dbcc6d082e213a5fcdbf8a062f007c1.json",
+      "schema_version": "qcrl.polymarket_raw_slug_resolution.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260922-v1",
+        "market_id": "4761727",
+        "phase": "early",
+        "reference_kind": "market",
+        "slug": "bitcoin-up-or-down-on-september-22-2026"
+      }
+    },
+    {
+      "artifact_sha256": "605cb03ac09abacd784686cc860237ee602e89e2a3da37669e705bb2f81484b1",
+      "captured_at_utc": "2026-09-21T17:02:26.911665Z",
+      "evidence_role": "daily_phase_temporal_liquidity_compatibility_audit",
+      "limitations": [
+        "twelve discrete early-phase samples do not establish continuous liquidity",
+        "the market's middle phase was missed and remains missing",
+        "Binance noon-Eastern contract is incompatible with the current Coinbase midnight-UTC signal",
+        "cannot prove queue position, fill, latency, settlement, or profitability"
+      ],
+      "normalized_sha256": "cbb6592fbb4950913a96469f7caa426c20a6f5f03ff9ced86b7363cb39dff56a",
+      "path": "raw/sequence-market-4761727-605cb03ac09abacd784686cc860237ee602e89e2a3da37669e705bb2f81484b1.json",
+      "schema_version": "qcrl.polymarket_raw_book_sequence.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260922-v1",
+        "event_end_at_utc": "2026-09-22T16:00:00Z",
+        "event_start_at_utc": "2026-09-21T16:00:00Z",
+        "market_id": "4761727",
+        "phase": "early",
+        "requested_interval_seconds": 5,
+        "requested_sample_count": 12,
+        "resolution_source": "https://www.binance.com/en/trade/BTC_USDT"
+      }
+    },
+    {
+      "artifact_sha256": "99534e222ab3a62d0fd69ff3db0536920ee8a0c3ec0d0116f9837cd7e308c3f0",
+      "captured_at_utc": "2026-09-22T15:00:21.981529Z",
+      "evidence_role": "daily_phase_market_identity_resolution",
+      "limitations": [
+        "exact market-slug lookup at the predeclared late phase only",
+        "the market's middle phase was missed and remains missing",
+        "does not prove order-book availability, execution, fill, or settlement"
+      ],
+      "path": "raw/market-slug-bitcoin-up-or-down-on-september-22-2026-99534e222ab3a62d0fd69ff3db0536920ee8a0c3ec0d0116f9837cd7e308c3f0.json",
+      "schema_version": "qcrl.polymarket_raw_slug_resolution.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260922-v1",
+        "market_id": "4761727",
+        "phase": "late",
+        "reference_kind": "market",
+        "slug": "bitcoin-up-or-down-on-september-22-2026"
+      }
+    },
+    {
+      "artifact_sha256": "307e8e3bb7dd30ad20442d9afdbb45132c529ef80cdb1f1ba2aae38b59e263fa",
+      "captured_at_utc": "2026-09-22T15:00:22.186645Z",
+      "evidence_role": "daily_phase_temporal_liquidity_compatibility_audit",
+      "limitations": [
+        "twelve discrete late-phase samples do not establish continuous liquidity",
+        "the market's middle phase was missed and remains missing",
+        "Binance noon-Eastern contract is incompatible with the current Coinbase midnight-UTC signal",
+        "cannot prove queue position, fill, latency, settlement, or profitability"
+      ],
+      "normalized_sha256": "c9cbcc0b1b66b3d2bd356924cfd380f65798ee1ec12fcf48656d968155114dd7",
+      "path": "raw/sequence-market-4761727-307e8e3bb7dd30ad20442d9afdbb45132c529ef80cdb1f1ba2aae38b59e263fa.json",
+      "schema_version": "qcrl.polymarket_raw_book_sequence.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260922-v1",
+        "event_end_at_utc": "2026-09-22T16:00:00Z",
+        "event_start_at_utc": "2026-09-21T16:00:00Z",
+        "market_id": "4761727",
+        "phase": "late",
+        "requested_interval_seconds": 5,
+        "requested_sample_count": 12,
+        "resolution_source": "https://www.binance.com/en/trade/BTC_USDT"
+      }
     }
   ],
   "compatibility_findings": [

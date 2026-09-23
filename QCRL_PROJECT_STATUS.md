@@ -1,6 +1,6 @@
 # QCRL Project Status
 
-**As of:** 2026-09-16
+**As of:** 2026-09-23
 **Repository:** `Draupnir-Ozymandias/quantconnect` / `polymarket-martingale`  
 **QuantConnect project:** 33239307  
 **Current research decision:** Hold feature optimization; preserve the locked
@@ -36,9 +36,9 @@ evidence.
 | Normalized record schema | `qcrl.experiment_record.v5` |
 | Campaign manifest/state | `qcrl.campaign.v1` / `qcrl.campaign_state.v1` |
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
-| Execution-truth schemas | market v3; normalized bundle, signal intent, binding, and replay result v2; source, source bar, signal decision, book, raw bundle, raw/normalized book sequence, raw slug resolution, discovery, live inventory, latency policy/result, phase-capture protocol/state/status, and phase-stability spec/result v1 |
+| Execution-truth schemas | market v3; normalized bundle, signal intent, binding, and replay result v2; source, source bar, signal decision, book, raw bundle, raw/normalized book sequence, raw slug resolution, discovery, live inventory, latency policy/result, phase-capture protocol/state/status, phase-stability, and cross-market phase spec/result v1 |
 | Snapshot taker replay | result v2; request / policy / example v1; mechanics-only |
-| Test suite | 210 deterministic tests passing |
+| Test suite | 214 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
@@ -116,11 +116,14 @@ trade.
   timestamps and completed validation artifacts.
 - One 2026Q4 prospective case is pending by design and must remain unexecuted
   until its evaluation window is complete.
-- Local Git is authoritative; the new protocol and execution-truth evidence have
-  not been synchronized to GitHub or QuantConnect.
-- The September 15 daily market has complete promoted early/middle/late evidence;
-  the durable live inventory now declares 13 artifacts and the offline
-  phase-stability analyzer preserves one-sided books without imputation.
+- Local Git is authoritative; the September 18–22 promotion and cross-market
+  analysis are currently uncommitted and have not been synchronized.
+- The durable live inventory declares and verifies 27 artifacts. September 15
+  and 18 have complete promoted early/middle/late evidence; September 20 and 22
+  retain promoted early/late evidence with middle explicitly missing.
+- The coverage-aware cross-market analyzer uses 10 sequences across four
+  markets, preserves partial cells without imputation, and flags one degraded
+  September 18 late-capture cadence.
 
 ## Research Findings
 
@@ -290,10 +293,10 @@ weak explanations and dangerous sizing have been rejected before deployment.
 ## Known Gaps and Risks
 
 1. Public Polymarket series/event discovery, market metadata, and order books
-   can now be acquired, promoted, inventoried, and replayed. Thirteen live raw
-   artifacts are durable Git evidence, including the complete September 15
-   early/middle/late daily cohort. No trade, fill, or settlement data is
-   ingested.
+   can now be acquired, promoted, inventoried, and replayed. Twenty-seven live
+   raw artifacts are durable local evidence, including complete September 15
+   and 18 cohorts and partial September 20 and 22 cohorts. No trade, fill, or
+   settlement data is ingested.
 2. Snapshot BUY/FAK/FOK replay now estimates entry prices, depth consumption,
    fees, partial fills, and no fills. Actual matches, temporal liquidity,
    latency paths, and wallet settlement remain unmodeled. The daily capture
@@ -314,17 +317,25 @@ weak explanations and dangerous sizing have been rejected before deployment.
    mechanics rows reject unknown delay and minimum-age state rather than claiming
    fills. These observations do not calibrate a latency distribution.
 6. September 11 captured only early; September 13 captured early and late; both
-   missed phases remain missing. September 15 is the first complete promoted
-   phase cohort. Three additional BTC daily protocols ending September 18, 20,
-   and 22 are locked prospectively with identical timing and sampling.
-7. QCRL uses its own synthetic bankroll and submits no LEAN portfolio orders;
+   missed phases remain missing. September 15 and 18 are complete promoted phase
+   cohorts. September 20 and 22 captured early and late but missed middle; all
+   valid observations are promoted and the misses remain explicit.
+7. Cross-market description now covers four aligned markets and 10 sequences.
+   All four early books were two-sided with tight spreads, while late state was
+   heterogeneous: two were one-sided, two remained two-sided, and three of four
+   were one-sided or priced at a directional extreme. Displayed depth varied by
+   more than an order of magnitude, so liquidity magnitude is not stable.
+8. One September 18 late polling gap was 1007.056607 seconds. The artifact is
+   retained as degraded-cadence evidence and is not treated as a one-minute
+   trajectory. All other sequence maxima were below 5.71 seconds.
+9. QCRL uses its own synthetic bankroll and submits no LEAN portfolio orders;
    standard LEAN portfolio statistics are not strategy objectives here.
-8. Polymarket is not implemented as a LEAN brokerage or execution adapter.
-9. Manual defaults still select EMA 5/10 and QCRL 2.3.0, while the current
+10. Polymarket is not implemented as a LEAN brokerage or execution adapter.
+11. Manual defaults still select EMA 5/10 and QCRL 2.3.0, while the current
    candidate is unfiltered and temporal manifests use 2.4.0.
-10. The estimated 8.43% friction capacity assumes constant cost per wager and
+12. The estimated 8.43% friction capacity assumes constant cost per wager and
    cannot be translated directly into expected Polymarket profitability.
-11. The 2026Q4 prospective sample is future evidence and must not be run
+13. The 2026Q4 prospective sample is future evidence and must not be run
    partially or modified after its October 1 start.
 
 ## Current Guardrails
@@ -347,15 +358,15 @@ Daily series `41` exists but is incompatible with the current signal because
 its Binance BTC/USDT feed, noon-Eastern anchor, and tie settlement differ.
 Remaining work is:
 
-1. Complete the locked September 18, 20, and 22 BTC daily phase protocols.
-   Preserve any missed phases as missing evidence and do not retime declarations.
-2. Promote and inventory complete evidence, then add cross-market descriptive
-   aggregation only after multiple complete markets exist.
+1. Add a versioned batch application of the unchanged fixed latency grid to all
+   observed phases, preserving the September 18 cadence warning. Current timing
+   metadata implies fail-closed mechanics rather than estimated fills.
+2. Add public settlement evidence and reconcile market identity, terminal book
+   state, and resolution outcome without adding credentials or placing orders.
 3. Decide whether to authorize a separate Binance noon-to-noon research lane;
    do not retrofit the historical Coinbase evidence.
-4. Add settlement evidence and reconciliation.
-5. Connect the boundary adapter to a read-only live data process.
-6. Add shadow decisions before any authenticated order path.
+4. Connect the boundary adapter to a read-only live data process.
+5. Add shadow decisions before any authenticated order path.
 
 The Q4 evidence lane and execution-infrastructure lane must remain independent.
 
@@ -374,6 +385,7 @@ The Q4 evidence lane and execution-infrastructure lane must remain independent.
 - `docs/LATENCY_SENSITIVITY.md` — observed-book latency selection and limits
 - `docs/CAPTURE_PROTOCOL.md` — locked phase timing and resumable capture state
 - `docs/PHASE_STABILITY.md` — within-market early/middle/late description
+- `docs/CROSS_MARKET_PHASES.md` — coverage-aware cross-market phase description
 - `docs/OPERATOR_WORKFLOW.md` — exact Git, GitHub, QuantConnect, and campaign flow
 - `campaigns/` — immutable experiment declarations
 - `syntheses/` — versioned cross-campaign analysis declarations

@@ -423,8 +423,9 @@ itself, a production module.
 * Predeclared early/middle/late capture protocol with resumable state (implemented)
 * Within-market phase stability description (implemented)
 * Fixed-grid phase latency replay (implemented; mechanics reject unknown timing metadata)
-* Prospectively locked multi-date BTC capture cohort (in collection)
-* Cross-market temporal aggregation, settlement evidence, and reconciliation
+* Prospectively locked multi-date BTC capture cohort (complete with declared misses)
+* Coverage-aware cross-market temporal aggregation (implemented; descriptive only)
+* Settlement evidence and reconciliation
 * Documentation-backed experiment and decision registry
 * Locked prospective 2026Q4 baseline (preservation only until window end)
 

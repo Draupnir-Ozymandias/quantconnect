@@ -29,3 +29,6 @@ Three phases from one market do not establish cross-market stability. The
 Binance noon-Eastern contract remains incompatible with the Coinbase
 midnight-UTC QCRL signal, and the result does not establish queue position,
 latency, fills, settlement, or profitability.
+
+The follow-on analyzer retains complete and partial markets separately. See
+[CROSS_MARKET_PHASES.md](CROSS_MARKET_PHASES.md).
