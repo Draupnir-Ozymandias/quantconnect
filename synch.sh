@@ -47,6 +47,12 @@ cloud_project_id() {
         "$PROJECT_DIR/config.json"
 }
 
+qc_source_files() {
+    git -C "$PROJECT_DIR" ls-files -z -- \
+        '*.py' '*.cs' '*.ipynb' '*.css' '*.html' \
+        ':(exclude)tests/**'
+}
+
 show_cloud_push_plan() {
     local relative_path
     local character_count
@@ -85,10 +91,7 @@ show_cloud_push_plan() {
         else
             printf '  include  %6s chars  %s\n' "$character_count" "$relative_path"
         fi
-    done < <(
-        git -C "$PROJECT_DIR" ls-files -z -- \
-            '*.py' '*.cs' '*.ipynb' '*.css' '*.html'
-    )
+    done < <(qc_source_files)
 
     echo
     echo "Eligible tracked source files: $file_count"
@@ -155,10 +158,27 @@ push_cloud() {
         exit 0
     fi
 
-    (
-        cd "$WORKSPACE_DIR"
-        lean cloud push --project "$PROJECT_DIR"
-    )
+    local upload_parent
+    local upload_project
+    local relative_path
+    upload_parent="$(mktemp -d "${TMPDIR:-/tmp}/qcrl-qc-upload.XXXXXX")"
+    upload_project="$upload_parent/$PROJECT_NAME"
+    mkdir -p "$upload_project"
+    cp "$PROJECT_DIR/config.json" "$upload_project/config.json"
+    while IFS= read -r -d '' relative_path; do
+        mkdir -p "$upload_project/$(dirname "$relative_path")"
+        cp "$PROJECT_DIR/$relative_path" "$upload_project/$relative_path"
+    done < <(qc_source_files)
+
+    if (
+        cd "$upload_parent"
+        lean cloud push --project "$upload_project"
+    ); then
+        rm -rf "$upload_parent"
+    else
+        echo "QuantConnect upload staging retained for inspection: $upload_parent" >&2
+        return 1
+    fi
 }
 
 run_cloud_backtest() {

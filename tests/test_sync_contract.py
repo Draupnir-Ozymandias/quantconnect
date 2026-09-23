@@ -22,6 +22,7 @@ class SyncContractTests(unittest.TestCase):
         self.assertIn("Preflight passed", result.stdout)
         self.assertNotIn("README.md", result.stdout)
         self.assertNotIn("QCRL_SYNC.md", result.stdout)
+        self.assertNotIn("tests/test_sync_contract.py", result.stdout)
 
     def test_tracked_python_files_do_not_shadow_standard_library_modules(self):
         result = subprocess.run(

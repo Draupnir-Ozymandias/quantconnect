@@ -221,6 +221,11 @@ the declared window:
 
 See `docs/LOCAL_CAPTURE_WORKER.md`; no future schedule is currently active.
 
+QuantConnect upload staging includes tracked runtime/research source but excludes
+the repository-only `tests/` tree. Tests still run locally before synchronization
+and remain versioned in GitHub. This keeps the cloud project below its aggregate
+upload limit without making the test suite part of deployed algorithm source.
+
 See [LATENCY_BATCH.md](LATENCY_BATCH.md) and
 [SETTLEMENT_RECONCILIATION.md](SETTLEMENT_RECONCILIATION.md).
 

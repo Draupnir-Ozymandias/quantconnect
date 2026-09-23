@@ -98,7 +98,8 @@ trade.
 ### Research and orchestration
 
 - Guarded Git/QuantConnect synchronization through `synch.sh`, including a
-  read-only upload plan and preflight enforcement of the 64,000-character limit
+  read-only upload plan, per-file enforcement of the 64,000-character limit,
+  and a runtime-only staging tree that excludes repository tests from QC
 - Resumable, rate-aware QuantConnect API campaign runner
 - Authoritative API collection and provenance checks
 - Cohort ranking and paired flat/martingale validation

@@ -2399,6 +2399,14 @@ schedules from the inert template, and perform a dry-run/network smoke test.
 The next execution-truth analysis should then quantify terminal-price path and
 resolution timing only if it can be declared before capture.
 
+The first direct QC synchronization attempt for this commit returned HTTP 413
+because LEAN CLI recursively included the repository-only Python test suite in
+the project upload. `synch.sh` now constructs an ephemeral project containing
+`config.json` and tracked runtime/research source while excluding `tests/`.
+The upload plan and actual push consume the same file selector; failed staging
+is retained for inspection, while successful staging is removed. GitHub remains
+the authoritative home of the complete 232-test suite.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:
