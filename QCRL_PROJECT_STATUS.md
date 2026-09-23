@@ -38,7 +38,7 @@ evidence.
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
 | Execution-truth schemas | market v3; normalized bundle, signal intent, binding, and replay result v2; source, source bar, signal decision, book, raw bundle, raw/normalized book sequence, raw slug resolution, discovery, live inventory, latency policy/result/batch, phase-capture protocol/state/status/worker report, phase stability, cross-market phase, platform settlement, and Binance resolution/reconciliation contracts v1 |
 | Snapshot taker replay | result v2; request / policy / example v1; mechanics-only |
-| Test suite | 232 deterministic tests passing |
+| Test suite | 235 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
@@ -136,7 +136,11 @@ trade.
   consistency, not an audit of Polymarket's internal oracle process.
 - A local capture worker now provides bounded, deadline-aware retries for
   transient acquisition failures. Contract and timing failures remain
-  non-retryable, and no future capture schedule is active.
+  non-retryable.
+- The September 25 daily market is locked prospectively as the first member of
+  the next cohort. Its three one-date launchd declarations are generated from
+  the versioned protocol; installation and network smoke status are recorded in
+  the capture documentation.
 
 ## Research Findings
 

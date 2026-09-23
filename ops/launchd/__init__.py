@@ -1,0 +1,1 @@
+"""macOS launchd declaration tooling."""

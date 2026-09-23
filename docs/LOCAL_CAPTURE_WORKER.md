@@ -39,3 +39,15 @@ protocol remains the authority on actual eligibility.
 This worker reduces transient failures. It cannot overcome a sandbox that
 categorically denies networking, guarantee hard-real-time dispatch, repair a
 missed historical window, or authorize evidence promotion.
+
+Generate three unique one-date jobs for a newly locked protocol with:
+
+```bash
+python3 ops/launchd/generate_capture_jobs.py \
+  execution_truth/protocols/<future-protocol>.json
+```
+
+The generator rejects protocols after any target has arrived, uses the exact
+current Python interpreter, includes the calendar year to prevent annual
+recurrence, and never loads the jobs. Installation remains an explicit
+operator action through `launchctl bootstrap gui/<uid> <absolute-plist>`.

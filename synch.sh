@@ -50,7 +50,7 @@ cloud_project_id() {
 qc_source_files() {
     git -C "$PROJECT_DIR" ls-files -z -- \
         '*.py' '*.cs' '*.ipynb' '*.css' '*.html' \
-        ':(exclude)tests/**'
+        ':(exclude)tests/**' ':(exclude)ops/**'
 }
 
 show_cloud_push_plan() {

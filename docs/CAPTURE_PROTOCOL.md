@@ -132,3 +132,22 @@ must never be widened after observation.
 The repository now includes a deadline-aware worker and inert launchd template
 for the next prospectively locked cohort. No future protocol or schedule has
 been activated. See [LOCAL_CAPTURE_WORKER.md](LOCAL_CAPTURE_WORKER.md).
+
+## September 25 prospective local capture
+
+Protocol `btc-daily-phase-capture-20260925-v1` was locked at
+2026-09-23 20:56:07 UTC, before the market opened. Public discovery identified
+market ID `4883052` with the expected September 24 16:00 through September 25
+16:00 UTC interval and Binance BTC/USDT resolution source. The already-open
+September 24 market was deliberately excluded.
+
+| Capture | UTC target | New York target | Deadline UTC |
+|---|---|---|---|
+| early | Sep 24 17:00 | Sep 24 1:00 PM | 17:10 |
+| middle | Sep 25 04:00 | Sep 25 12:00 AM | 04:10 |
+| late | Sep 25 15:00 | Sep 25 11:00 AM | 15:10 |
+
+This is member one of a rolling prospective cohort. Additional members may be
+locked only after their exact markets are published and before their event
+windows open. Failure or absence remains missing evidence; dates will not be
+retrofitted or substituted based on September 25 results.

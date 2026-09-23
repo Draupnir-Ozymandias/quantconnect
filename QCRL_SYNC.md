@@ -2415,6 +2415,30 @@ directory is named exactly `polymarket-martingale`, so the corrective push
 restores and preserves the canonical cloud name. The normalized local staging
 directory created by the first attempt was removed.
 
+## 2026-09-23 — First network-preauthorized prospective capture
+
+Public discovery found exact daily markets for September 24 and 25. September
+24 had already opened and was excluded. Locked
+`btc-daily-phase-capture-20260925-v1` at 20:56:07 UTC on September 23, before
+the September 24 16:00 UTC event start. Gamma reported market ID `4883052`, the
+expected 24-hour interval, and the unchanged Binance BTC/USDT resolution
+source. The protocol preserves 12 samples at five-second intervals and the
+fixed 17:00/04:00/15:00 UTC early/middle/late geometry.
+
+Added a repository-only launchd generator that rejects late generation,
+produces unique per-protocol/per-phase labels, includes Year/Month/Day to avoid
+annual recurrence, calls the deadline-aware retry worker with absolute paths,
+and leaves installation explicit. Operations and tests are excluded from the
+QC runtime staging payload but remain in GitHub. Files created or changed: one
+locked protocol, generator/package files, generator and sync tests, capture and
+worker documentation, status, sync selector, and this record. Tests completed:
+235 deterministic tests. New requests for Workstream A: none.
+
+Next operational gate: generate and validate the three local jobs, prove public
+DNS/HTTPS from the launchd GUI domain, then bootstrap and inventory the jobs.
+Subsequent cohort markets may be locked only before their event windows and
+must not be selected from September 25 results.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:
