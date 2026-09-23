@@ -27,11 +27,12 @@ class LaunchdCaptureJobTests(unittest.TestCase):
                 job["StartCalendarInterval"]["Year"] for job in jobs
             })
             self.assertEqual({"early", "middle", "late"}, {
-                job["ProgramArguments"][4] for job in jobs
+                job["ProgramArguments"][6] for job in jobs
             })
             self.assertTrue(all(
                 "protocol-capture-retry" in job["ProgramArguments"]
                 and "--execute" in job["ProgramArguments"]
+                and job["ProgramArguments"][:2] == ["/usr/bin/caffeinate", "-dimsu"]
                 for job in jobs
             ))
 

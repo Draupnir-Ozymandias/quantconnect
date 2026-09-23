@@ -50,6 +50,8 @@ def generate_capture_jobs(protocol_path, output_directory, python_executable,
             "Label": label,
             "ProcessType": "Background",
             "ProgramArguments": [
+                "/usr/bin/caffeinate",
+                "-dimsu",
                 str(python_executable),
                 str(PROJECT_DIR / "qcrl_execution_truth.py"),
                 "protocol-capture-retry",

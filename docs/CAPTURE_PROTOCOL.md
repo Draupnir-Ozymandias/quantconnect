@@ -129,9 +129,9 @@ dedicated capture service for strict timing. Application retries alone cannot
 repair a sandbox that categorically blocks DNS, and historical protocol windows
 must never be widened after observation.
 
-The repository now includes a deadline-aware worker and inert launchd template
-for the next prospectively locked cohort. No future protocol or schedule has
-been activated. See [LOCAL_CAPTURE_WORKER.md](LOCAL_CAPTURE_WORKER.md).
+The repository now includes a deadline-aware worker, inert launchd template,
+and repository-only job generator. The first locally scheduled protocol is
+documented below. See [LOCAL_CAPTURE_WORKER.md](LOCAL_CAPTURE_WORKER.md).
 
 ## September 25 prospective local capture
 
@@ -151,3 +151,10 @@ This is member one of a rolling prospective cohort. Additional members may be
 locked only after their exact markets are published and before their event
 windows open. Failure or absence remains missing evidence; dates will not be
 retrofitted or substituted based on September 25 results.
+
+The launchd GUI-domain smoke job completed with exit code 0, resolving market
+`4883052` through public DNS/HTTPS and writing a local content-addressed slug
+artifact. The smoke job was unloaded. Three unique production jobs are loaded,
+each has zero prior runs, and each calls the retry worker under `caffeinate`.
+The remaining host prerequisite is ensuring the Mac is awake before each
+calendar target; `caffeinate` then prevents sleep during capture.

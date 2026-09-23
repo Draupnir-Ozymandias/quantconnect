@@ -2439,6 +2439,15 @@ DNS/HTTPS from the launchd GUI domain, then bootstrap and inventory the jobs.
 Subsequent cohort markets may be locked only before their event windows and
 must not be selected from September 25 results.
 
+Completed that gate. The one-shot launchd smoke job exited 0, resolved the exact
+slug to market `4883052`, and wrote a content-addressed local artifact with an
+empty stderr log. It was then unloaded. The early, middle, and late jobs were
+bootstrapped into GUI domain 501; all report zero runs and the expected absolute
+paths. Production jobs are wrapped in `caffeinate -dimsu` so the host remains
+awake throughout polling and status persistence. Because caffeinate cannot wake
+an already sleeping Mac, explicit wake coverage remains the last host-level
+prerequisite.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

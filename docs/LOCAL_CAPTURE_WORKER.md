@@ -49,5 +49,10 @@ python3 ops/launchd/generate_capture_jobs.py \
 
 The generator rejects protocols after any target has arrived, uses the exact
 current Python interpreter, includes the calendar year to prevent annual
-recurrence, and never loads the jobs. Installation remains an explicit
-operator action through `launchctl bootstrap gui/<uid> <absolute-plist>`.
+recurrence, wraps execution in `caffeinate -dimsu` for the complete capture,
+and never loads the jobs. Installation remains an explicit operator action
+through `launchctl bootstrap gui/<uid> <absolute-plist>`.
+
+`caffeinate` prevents sleep after launchd starts the job; it does not wake a Mac
+that is already asleep. A host wake event or an operator guarantee that the Mac
+will be awake is still required before each target.

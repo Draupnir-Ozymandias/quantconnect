@@ -139,8 +139,9 @@ trade.
   non-retryable.
 - The September 25 daily market is locked prospectively as the first member of
   the next cohort. Its three one-date launchd declarations are generated from
-  the versioned protocol; installation and network smoke status are recorded in
-  the capture documentation.
+  the versioned protocol and loaded. A launchd GUI-domain network smoke resolved
+  the exact market with exit code 0. The jobs use `caffeinate` during execution;
+  explicit host wake coverage remains required before each target.
 
 ## Research Findings
 
@@ -353,9 +354,10 @@ weak explanations and dangerous sizing have been rejected before deployment.
    window but the default sandbox denied DNS. Codex scheduled tasks are not a
    hard real-time capture service; strict future timing requires a preauthorized
    network path and a local OS scheduler or dedicated recorder.
-10. Platform settlement reconciliation is implemented for all four markets.
-   It verifies Gamma payout state against CLOB tokens, but does not independently
-   reconstruct Binance resolution candles or observe wallet redemption.
+10. Platform settlement reconciliation is implemented for all four markets,
+   and exact public Binance boundary candles independently match all four payout
+   directions. This does not audit Polymarket's internal oracle or observe
+   wallet redemption.
 11. QCRL uses its own synthetic bankroll and submits no LEAN portfolio orders;
    standard LEAN portfolio statistics are not strategy objectives here.
 12. Polymarket is not implemented as a LEAN brokerage or execution adapter.
@@ -386,11 +388,10 @@ Daily series `41` exists but is incompatible with the current signal because
 its Binance BTC/USDT feed, noon-Eastern anchor, and tie settlement differ.
 Remaining work is:
 
-1. Add independent Binance candle retrieval and resolution-source
-   reconciliation for the four settled contracts, without treating it as QCRL
-   signal evidence.
-2. Replace agent-scheduled time-critical capture with a network-preauthorized
-   local scheduler or dedicated recorder before locking another cohort.
+1. Complete the locked September 25 early/middle/late capture without manual
+   retiming; verify, promote, and analyze it only after all three phases close.
+2. Lock additional published markets before their event windows, preserving the
+   same geometry and treating any miss as missing evidence.
 3. Decide whether to authorize a separate Binance noon-to-noon research lane;
    do not retrofit the historical Coinbase evidence.
 4. Connect the boundary adapter to a read-only live data process.
