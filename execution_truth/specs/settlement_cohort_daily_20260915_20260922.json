@@ -1,0 +1,35 @@
+{
+  "schema_version": "qcrl.settlement_cohort_spec.v1",
+  "markets": {
+    "2026-09-15": {
+      "settlement": "../../evidence/polymarket/live/raw/settlement-market-4528044-41e2aafd84f6aefa8854b77e368e5112bdeff4f4e132fb9f935770efb16d5ef6.json",
+      "sequences": [
+        "../../evidence/polymarket/live/raw/sequence-market-4528044-95b802e8e2ea76fa90ddc16ecc149fa421e374abebcddcfca43106bb705b46ac.json",
+        "../../evidence/polymarket/live/raw/sequence-market-4528044-146b52ab8661a2457ee55b97bed37ff412b39acc58c94958ffca329085e63107.json",
+        "../../evidence/polymarket/live/raw/sequence-market-4528044-d0ff2197a660161f99cb9fce41be6e0150d71739202f1b86f547a154fa5f5d55.json"
+      ]
+    },
+    "2026-09-18": {
+      "settlement": "../../evidence/polymarket/live/raw/settlement-market-4617749-113dd7a79af8b138d727ccc5a2edc4b42a2cefbb4b7c365190c01ef3f9ff4e74.json",
+      "sequences": [
+        "../../evidence/polymarket/live/raw/sequence-market-4617749-b575fea51cd4354b9793442dcd7a7e6b00ed8d375bcbf1bf1792b2cf921c4e7a.json",
+        "../../evidence/polymarket/live/raw/sequence-market-4617749-6fa3c113bacf6f5e4a66eee3c810655cadb88f5317d525932724a31e4153b7a6.json",
+        "../../evidence/polymarket/live/raw/sequence-market-4617749-dca9908a112cf9ae2b1e45efad92bd8c659db136c53ba1008686d915d1baaee5.json"
+      ]
+    },
+    "2026-09-20": {
+      "settlement": "../../evidence/polymarket/live/raw/settlement-market-4689506-da66685eb696a8291776c0d158b2ef47829826e347dfe75d40b378abbf754464.json",
+      "sequences": [
+        "../../evidence/polymarket/live/raw/sequence-market-4689506-91b9d739712be14b884a60a3c4f425305c794fa240812d92d69aa4fe3b8bf040.json",
+        "../../evidence/polymarket/live/raw/sequence-market-4689506-ad242618de1dd136e18a60e1f1cbf0b7f0bd6fdaee6c0d6382d903315cb2ef3e.json"
+      ]
+    },
+    "2026-09-22": {
+      "settlement": "../../evidence/polymarket/live/raw/settlement-market-4761727-341a6033a50cda13d746801d59c30cd25eb570608c99742410e5129679bdab4f.json",
+      "sequences": [
+        "../../evidence/polymarket/live/raw/sequence-market-4761727-605cb03ac09abacd784686cc860237ee602e89e2a3da37669e705bb2f81484b1.json",
+        "../../evidence/polymarket/live/raw/sequence-market-4761727-307e8e3bb7dd30ad20442d9afdbb45132c529ef80cdb1f1ba2aae38b59e263fa.json"
+      ]
+    }
+  }
+}

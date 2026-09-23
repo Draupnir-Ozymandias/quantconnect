@@ -211,5 +211,10 @@ explicit one-sided-book and missing-phase handling. See
 aggregation now separates two complete markets from two partial markets and
 flags degraded polling cadence without excluding the artifact. See
 [CROSS_MARKET_PHASES.md](CROSS_MARKET_PHASES.md). Settlement and
-signal-to-execution integration remain subsequent work. Any Binance noon-to-noon
-research lane requires a separate declaration.
+fixed-grid batch layers now cover all observed phase cells, and public platform
+settlement is reconciled to each latest observed book. See
+[LATENCY_BATCH.md](LATENCY_BATCH.md) and
+[SETTLEMENT_RECONCILIATION.md](SETTLEMENT_RECONCILIATION.md). Independent
+Binance candle verification and signal-to-execution integration remain
+subsequent work. Any Binance noon-to-noon research lane requires a separate
+declaration.

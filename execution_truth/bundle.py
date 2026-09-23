@@ -139,6 +139,19 @@ def store_raw_slug_resolution(raw_resolution, directory):
     )
 
 
+def store_raw_settlement(raw_settlement, directory):
+    """Store immutable verified platform settlement evidence."""
+    from .settlement import normalize_settlement
+
+    normalize_settlement(raw_settlement)
+    market_id = str(raw_settlement.get("market_id_requested") or "").strip()
+    supplied_hash = raw_settlement["settlement_sha256"]
+    return _store_json(
+        raw_settlement,
+        Path(directory) / f"settlement-market-{market_id}-{supplied_hash}.json",
+    )
+
+
 def promote_raw_evidence(source, directory):
     """Verify and copy one raw artifact into the durable evidence directory."""
     source = Path(source)
@@ -156,6 +169,8 @@ def promote_raw_evidence(source, directory):
         return store_raw_book_sequence(artifact, directory)
     if schema == "qcrl.polymarket_raw_slug_resolution.v1":
         return store_raw_slug_resolution(artifact, directory)
+    if schema == "qcrl.polymarket_raw_settlement.v1":
+        return store_raw_settlement(artifact, directory)
     raise ContractError("unsupported raw evidence schema")
 
 
@@ -225,6 +240,13 @@ def verify_live_evidence_inventory(directory):
                 raise ContractError(f"inventory normalized hash mismatch: {relative}")
         elif schema == "qcrl.polymarket_raw_slug_resolution.v1":
             artifact_hash = verify_raw_slug_resolution(artifact)
+        elif schema == "qcrl.polymarket_raw_settlement.v1":
+            from .settlement import normalize_settlement
+
+            normalized = normalize_settlement(artifact)
+            artifact_hash = artifact.get("settlement_sha256")
+            if normalized["settlement_record_sha256"] != entry.get("normalized_sha256"):
+                raise ContractError(f"inventory normalized hash mismatch: {relative}")
         else:
             raise ContractError(f"unsupported inventory artifact: {relative}")
         if artifact_hash != entry.get("artifact_sha256"):

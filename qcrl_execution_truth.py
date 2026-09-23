@@ -9,17 +9,21 @@ from execution_truth import (
     analyze_cross_market_phases,
     analyze_phase_sequences,
     capture_protocol_status,
+    evaluate_latency_phase_batch,
     evaluate_latency_sensitivity,
     execute_protocol_capture,
     load_capture_state,
     normalize_bundle,
     normalize_book_sequence,
+    normalize_settlement,
     promote_raw_evidence,
     replay_taker_buy,
+    reconcile_settlement_cohort,
     store_raw_bundle,
     store_raw_book_sequence,
     store_raw_discovery,
     store_raw_slug_resolution,
+    store_raw_settlement,
     verify_live_evidence_inventory,
 )
 
@@ -55,6 +59,17 @@ def capture_sequence(args):
     normalized = normalize_book_sequence(artifact)
     print(path)
     print(f"normalized_sha256={normalized['sequence_sha256']}")
+
+
+def capture_settlement(args):
+    artifact = PublicPolymarketAcquirer().acquire_market_settlement(args.market_id)
+    path = store_raw_settlement(artifact, LOCAL_RAW_DIR)
+    normalized = normalize_settlement(artifact)
+    print(path)
+    print(f"normalized_sha256={normalized['settlement_record_sha256']}")
+    print(f"status={normalized['status']}")
+    if normalized["winner"]:
+        print(f"winner={normalized['winner']['label']}")
 
 
 def resolve_slug(args):
@@ -150,6 +165,54 @@ def cross_market_phases(args):
     print(json.dumps(analyze_cross_market_phases(markets), indent=2, sort_keys=True))
 
 
+def latency_batch(args):
+    spec_path = Path(args.spec).resolve()
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    if spec.get("schema_version") != "qcrl.latency_phase_batch_spec.v1":
+        raise ValueError("unsupported latency phase batch spec schema")
+    cohort_path = (spec_path.parent / spec["cross_market_spec_path"]).resolve()
+    cohort = json.loads(cohort_path.read_text(encoding="utf-8"))
+    if cohort.get("schema_version") != "qcrl.cross_market_phase_stability_spec.v1":
+        raise ValueError("unsupported cross-market phase stability spec schema")
+    markets = {
+        label: {
+            phase: (
+                json.loads((cohort_path.parent / path).resolve().read_text(encoding="utf-8"))
+                if path is not None else None
+            )
+            for phase, path in phases.items()
+        }
+        for label, phases in cohort.get("markets", {}).items()
+    }
+    result = evaluate_latency_phase_batch(
+        markets,
+        spec["request_template"],
+        spec["replay_policy"],
+        spec["latency_policy"],
+    )
+    print(json.dumps(result, indent=2, sort_keys=True))
+
+
+def settlement_cohort(args):
+    spec_path = Path(args.spec).resolve()
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    if spec.get("schema_version") != "qcrl.settlement_cohort_spec.v1":
+        raise ValueError("unsupported settlement cohort spec schema")
+    markets = {
+        label: {
+            "settlement": json.loads(
+                (spec_path.parent / paths["settlement"]).resolve().read_text(encoding="utf-8")
+            ),
+            "sequences": [
+                json.loads((spec_path.parent / path).resolve().read_text(encoding="utf-8"))
+                for path in paths["sequences"]
+            ],
+        }
+        for label, paths in spec.get("markets", {}).items()
+    }
+    print(json.dumps(reconcile_settlement_cohort(markets), indent=2, sort_keys=True))
+
+
 def _protocol_inputs(spec_value):
     spec_path = Path(spec_value).resolve()
     protocol = json.loads(spec_path.read_text(encoding="utf-8"))
@@ -201,6 +264,10 @@ def build_parser():
     sequence.add_argument("--interval-seconds", type=int, default=5)
     sequence.set_defaults(handler=capture_sequence)
 
+    settlement = commands.add_parser("capture-settlement")
+    settlement.add_argument("market_id")
+    settlement.set_defaults(handler=capture_settlement)
+
     slug = commands.add_parser("resolve-slug")
     slug.add_argument("slug")
     slug.add_argument("--kind", choices=("event", "market"), default="event")
@@ -247,6 +314,20 @@ def build_parser():
     )
     cross_market_parser.add_argument("spec")
     cross_market_parser.set_defaults(handler=cross_market_phases)
+
+    latency_batch_parser = commands.add_parser(
+        "latency-batch",
+        help="Apply one fixed latency grid across observed market phases",
+    )
+    latency_batch_parser.add_argument("spec")
+    latency_batch_parser.set_defaults(handler=latency_batch)
+
+    settlement_cohort_parser = commands.add_parser(
+        "settlement-cohort",
+        help="Reconcile public platform settlements to latest observed phase books",
+    )
+    settlement_cohort_parser.add_argument("spec")
+    settlement_cohort_parser.set_defaults(handler=settlement_cohort)
 
     protocol_status_parser = commands.add_parser(
         "protocol-status", help="Inspect a predeclared sequence-capture protocol"

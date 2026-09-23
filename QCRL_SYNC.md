@@ -2305,6 +2305,56 @@ Next coding target: version a batch application of the unchanged latency grid
 over every observed phase, then add public settlement evidence and terminal
 market reconciliation without credentials or orders.
 
+## 2026-09-23 — Cohort latency batch, settlement join, and scheduler audit
+
+Applied one versioned request template and the unchanged six-point latency grid
+to every observed phase in the four-market cohort. Ten sequences produced 60
+assumed-arrival rows. All 60 selected a qualifying observed book, while all 60
+nested mechanics results rejected unknown taker-delay state and minimum order
+age. Six rows also rejected stale exchange-book timestamps: three in September
+18 late and three in September 20 early. The deterministic batch hash is
+`e86e727cf6b49b5bbff8aef219f92390dd44aea4c0e2897ebcc8dac318e086f6`.
+
+Added read-only public settlement acquisition, strict Gamma/CLOB identity and
+payout normalization, content-addressed storage/promotion, and latest-book
+reconciliation. Four resolved artifacts expand the durable inventory to 31.
+Platform winners were Down, Up, Down, and Up for September 15, 18, 20, and 22.
+Each latest observed book favored the eventual platform winner; September 22
+was only 0.755/0.245, demonstrating that direction agreement is not necessarily
+terminal pricing. The deterministic cohort hash is
+`0bc2068a79d7bde0dcfcc7938f2f186d1efac4fb9086ac986df3cb5b5af012cc`.
+This is platform payout evidence, not independent Binance candle verification,
+signal accuracy, fill, wallet credit, redemption, or profitability evidence.
+
+Audited the two missed middle captures. September 20's task was scheduled for
+04:00 UTC but began at 04:14:23, beyond the locked 04:10 deadline; the protocol
+correctly rejected it before networking. September 22 began at 04:09:47, but
+the default shell sandbox could not resolve `gamma-api.polymarket.com`, and no
+network-enabled retry occurred before the window closed. Identical elevated
+commands succeeded for other phases. The failures therefore reflect scheduler
+dispatch latency and sandbox networking, not evidence that Polymarket DNS was
+down. Future strict captures require a preauthorized network path and a local
+OS scheduler or dedicated recorder; retrospective windows remain unchanged.
+
+Files created or changed: latency batch and settlement modules, two versioned
+specifications, four promoted settlement artifacts, live inventory, acquisition/
+storage/CLI/package exports, tests, latency/settlement documentation, schema/
+operator/capture/execution documentation, architecture/status, and this record.
+Interfaces added: `evaluate_latency_phase_batch()`, `normalize_settlement()`,
+`reconcile_settlement()`, `reconcile_settlement_cohort()`,
+`capture-settlement`, `latency-batch`, and `settlement-cohort`. Record fields
+consumed: observed sequence identity/timing/books, Gamma resolution/orderability/
+payout fields, and CLOB condition/outcome/token mapping. Assumptions introduced:
+latest reference price uses midpoint when two-sided and the available best side
+when one-sided; it is descriptive only. Limitations: public settlement is not
+independent source verification, and agent schedules are not hard real-time.
+New requests for Workstream A: none. Tests completed: 221 deterministic tests;
+all 31 promoted artifacts verify offline.
+
+Next coding target: independently reconcile the declared Binance one-minute
+candle closes, then replace agent-scheduled strict captures with a
+network-preauthorized local recorder before locking another cohort.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:

@@ -12,6 +12,7 @@ from .contracts import normalize_market_contract, payload_hash
 RAW_BUNDLE_SCHEMA = "qcrl.polymarket_raw_bundle.v1"
 RAW_DISCOVERY_SCHEMA = "qcrl.polymarket_raw_discovery.v1"
 RAW_SLUG_RESOLUTION_SCHEMA = "qcrl.polymarket_raw_slug_resolution.v1"
+RAW_SETTLEMENT_SCHEMA = "qcrl.polymarket_raw_settlement.v1"
 GAMMA_BASE = "https://gamma-api.polymarket.com"
 CLOB_BASE = "https://clob.polymarket.com"
 
@@ -105,6 +106,30 @@ class PublicPolymarketAcquirer:
         }
         bundle["bundle_sha256"] = payload_hash(bundle)
         return bundle
+
+    def acquire_market_settlement(self, market_id):
+        """Acquire public Gamma payout state and the matching CLOB token map."""
+        market_id = str(market_id).strip()
+        if not market_id or not market_id.isdigit():
+            raise AcquisitionError("market_id must be numeric")
+        acquired_at = utc_text(self.clock())
+        gamma = self._observe(f"{GAMMA_BASE}/markets/{market_id}")
+        if str(gamma["payload"].get("id")) != market_id:
+            raise AcquisitionError("Gamma returned a different market id")
+        condition_id = str(gamma["payload"].get("conditionId") or "").strip()
+        if not condition_id:
+            raise AcquisitionError("Gamma market has no conditionId")
+        clob = self._observe(f"{CLOB_BASE}/clob-markets/{condition_id}")
+        artifact = {
+            "schema_version": RAW_SETTLEMENT_SCHEMA,
+            "acquired_at_utc": acquired_at,
+            "market_id_requested": market_id,
+            "observations": {"gamma_market": gamma, "clob_market": clob},
+        }
+        artifact["settlement_sha256"] = payload_hash(artifact)
+        from .settlement import normalize_settlement
+        normalize_settlement(artifact)
+        return artifact
 
     def resolve_market_slug(self, slug, reference_kind="event"):
         """Resolve one exact event or market slug to one numeric market id."""

@@ -189,6 +189,23 @@ September 20 and 22 retain explicit `null` middle phases. They contribute
 observed early and late cells but never complete-market paths. See
 [CROSS_MARKET_PHASES.md](CROSS_MARKET_PHASES.md).
 
+Apply the fixed grid to all observed cells with:
+
+```bash
+./synch.sh evidence latency-batch \
+  execution_truth/specs/latency_batch_daily_20260915_20260922.json
+```
+
+Reconcile promoted public settlement evidence with:
+
+```bash
+./synch.sh evidence settlement-cohort \
+  execution_truth/specs/settlement_cohort_daily_20260915_20260922.json
+```
+
+See [LATENCY_BATCH.md](LATENCY_BATCH.md) and
+[SETTLEMENT_RECONCILIATION.md](SETTLEMENT_RECONCILIATION.md).
+
 ## Interpreting campaign state
 
 - `pending`: not submitted.

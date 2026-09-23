@@ -19,9 +19,11 @@ from becoming an accidental second source of truth.
 | How are hypothetical taker fills estimated? | [`TAKER_REPLAY.md`](TAKER_REPLAY.md) |
 | How are bounded public book sequences captured? | [`BOOK_SEQUENCE.md`](BOOK_SEQUENCE.md) |
 | How is assumed latency tested against observed books? | [`LATENCY_SENSITIVITY.md`](LATENCY_SENSITIVITY.md) |
+| How is the fixed grid applied across phase evidence? | [`LATENCY_BATCH.md`](LATENCY_BATCH.md) |
 | How are capture times locked before observation? | [`CAPTURE_PROTOCOL.md`](CAPTURE_PROTOCOL.md) |
 | How are early/middle/late sequences compared? | [`PHASE_STABILITY.md`](PHASE_STABILITY.md) |
 | How are locked phases compared across markets? | [`CROSS_MARKET_PHASES.md`](CROSS_MARKET_PHASES.md) |
+| How is public resolution state reconciled? | [`SETTLEMENT_RECONCILIATION.md`](SETTLEMENT_RECONCILIATION.md) |
 | How does an operator synchronize and run research? | [`OPERATOR_WORKFLOW.md`](OPERATOR_WORKFLOW.md) |
 | How are experiments declared? | Versioned JSON under [`campaigns/`](../campaigns/) and [`syntheses/`](../syntheses/) |
 

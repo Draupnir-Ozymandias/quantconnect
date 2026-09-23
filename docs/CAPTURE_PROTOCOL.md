@@ -111,3 +111,19 @@ weekend conditions without introducing a second asset. Other assets require a
 separate cohort declaration after BTC cross-market mechanics are characterized.
 The coverage-aware result is documented in
 [CROSS_MARKET_PHASES.md](CROSS_MARKET_PHASES.md).
+
+## Scheduler and network boundary
+
+The September cohort exposed two independent automation hazards. The September
+20 middle task began at 04:14:23 UTC, after its 04:10 deadline, so the protocol
+correctly rejected it without networking. The September 22 middle task began at
+04:09:47, but its sandboxed process could not resolve
+`gamma-api.polymarket.com`; it had no time for an elevated-network retry.
+
+Codex scheduled tasks are not a hard real-time scheduler, and their default
+shell sandbox may not provide DNS/network access. A future time-critical cohort
+must use a preauthorized network-capable execution path and an operating window
+that tolerates scheduler dispatch latency. Prefer a local OS scheduler or
+dedicated capture service for strict timing. Application retries alone cannot
+repair a sandbox that categorically blocks DNS, and historical protocol windows
+must never be widened after observation.

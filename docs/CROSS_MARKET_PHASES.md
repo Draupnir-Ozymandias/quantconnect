@@ -66,3 +66,7 @@ resolution. It does not establish stable liquidity magnitude, a tradeable phase
 rule, a fill model, or a compatible QCRL signal. Two complete markets are too
 few for a stability verdict, and the Binance noon-Eastern terms remain
 incompatible with the Coinbase midnight-UTC research lane.
+
+The fixed-grid mechanics follow-up and platform settlement join are documented
+in [LATENCY_BATCH.md](LATENCY_BATCH.md) and
+[SETTLEMENT_RECONCILIATION.md](SETTLEMENT_RECONCILIATION.md).

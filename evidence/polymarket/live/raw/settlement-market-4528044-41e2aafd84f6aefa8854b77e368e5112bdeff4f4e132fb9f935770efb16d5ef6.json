@@ -1,0 +1,133 @@
+{
+  "acquired_at_utc": "2026-09-23T19:12:31.966995Z",
+  "market_id_requested": "4528044",
+  "observations": {
+    "clob_market": {
+      "endpoint": "https://clob.polymarket.com/clob-markets/0x8571aa6607a46cbf676fdbf2486ab80bda1870bdb4bb25e3bb7f0e65b734ec32",
+      "observed_at_utc": "2026-09-23T19:12:32.292798Z",
+      "params": {},
+      "payload": {
+        "aot": "2026-09-13T16:07:13Z",
+        "c": "0x8571aa6607a46cbf676fdbf2486ab80bda1870bdb4bb25e3bb7f0e65b734ec32",
+        "cbos": true,
+        "fd": {
+          "e": 1,
+          "r": 0.07,
+          "to": true
+        },
+        "ibce": true,
+        "mbf": 1000,
+        "mos": 5,
+        "mts": 0.001,
+        "r": {
+          "ma": 4.5,
+          "mi": 50,
+          "moas": 30
+        },
+        "t": [
+          {
+            "o": "Up",
+            "t": "29345323411624056264254174221533749778862383500279834525666979415127712210770"
+          },
+          {
+            "o": "Down",
+            "t": "66695498276375712663220448881462265030714245374707504866538865843370916699119"
+          }
+        ],
+        "tbf": 1000,
+        "v": "v1"
+      },
+      "payload_sha256": "a996c7cc34ddc66797c413deb65670d3443414f8ff3b6f0e0da43b491b135fed"
+    },
+    "gamma_market": {
+      "endpoint": "https://gamma-api.polymarket.com/markets/4528044",
+      "observed_at_utc": "2026-09-23T19:12:32.137180Z",
+      "params": {},
+      "payload": {
+        "$schema": "https://gamma-api.polymarket.com/schemas/Market.json",
+        "acceptingOrders": false,
+        "acceptingOrdersTimestamp": "2026-09-13T16:07:13Z",
+        "active": true,
+        "approved": true,
+        "archived": false,
+        "automaticallyActive": true,
+        "automaticallyResolved": true,
+        "bestAsk": 0.001,
+        "clearBookOnStart": true,
+        "clobTokenIds": "[\"29345323411624056264254174221533749778862383500279834525666979415127712210770\", \"66695498276375712663220448881462265030714245374707504866538865843370916699119\"]",
+        "closed": true,
+        "closedTime": "2026-09-15 16:12:57+00",
+        "comboStatus": "disabled",
+        "conditionId": "0x8571aa6607a46cbf676fdbf2486ab80bda1870bdb4bb25e3bb7f0e65b734ec32",
+        "createdAt": "2026-09-13T16:07:00.609192Z",
+        "customLiveness": 600,
+        "cyom": false,
+        "deploying": false,
+        "deployingTimestamp": "2026-09-13T16:07:02.328535Z",
+        "description": "This market will resolve to \"Up\" if the \"Close\" price for the Binance 1 minute candle for BTC/USDT Sep 14 '26 12:00 in the ET timezone (noon) is lower than the final \"Close\" price for the Sep 15 '26 12:00 ET candle.\n\nThis market will resolve to \"Down\" if the \"Close\" price for the Binance 1 minute candle for BTC/USDT Sep 14 '26 12:00 in the ET timezone (noon) is higher than the final \"Close\" price for the Sep 15 '26 12:00 ET candle.\n\nIf the final \"Close\" price for both of these candles is exactly equal on Binance, this market will resolve 50-50.\n\nThe resolution source for this market is Binance, specifically the BTC/USDT \"Close\" prices currently available at https://www.binance.com/en/trade/BTC_USDT with \"1m\" and \"Candles\" selected on the top bar.\n\nPlease note that this market is about the price according to Binance BTC/USDT, not according to other exchanges or trading pairs.",
+        "enableOrderBook": true,
+        "endDate": "2026-09-15T16:00:00Z",
+        "endDateIso": "2026-09-15",
+        "eventStartTime": "2026-09-14T16:00:00Z",
+        "featured": false,
+        "feeSchedule": {
+          "exponent": 1,
+          "rate": 0.07,
+          "rebateRate": 0.2,
+          "takerOnly": true
+        },
+        "feeType": "crypto_fees_v2",
+        "feesEnabled": true,
+        "funded": false,
+        "hasReviewedDates": true,
+        "holdingRewardsEnabled": false,
+        "icon": "https://polymarket-upload.s3.us-east-2.amazonaws.com/BTC+fullsize.png",
+        "id": "4528044",
+        "image": "https://polymarket-upload.s3.us-east-2.amazonaws.com/BTC+fullsize.png",
+        "lastTradePrice": 0.001,
+        "makerBaseFee": 1000,
+        "manualActivation": false,
+        "marketMakerAddress": "",
+        "negRisk": false,
+        "negRiskOther": false,
+        "new": false,
+        "oneDayPriceChange": -0.4745,
+        "oneHourPriceChange": -0.001,
+        "orderMinSize": 5,
+        "orderPriceMinTickSize": 0.001,
+        "outcomePrices": "[\"0\", \"1\"]",
+        "outcomes": "[\"Up\", \"Down\"]",
+        "pagerDutyNotificationEnabled": false,
+        "pendingDeployment": false,
+        "question": "Bitcoin Up or Down on September 15?",
+        "questionID": "0xad40a9ec405b1dc6d93a17832a939432700e5efc275fd7b26fd137a99a2182e0",
+        "ready": false,
+        "requiresTranslation": false,
+        "resolutionSource": "https://www.binance.com/en/trade/BTC_USDT",
+        "resolvedBy": "0x65070BE91477460D8A7AeEb94ef92fe056C2f2A7",
+        "restricted": true,
+        "rewardsMaxSpread": 4.5,
+        "rewardsMinSize": 50,
+        "rfqEnabled": false,
+        "slug": "bitcoin-up-or-down-on-september-15-2026",
+        "spread": 0.001,
+        "startDate": "2026-09-13T16:07:13Z",
+        "startDateIso": "2026-09-13",
+        "takerBaseFee": 1000,
+        "umaBond": "250",
+        "umaEndDate": "2026-09-15T16:12:57Z",
+        "umaResolutionStatus": "resolved",
+        "umaResolutionStatuses": "[\"proposed\", \"proposed\"]",
+        "umaReward": "0.6",
+        "updatedAt": "2026-09-16T15:55:33.273799Z",
+        "version": "v1",
+        "volume": "195844.45387700002",
+        "volumeClob": 195844.45387700002,
+        "volumeNum": 195844.45387700002
+      },
+      "payload_sha256": "933b1a7aef8e6e0f70cab7fc83cff315a911008928d55febd23e0572d8523ed0"
+    }
+  },
+  "schema_version": "qcrl.polymarket_raw_settlement.v1",
+  "settlement_sha256": "41e2aafd84f6aefa8854b77e368e5112bdeff4f4e132fb9f935770efb16d5ef6"
+}

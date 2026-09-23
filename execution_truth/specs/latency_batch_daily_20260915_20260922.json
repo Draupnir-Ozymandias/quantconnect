@@ -1,0 +1,28 @@
+{
+  "schema_version": "qcrl.latency_phase_batch_spec.v1",
+  "cross_market_spec_path": "cross_market_phase_daily_20260915_20260922.json",
+  "request_template": {
+    "schema_version": "qcrl.latency_phase_request_template.v1",
+    "outcome": "Up",
+    "side": "BUY",
+    "shares": "10",
+    "limit_price": "0.99",
+    "time_in_force": "FAK",
+    "cash_budget": "1000",
+    "decision_time_rule": "sequence_capture_started_at_utc"
+  },
+  "replay_policy": {
+    "schema_version": "qcrl.taker_replay_policy.v1",
+    "depth_assumption": "frozen_snapshot",
+    "fee_model": "cash_equivalent_per_level_half_up_5dp",
+    "max_book_age_seconds": 5,
+    "max_exchange_age_seconds": 5,
+    "max_market_age_seconds": 5
+  },
+  "latency_policy": {
+    "schema_version": "qcrl.latency_sensitivity_policy.v1",
+    "selection_rule": "first_selected_book_observed_at_or_after_arrival",
+    "latencies_seconds": [0, 1, 5, 10, 15, 20],
+    "max_observation_lag_seconds": 6
+  }
+}

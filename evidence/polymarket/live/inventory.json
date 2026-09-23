@@ -561,6 +561,78 @@
         "requested_sample_count": 12,
         "resolution_source": "https://www.binance.com/en/trade/BTC_USDT"
       }
+    },
+    {
+      "artifact_sha256": "41e2aafd84f6aefa8854b77e368e5112bdeff4f4e132fb9f935770efb16d5ef6",
+      "captured_at_utc": "2026-09-23T19:12:31.966995Z",
+      "evidence_role": "platform_reported_settlement_reconciliation",
+      "limitations": [
+        "platform-reported payout is not independent verification of Binance candles",
+        "does not establish order fill, wallet credit, redemption, or profitability"
+      ],
+      "normalized_sha256": "6e2a6012010a3eafbb295ac2be60f156b35e2716d763d25768c157ef9bce83fa",
+      "path": "raw/settlement-market-4528044-41e2aafd84f6aefa8854b77e368e5112bdeff4f4e132fb9f935770efb16d5ef6.json",
+      "schema_version": "qcrl.polymarket_raw_settlement.v1",
+      "subject": {
+        "market_id": "4528044",
+        "slug": "bitcoin-up-or-down-on-september-15-2026",
+        "status": "resolved",
+        "winner": "Down"
+      }
+    },
+    {
+      "artifact_sha256": "113dd7a79af8b138d727ccc5a2edc4b42a2cefbb4b7c365190c01ef3f9ff4e74",
+      "captured_at_utc": "2026-09-23T19:12:32.391124Z",
+      "evidence_role": "platform_reported_settlement_reconciliation",
+      "limitations": [
+        "platform-reported payout is not independent verification of Binance candles",
+        "does not establish order fill, wallet credit, redemption, or profitability"
+      ],
+      "normalized_sha256": "1c599bf2382ee35e5f517ef8702d842a444d0157af219e6a985b0b9dcc0ee747",
+      "path": "raw/settlement-market-4617749-113dd7a79af8b138d727ccc5a2edc4b42a2cefbb4b7c365190c01ef3f9ff4e74.json",
+      "schema_version": "qcrl.polymarket_raw_settlement.v1",
+      "subject": {
+        "market_id": "4617749",
+        "slug": "bitcoin-up-or-down-on-september-18-2026",
+        "status": "resolved",
+        "winner": "Up"
+      }
+    },
+    {
+      "artifact_sha256": "da66685eb696a8291776c0d158b2ef47829826e347dfe75d40b378abbf754464",
+      "captured_at_utc": "2026-09-23T19:12:32.763248Z",
+      "evidence_role": "platform_reported_settlement_reconciliation",
+      "limitations": [
+        "platform-reported payout is not independent verification of Binance candles",
+        "does not establish order fill, wallet credit, redemption, or profitability"
+      ],
+      "normalized_sha256": "9aee552e3834e075a7f07415f7bcb9c1cf3e06c741bef246b17da76eae9c5070",
+      "path": "raw/settlement-market-4689506-da66685eb696a8291776c0d158b2ef47829826e347dfe75d40b378abbf754464.json",
+      "schema_version": "qcrl.polymarket_raw_settlement.v1",
+      "subject": {
+        "market_id": "4689506",
+        "slug": "bitcoin-up-or-down-on-september-20-2026",
+        "status": "resolved",
+        "winner": "Down"
+      }
+    },
+    {
+      "artifact_sha256": "341a6033a50cda13d746801d59c30cd25eb570608c99742410e5129679bdab4f",
+      "captured_at_utc": "2026-09-23T19:12:33.142282Z",
+      "evidence_role": "platform_reported_settlement_reconciliation",
+      "limitations": [
+        "platform-reported payout is not independent verification of Binance candles",
+        "does not establish order fill, wallet credit, redemption, or profitability"
+      ],
+      "normalized_sha256": "a50625e0fdd323df69964c77d6da8b2bbf2aa738488db603e5bd4f5b01862513",
+      "path": "raw/settlement-market-4761727-341a6033a50cda13d746801d59c30cd25eb570608c99742410e5129679bdab4f.json",
+      "schema_version": "qcrl.polymarket_raw_settlement.v1",
+      "subject": {
+        "market_id": "4761727",
+        "slug": "bitcoin-up-or-down-on-september-22-2026",
+        "status": "resolved",
+        "winner": "Up"
+      }
     }
   ],
   "compatibility_findings": [

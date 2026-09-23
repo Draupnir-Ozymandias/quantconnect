@@ -425,7 +425,9 @@ itself, a production module.
 * Fixed-grid phase latency replay (implemented; mechanics reject unknown timing metadata)
 * Prospectively locked multi-date BTC capture cohort (complete with declared misses)
 * Coverage-aware cross-market temporal aggregation (implemented; descriptive only)
-* Settlement evidence and reconciliation
+* Fixed-grid cross-market phase latency batch (implemented; mechanics fail closed)
+* Public platform settlement evidence and latest-book reconciliation (implemented)
+* Independent Binance resolution-source reconciliation and wallet settlement evidence
 * Documentation-backed experiment and decision registry
 * Locked prospective 2026Q4 baseline (preservation only until window end)
 

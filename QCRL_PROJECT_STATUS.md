@@ -36,9 +36,9 @@ evidence.
 | Normalized record schema | `qcrl.experiment_record.v5` |
 | Campaign manifest/state | `qcrl.campaign.v1` / `qcrl.campaign_state.v1` |
 | Methodology | `qcrl.methodology.lookahead_free.v1` |
-| Execution-truth schemas | market v3; normalized bundle, signal intent, binding, and replay result v2; source, source bar, signal decision, book, raw bundle, raw/normalized book sequence, raw slug resolution, discovery, live inventory, latency policy/result, phase-capture protocol/state/status, phase-stability, and cross-market phase spec/result v1 |
+| Execution-truth schemas | market v3; normalized bundle, signal intent, binding, and replay result v2; source, source bar, signal decision, book, raw bundle, raw/normalized book sequence, raw slug resolution, discovery, live inventory, latency policy/result/batch, phase-capture protocol/state/status, phase stability, cross-market phase, and settlement/reconciliation contracts v1 |
 | Snapshot taker replay | result v2; request / policy / example v1; mechanics-only |
-| Test suite | 214 deterministic tests passing |
+| Test suite | 221 deterministic tests passing |
 
 Versioning is functional but not yet fully normalized: temporal manifests pin
 2.4.0 while the manual default remains 2.3.0. Historical manifests explicitly
@@ -116,14 +116,20 @@ trade.
   timestamps and completed validation artifacts.
 - One 2026Q4 prospective case is pending by design and must remain unexecuted
   until its evaluation window is complete.
-- Local Git is authoritative; the September 18–22 promotion and cross-market
-  analysis are currently uncommitted and have not been synchronized.
-- The durable live inventory declares and verifies 27 artifacts. September 15
+- Local Git is authoritative; the cross-market phase layer is synchronized at
+  commit `e5332c2`. The latency-batch and settlement additions are uncommitted.
+- The durable live inventory declares and verifies 31 artifacts. September 15
   and 18 have complete promoted early/middle/late evidence; September 20 and 22
   retain promoted early/late evidence with middle explicitly missing.
 - The coverage-aware cross-market analyzer uses 10 sequences across four
   markets, preserves partial cells without imputation, and flags one degraded
   September 18 late-capture cadence.
+- The fixed latency batch covers all 10 sequences and 60 assumed arrivals. All
+  rows select a book, all mechanics reject unknown delay/order-age state, and
+  six rows additionally reject stale exchange-book timestamps.
+- Four public settlement records report two Up and two Down winners. Each
+  latest observed book favored the eventual platform winner, without implying
+  signal accuracy, fills, or independent Binance verification.
 
 ## Research Findings
 
@@ -316,6 +322,9 @@ weak explanations and dangerous sizing have been rejected before deployment.
    The fixed grid has been applied to all three September 15 phases; all eighteen
    mechanics rows reject unknown delay and minimum-age state rather than claiming
    fills. These observations do not calibrate a latency distribution.
+   The batch extension applies the same grid to 10 sequences: all 60 mechanics
+   rows reject unknown delay/order-age state, and six also flag stale exchange
+   timestamps.
 6. September 11 captured only early; September 13 captured early and late; both
    missed phases remain missing. September 15 and 18 are complete promoted phase
    cohorts. September 20 and 22 captured early and late but missed middle; all
@@ -328,14 +337,22 @@ weak explanations and dangerous sizing have been rejected before deployment.
 8. One September 18 late polling gap was 1007.056607 seconds. The artifact is
    retained as degraded-cadence evidence and is not treated as a one-minute
    trajectory. All other sequence maxima were below 5.71 seconds.
-9. QCRL uses its own synthetic bankroll and submits no LEAN portfolio orders;
+9. The scheduler produced two different middle-phase failures: September 20
+   dispatched after the locked deadline, while September 22 ran inside the
+   window but the default sandbox denied DNS. Codex scheduled tasks are not a
+   hard real-time capture service; strict future timing requires a preauthorized
+   network path and a local OS scheduler or dedicated recorder.
+10. Platform settlement reconciliation is implemented for all four markets.
+   It verifies Gamma payout state against CLOB tokens, but does not independently
+   reconstruct Binance resolution candles or observe wallet redemption.
+11. QCRL uses its own synthetic bankroll and submits no LEAN portfolio orders;
    standard LEAN portfolio statistics are not strategy objectives here.
-10. Polymarket is not implemented as a LEAN brokerage or execution adapter.
-11. Manual defaults still select EMA 5/10 and QCRL 2.3.0, while the current
+12. Polymarket is not implemented as a LEAN brokerage or execution adapter.
+13. Manual defaults still select EMA 5/10 and QCRL 2.3.0, while the current
    candidate is unfiltered and temporal manifests use 2.4.0.
-12. The estimated 8.43% friction capacity assumes constant cost per wager and
+14. The estimated 8.43% friction capacity assumes constant cost per wager and
    cannot be translated directly into expected Polymarket profitability.
-13. The 2026Q4 prospective sample is future evidence and must not be run
+15. The 2026Q4 prospective sample is future evidence and must not be run
    partially or modified after its October 1 start.
 
 ## Current Guardrails
@@ -358,11 +375,11 @@ Daily series `41` exists but is incompatible with the current signal because
 its Binance BTC/USDT feed, noon-Eastern anchor, and tie settlement differ.
 Remaining work is:
 
-1. Add a versioned batch application of the unchanged fixed latency grid to all
-   observed phases, preserving the September 18 cadence warning. Current timing
-   metadata implies fail-closed mechanics rather than estimated fills.
-2. Add public settlement evidence and reconcile market identity, terminal book
-   state, and resolution outcome without adding credentials or placing orders.
+1. Add independent Binance candle retrieval and resolution-source
+   reconciliation for the four settled contracts, without treating it as QCRL
+   signal evidence.
+2. Replace agent-scheduled time-critical capture with a network-preauthorized
+   local scheduler or dedicated recorder before locking another cohort.
 3. Decide whether to authorize a separate Binance noon-to-noon research lane;
    do not retrofit the historical Coinbase evidence.
 4. Connect the boundary adapter to a read-only live data process.
@@ -386,6 +403,8 @@ The Q4 evidence lane and execution-infrastructure lane must remain independent.
 - `docs/CAPTURE_PROTOCOL.md` — locked phase timing and resumable capture state
 - `docs/PHASE_STABILITY.md` — within-market early/middle/late description
 - `docs/CROSS_MARKET_PHASES.md` — coverage-aware cross-market phase description
+- `docs/LATENCY_BATCH.md` — fixed-grid mechanics across all observed phases
+- `docs/SETTLEMENT_RECONCILIATION.md` — public payout and latest-book reconciliation
 - `docs/OPERATOR_WORKFLOW.md` — exact Git, GitHub, QuantConnect, and campaign flow
 - `campaigns/` — immutable experiment declarations
 - `syntheses/` — versioned cross-campaign analysis declarations

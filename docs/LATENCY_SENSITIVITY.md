@@ -70,12 +70,11 @@ signal, and the 15-minute Chainlink contract has a different horizon and source.
 
 ## Next boundary
 
-Do not tune the assumed latency grid against five polls. The next useful
-evidence is repeated, predeclared sequence capture at different market phases,
-followed by descriptive stability of spreads, depth, price displacement, and
-polling gaps. Actual fills require authenticated shadow or minimal-risk execution
-evidence under a separately authorized operating policy; they cannot be derived
-from public books alone.
+Do not tune the assumed latency grid against five polls. Repeated, predeclared
+phase evidence and a cross-market fixed-grid batch are now implemented; see
+[LATENCY_BATCH.md](LATENCY_BATCH.md). Actual fills require authenticated shadow
+or minimal-risk execution evidence under a separately authorized operating
+policy; they cannot be derived from public books alone.
 
 ## September 15 phase application
 

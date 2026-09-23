@@ -28,9 +28,12 @@
 | Taker replay request/policy/result | `qcrl.taker_replay_request.v1` / `qcrl.taker_replay_policy.v1` / `qcrl.taker_replay_result.v2` | local declaration / `execution_truth/taker_replay.py` | offline mechanics audit | hashed result; output to stdout |
 | Taker replay example | `qcrl.taker_replay_example.v1` | versioned JSON specification | `qcrl_execution_truth.py` | version controlled |
 | Latency sensitivity policy/result/example | `qcrl.latency_sensitivity_policy.v1` / `qcrl.latency_sensitivity_result.v1` / `qcrl.latency_sensitivity_example.v1` | versioned declaration / `execution_truth/latency_sensitivity.py` | execution-truth audit | declaration versioned; result printed and hashed |
+| Phase latency batch spec/template/result | `qcrl.latency_phase_batch_spec.v1` / `qcrl.latency_phase_request_template.v1` / `qcrl.latency_phase_batch.v1` | versioned declaration / `execution_truth/latency_batch.py` | cross-market mechanics audit | declaration versioned; result printed and hashed |
 | Book-sequence capture protocol/state/status | `qcrl.book_sequence_capture_protocol.v1` / `qcrl.book_sequence_capture_state.v1` / `qcrl.book_sequence_capture_status.v1` | versioned declaration / `execution_truth/capture_protocol.py` | bounded public sequence acquisition | protocol versioned; state ignored; status derived |
 | Phase-sequence stability spec/result | `qcrl.phase_sequence_stability_spec.v1` / `qcrl.phase_sequence_stability.v1` | versioned declaration / `execution_truth/phase_stability.py` | descriptive execution-truth audit | specification versioned; result printed and hashed |
 | Cross-market phase stability spec/result | `qcrl.cross_market_phase_stability_spec.v1` / `qcrl.cross_market_phase_stability.v1` | versioned declaration / `execution_truth/cross_market_phase.py` | coverage-aware descriptive execution-truth audit | specification versioned; result printed and hashed |
+| Raw/normalized settlement | `qcrl.polymarket_raw_settlement.v1` / `qcrl.polymarket_settlement.v1` | public Gamma+CLOB acquisition / `execution_truth/settlement.py` | settlement reconciliation and inventory audit | content-addressed raw observation / derived record |
+| Settlement reconciliation/cohort | `qcrl.polymarket_settlement_reconciliation.v1` / `qcrl.polymarket_settlement_cohort.v1` | `execution_truth/settlement.py` | execution-truth audit | result printed and hashed |
 
 The QCRL engine version and schema versions are different concerns. The clean
 baseline pins engine 2.2.0, most directional campaigns pin 2.3.0, and temporal
@@ -112,6 +115,19 @@ It verifies common duration, source, outcomes, and phase placement; aggregates
 only observed cells; preserves complete-market paths separately; and marks a
 cadence warning when an observed polling gap exceeds twice the requested
 interval. See [CROSS_MARKET_PHASES.md](CROSS_MARKET_PHASES.md).
+
+The phase latency batch derives the requested outcome token independently for
+each market and applies one immutable request template, replay policy, and
+latency policy to every observed phase. Book selection and nested mechanics
+remain distinct; a selected row may still reject execution metadata. See
+[LATENCY_BATCH.md](LATENCY_BATCH.md).
+
+Settlement normalization joins Gamma's closed/orderable/resolution/payout state
+to the CLOB condition and token map. Reconciliation selects the chronologically
+latest supplied sequence and compares its final displayed-book direction with
+the platform-reported payout. This does not independently verify Binance or any
+wallet transaction. See
+[SETTLEMENT_RECONCILIATION.md](SETTLEMENT_RECONCILIATION.md).
 
 Latency sensitivity treats the taker request's hypothetical timestamp as its
 decision reference, adds declared integer delays, and selects only the first
