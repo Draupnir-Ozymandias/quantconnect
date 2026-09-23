@@ -2407,6 +2407,14 @@ The upload plan and actual push consume the same file selector; failed staging
 is retained for inspection, while successful staging is removed. GitHub remains
 the authoritative home of the complete 232-test suite.
 
+A first staging implementation placed the temporary project beneath the real
+workspace. LEAN normalized that nested path and temporarily used it as the
+cloud project name while updating the files. The corrected stage is an isolated
+temporary LEAN root with a symlink to the existing `lean.json`; its sole project
+directory is named exactly `polymarket-martingale`, so the corrective push
+restores and preserves the canonical cloud name. The normalized local staging
+directory created by the first attempt was removed.
+
 ## Synchronization rule
 
 At the end of each Discovery coding session, append a dated sync block containing:
