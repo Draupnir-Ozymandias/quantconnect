@@ -1,0 +1,644 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  Always-on QCRL public-evidence collector. Creates one hardened ARM64 EC2
+  instance, a versioned evidence bucket, SSM-only administration, centralized
+  logs, health alarms, and a monthly cost budget.
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Network
+        Parameters:
+          - VpcId
+          - SubnetId
+      - Label:
+          default: Collector
+        Parameters:
+          - InstanceType
+          - LatestAmiId
+          - RepositoryUrl
+          - RepositoryCommit
+          - RootVolumeGiB
+      - Label:
+          default: Operations
+        Parameters:
+          - AlertEmail
+          - MonthlyBudgetUsd
+          - LogRetentionDays
+    ParameterLabels:
+      RepositoryCommit:
+        default: Immutable QCRL Git commit
+      AlertEmail:
+        default: Operations alert email
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC containing an internet-routed public subnet.
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: >-
+      Public subnet with a route to an internet gateway. The instance has no
+      inbound rules but needs outbound HTTPS for AWS, GitHub, and public data APIs.
+  InstanceType:
+    Type: String
+    Default: t4g.small
+    AllowedValues:
+      - t4g.nano
+      - t4g.micro
+      - t4g.small
+      - t4g.medium
+    Description: ARM64 burstable instance size. t4g.small is the recommended baseline.
+  LatestAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64
+    Description: AWS-managed Amazon Linux 2023 ARM64 AMI parameter.
+  RepositoryUrl:
+    Type: String
+    Default: https://github.com/Draupnir-Ozymandias/quantconnect.git
+    AllowedPattern: '^https://[^\s]+$'
+    ConstraintDescription: Must be an HTTPS Git repository URL.
+  RepositoryCommit:
+    Type: String
+    Default: c09dc95c114ceec79d4981e47a072555eda5d66f
+    AllowedPattern: "^[0-9a-fA-F]{40}$"
+    ConstraintDescription: Must be a full 40-character Git commit SHA.
+    Description: >-
+      Exact source revision deployed to /opt/qcrl. Updating the collector requires
+      an explicit stack update to a reviewed commit.
+  RootVolumeGiB:
+    Type: Number
+    Default: 20
+    MinValue: 12
+    MaxValue: 100
+  AlertEmail:
+    Type: String
+    AllowedPattern: '^[^@\s]+@[^@\s]+\.[^@\s]+$'
+    ConstraintDescription: Enter a valid email address.
+    Description: Receives instance, collector-heartbeat, and budget notifications.
+  MonthlyBudgetUsd:
+    Type: Number
+    Default: 25
+    MinValue: 1
+    MaxValue: 1000
+    Description: Monthly AWS cost budget in USD for this account.
+  LogRetentionDays:
+    Type: Number
+    Default: 30
+    AllowedValues:
+      - 7
+      - 14
+      - 30
+      - 60
+      - 90
+      - 180
+      - 365
+
+Resources:
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: AbortIncompleteMultipartUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+      Tags:
+        - Key: Project
+          Value: QCRL
+        - Key: DataClass
+          Value: PublicExecutionTruth
+
+  ArtifactBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ArtifactBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: "*"
+            Action: s3:*
+            Resource:
+              - !GetAtt ArtifactBucket.Arn
+              - !Sub "${ArtifactBucket.Arn}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+  CollectorLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: !Sub "/qcrl/collector/${AWS::StackName}"
+      RetentionInDays: !Ref LogRetentionDays
+      Tags:
+        - Key: Project
+          Value: QCRL
+
+  AlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: QCRL collector alerts
+      Tags:
+        - Key: Project
+          Value: QCRL
+
+  AlertSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: !Ref AlertEmail
+      Protocol: email
+      TopicArn: !Ref AlertTopic
+
+  CollectorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyName: QcrlArtifactBucket
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: ListArtifactBucket
+                Effect: Allow
+                Action:
+                  - s3:GetBucketLocation
+                  - s3:ListBucket
+                Resource: !GetAtt ArtifactBucket.Arn
+              - Sid: ReadProtocolsAndWriteRuntimeEvidence
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:PutObject
+                Resource:
+                  - !Sub "${ArtifactBucket.Arn}/protocols/*"
+                  - !Sub "${ArtifactBucket.Arn}/runtime/*"
+        - PolicyName: QcrlCollectorObservability
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: WriteCollectorLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "${CollectorLogGroup.Arn}:*"
+              - Sid: DiscoverCollectorLogsAndInstanceTags
+                Effect: Allow
+                Action:
+                  - ec2:DescribeTags
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                Resource: "*"
+              - Sid: PublishCollectorHeartbeat
+                Effect: Allow
+                Action: cloudwatch:PutMetricData
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    cloudwatch:namespace: QCRL/Collector
+      Tags:
+        - Key: Project
+          Value: QCRL
+
+  CollectorInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref CollectorRole
+
+  CollectorSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: QCRL collector - no ingress, HTTPS egress only
+      VpcId: !Ref VpcId
+      SecurityGroupEgress:
+        - Description: HTTPS to AWS services, GitHub, and public evidence APIs
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-collector"
+        - Key: Project
+          Value: QCRL
+
+  CollectorLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: QcrlDeploymentRevision
+                Value: !Sub "${RepositoryCommit}-bootstrap-2"
+
+  CollectorInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      LaunchTemplate:
+        LaunchTemplateId: !Ref CollectorLaunchTemplate
+        Version: !GetAtt CollectorLaunchTemplate.LatestVersionNumber
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref InstanceType
+      CreditSpecification:
+        CPUCredits: standard
+      IamInstanceProfile: !Ref CollectorInstanceProfile
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeleteOnTermination: true
+          DeviceIndex: "0"
+          GroupSet:
+            - !Ref CollectorSecurityGroup
+          SubnetId: !Ref SubnetId
+      SourceDestCheck: true
+      PropagateTagsToVolumeOnCreation: true
+      MetadataOptions:
+        HttpEndpoint: enabled
+        HttpTokens: required
+        HttpPutResponseHopLimit: 1
+        InstanceMetadataTags: disabled
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            DeleteOnTermination: true
+            Encrypted: true
+            VolumeSize: !Ref RootVolumeGiB
+            VolumeType: gp3
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-collector"
+        - Key: Project
+          Value: QCRL
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -euo pipefail
+          exec > >(tee -a /var/log/qcrl-bootstrap.log) 2>&1
+
+          if ! systemctl enable --now amazon-ssm-agent; then
+            dnf install -y \
+              "https://s3.${AWS::Region}.amazonaws.com/amazon-ssm-${AWS::Region}/latest/linux_arm64/amazon-ssm-agent.rpm"
+            systemctl enable --now amazon-ssm-agent
+          fi
+
+          dnf install -y git python3 amazon-cloudwatch-agent
+          command -v aws
+
+          useradd --system --home-dir /var/lib/qcrl --create-home --shell /sbin/nologin qcrl || true
+          install -d -o qcrl -g qcrl -m 0750 /var/lib/qcrl/protocols /var/log/qcrl
+
+          git init /opt/qcrl
+          git -C /opt/qcrl remote add origin '${RepositoryUrl}'
+          git -C /opt/qcrl fetch --depth 1 origin '${RepositoryCommit}'
+          git -C /opt/qcrl -c advice.detachedHead=false checkout --detach FETCH_HEAD
+          chown -R root:root /opt/qcrl
+          chmod -R a-w /opt/qcrl
+          install -d -o qcrl -g qcrl -m 0750 /opt/qcrl/.qcrl
+
+          cat >/etc/qcrl-collector.env <<'EOF'
+          QCRL_BUCKET=${ArtifactBucket}
+          QCRL_PROJECT_DIR=/opt/qcrl
+          QCRL_PROTOCOL_DIR=/var/lib/qcrl/protocols
+          AWS_DEFAULT_REGION=${AWS::Region}
+          PYTHONDONTWRITEBYTECODE=1
+          EOF
+          chmod 0640 /etc/qcrl-collector.env
+          chown root:qcrl /etc/qcrl-collector.env
+
+          cat >/usr/local/bin/qcrl-collector-cycle <<'PYTHON'
+          #!/usr/bin/python3
+          """Run every currently eligible capture and persist evidence to S3."""
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+          import sys
+
+          bucket = os.environ["QCRL_BUCKET"]
+          project = Path(os.environ["QCRL_PROJECT_DIR"])
+          protocol_dir = Path(os.environ["QCRL_PROTOCOL_DIR"])
+          cli = project / "qcrl_execution_truth.py"
+
+          def run(arguments, *, capture=False):
+              completed = subprocess.run(
+                  arguments,
+                  cwd=project,
+                  text=True,
+                  capture_output=True,
+                  check=False,
+              )
+              if completed.stdout:
+                  print(completed.stdout, end="")
+              if completed.stderr:
+                  print(completed.stderr, file=sys.stderr, end="")
+              if completed.returncode and not capture:
+                  raise RuntimeError(
+                      f"command failed ({completed.returncode}): {' '.join(arguments)}"
+                  )
+              return completed
+
+          run([
+              "aws", "s3", "sync", f"s3://{bucket}/protocols/",
+              str(protocol_dir), "--only-show-errors",
+          ])
+
+          problems = 0
+          for protocol_path in sorted(protocol_dir.glob("*.json")):
+              status = subprocess.run(
+                  [sys.executable, str(cli), "protocol-status", str(protocol_path)],
+                  cwd=project,
+                  text=True,
+                  capture_output=True,
+                  check=False,
+              )
+              if status.returncode:
+                  problems += 1
+                  print(f"invalid protocol: {protocol_path}", file=sys.stderr)
+                  print(status.stderr, file=sys.stderr, end="")
+                  continue
+              document = json.loads(status.stdout)
+              missed = [
+                  item["capture_id"] for item in document["captures"]
+                  if item["status"] == "missed"
+              ]
+              if missed:
+                  problems += len(missed)
+                  print(
+                      f"missed captures in {protocol_path.name}: {', '.join(missed)}",
+                      file=sys.stderr,
+                  )
+              for capture in document["captures"]:
+                  if capture["status"] != "eligible":
+                      continue
+                  result = run([
+                      sys.executable,
+                      str(cli),
+                      "protocol-capture-retry",
+                      str(protocol_path),
+                      capture["capture_id"],
+                      "--max-attempts", "4",
+                      "--initial-backoff-seconds", "5",
+                      "--max-backoff-seconds", "30",
+                      "--execute",
+                  ], capture=True)
+                  problems += int(result.returncode != 0)
+
+          runtime = project / ".qcrl" / "execution_truth"
+          if runtime.exists():
+              run([
+                  "aws", "s3", "sync", str(runtime),
+                  f"s3://{bucket}/runtime/", "--sse", "AES256",
+                  "--only-show-errors",
+              ])
+
+          run([
+              "aws", "cloudwatch", "put-metric-data",
+              "--namespace", "QCRL/Collector",
+              "--metric-name", "Heartbeat",
+              "--unit", "Count",
+              "--value", "1",
+          ])
+          run([
+              "aws", "cloudwatch", "put-metric-data",
+              "--namespace", "QCRL/Collector",
+              "--metric-name", "ProtocolProblems",
+              "--unit", "Count",
+              "--value", str(problems),
+          ])
+          raise SystemExit(1 if problems else 0)
+          PYTHON
+          chmod 0755 /usr/local/bin/qcrl-collector-cycle
+
+          cat >/etc/systemd/system/qcrl-collector.service <<'EOF'
+          [Unit]
+          Description=QCRL public execution-truth collector cycle
+          Wants=network-online.target
+          After=network-online.target
+
+          [Service]
+          Type=oneshot
+          User=qcrl
+          Group=qcrl
+          EnvironmentFile=/etc/qcrl-collector.env
+          WorkingDirectory=/opt/qcrl
+          ExecStart=/usr/bin/flock -n /var/lib/qcrl/collector.lock /usr/local/bin/qcrl-collector-cycle
+          StandardOutput=append:/var/log/qcrl/collector.log
+          StandardError=append:/var/log/qcrl/collector.log
+          NoNewPrivileges=true
+          PrivateTmp=true
+          ProtectSystem=strict
+          ProtectHome=true
+          ReadWritePaths=/opt/qcrl/.qcrl /var/lib/qcrl /var/log/qcrl
+
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+
+          cat >/etc/systemd/system/qcrl-collector.timer <<'EOF'
+          [Unit]
+          Description=Check QCRL locked capture protocols every minute
+
+          [Timer]
+          OnBootSec=2min
+          OnUnitActiveSec=60s
+          AccuracySec=1s
+          Persistent=true
+          Unit=qcrl-collector.service
+
+          [Install]
+          WantedBy=timers.target
+          EOF
+
+          cat >/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json <<'EOF'
+          {
+            "agent": {"run_as_user": "root"},
+            "logs": {
+              "logs_collected": {
+                "files": {
+                  "collect_list": [
+                    {
+                      "file_path": "/var/log/qcrl/collector.log",
+                      "log_group_name": "${CollectorLogGroup}",
+                      "log_stream_name": "{instance_id}/collector"
+                    },
+                    {
+                      "file_path": "/var/log/qcrl-bootstrap.log",
+                      "log_group_name": "${CollectorLogGroup}",
+                      "log_stream_name": "{instance_id}/bootstrap"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+          EOF
+
+          touch /var/log/qcrl/collector.log
+          chown qcrl:qcrl /var/log/qcrl/collector.log
+          systemctl daemon-reload
+          /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+            -a fetch-config \
+            -m ec2 \
+            -s \
+            -c file:/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
+          systemctl enable --now qcrl-collector.timer
+
+  InstanceStatusAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: QCRL collector operating system failed its instance status check.
+      AlarmActions:
+        - !Ref AlertTopic
+      OKActions:
+        - !Ref AlertTopic
+      Namespace: AWS/EC2
+      MetricName: StatusCheckFailed_Instance
+      Dimensions:
+        - Name: InstanceId
+          Value: !Ref CollectorInstance
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 2
+      DatapointsToAlarm: 2
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: missing
+
+  SystemRecoveryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: QCRL EC2 host failed; request automatic instance recovery.
+      AlarmActions:
+        - !Ref AlertTopic
+        - !Sub "arn:${AWS::Partition}:automate:${AWS::Region}:ec2:recover"
+      OKActions:
+        - !Ref AlertTopic
+      Namespace: AWS/EC2
+      MetricName: StatusCheckFailed_System
+      Dimensions:
+        - Name: InstanceId
+          Value: !Ref CollectorInstance
+      Statistic: Maximum
+      Period: 60
+      EvaluationPeriods: 2
+      DatapointsToAlarm: 2
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: missing
+
+  CollectorHeartbeatAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: QCRL collector has not published a heartbeat for five minutes.
+      AlarmActions:
+        - !Ref AlertTopic
+      OKActions:
+        - !Ref AlertTopic
+      Namespace: QCRL/Collector
+      MetricName: Heartbeat
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: LessThanThreshold
+      TreatMissingData: breaching
+
+  ProtocolProblemAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: QCRL found an invalid protocol, failed capture, or missed capture.
+      AlarmActions:
+        - !Ref AlertTopic
+      OKActions:
+        - !Ref AlertTopic
+      Namespace: QCRL/Collector
+      MetricName: ProtocolProblems
+      Statistic: Maximum
+      Period: 300
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  MonthlyCostBudget:
+    Type: AWS::Budgets::Budget
+    Properties:
+      Budget:
+        BudgetName: !Sub "${AWS::StackName}-monthly-cost"
+        BudgetLimit:
+          Amount: !Ref MonthlyBudgetUsd
+          Unit: USD
+        BudgetType: COST
+        TimeUnit: MONTHLY
+      NotificationsWithSubscribers:
+        - Notification:
+            ComparisonOperator: GREATER_THAN
+            NotificationType: FORECASTED
+            Threshold: 80
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - Address: !Ref AlertEmail
+              SubscriptionType: EMAIL
+        - Notification:
+            ComparisonOperator: GREATER_THAN
+            NotificationType: ACTUAL
+            Threshold: 100
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - Address: !Ref AlertEmail
+              SubscriptionType: EMAIL
+
+Outputs:
+  InstanceId:
+    Description: EC2 collector instance ID.
+    Value: !Ref CollectorInstance
+  ArtifactBucketName:
+    Description: Versioned bucket for locked protocols and runtime evidence.
+    Value: !Ref ArtifactBucket
+  ProtocolInboxUri:
+    Description: Upload locked capture-protocol JSON files here.
+    Value: !Sub "s3://${ArtifactBucket}/protocols/"
+  RuntimeEvidenceUri:
+    Description: Collector-managed raw evidence and capture state.
+    Value: !Sub "s3://${ArtifactBucket}/runtime/"
+  LogGroupName:
+    Description: CloudWatch log group for bootstrap and collector logs.
+    Value: !Ref CollectorLogGroup
+  SessionManagerUrl:
+    Description: AWS console URL for Session Manager access.
+    Value: !Sub >-
+      https://${AWS::Region}.console.aws.amazon.com/systems-manager/session-manager/${CollectorInstance}?region=${AWS::Region}
