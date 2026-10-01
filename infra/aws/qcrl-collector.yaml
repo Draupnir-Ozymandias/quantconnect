@@ -295,7 +295,7 @@ Resources:
           - ResourceType: instance
             Tags:
               - Key: QcrlDeploymentRevision
-                Value: !Sub "${RepositoryCommit}-bootstrap-3"
+                Value: !Sub "${RepositoryCommit}-bootstrap-4"
 
   CollectorInstance:
     Type: AWS::EC2::Instance
@@ -396,6 +396,7 @@ Resources:
           project = Path(os.environ["QCRL_PROJECT_DIR"])
           protocol_dir = Path(os.environ["QCRL_PROTOCOL_DIR"])
           cli = project / "qcrl_execution_truth.py"
+          runtime = project / ".qcrl" / "execution_truth"
 
           def run(arguments, *, capture=False):
               completed = subprocess.run(
@@ -418,6 +419,11 @@ Resources:
           run([
               "aws", "s3", "sync", f"s3://{bucket}/protocols/",
               str(protocol_dir), "--only-show-errors",
+          ])
+          runtime.mkdir(parents=True, exist_ok=True)
+          run([
+              "aws", "s3", "sync", f"s3://{bucket}/runtime/",
+              str(runtime), "--only-show-errors",
           ])
 
           problems = 0
@@ -461,7 +467,6 @@ Resources:
                   ], capture=True)
                   problems += int(result.returncode != 0)
 
-          runtime = project / ".qcrl" / "execution_truth"
           if runtime.exists():
               run([
                   "aws", "s3", "sync", str(runtime),

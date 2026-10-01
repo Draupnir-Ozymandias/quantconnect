@@ -94,9 +94,11 @@ aws s3 cp execution_truth/protocols/LOCKED_PROTOCOL.json \
 ```
 
 Do this before every declared capture window. The collector downloads protocol
-objects once per minute, validates them with the pinned QCRL code, executes only
-currently eligible captures, and mirrors `.qcrl/execution_truth/` into the
-bucket's `runtime/` prefix. Old or already missed protocols remain inert.
+objects and retained runtime evidence once per minute, validates them with the
+pinned QCRL code, executes only currently eligible captures, and mirrors
+`.qcrl/execution_truth/` back into the bucket's `runtime/` prefix. Hydrating the
+runtime prefix before protocol evaluation preserves completion state across EC2
+replacement. Old or already missed protocols remain inert.
 
 Download evidence for local inspection without promoting it:
 
