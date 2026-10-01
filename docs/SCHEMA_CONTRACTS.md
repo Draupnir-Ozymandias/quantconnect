@@ -37,6 +37,7 @@
 | Raw/normalized Binance resolution candles | `qcrl.binance_raw_resolution_candles.v1` / `qcrl.binance_resolution_candles.v1` | public Binance acquisition / `execution_truth/binance_resolution.py` | independent resolution reconciliation and inventory audit | content-addressed raw observations / derived record |
 | Binance settlement reconciliation/cohort | `qcrl.binance_settlement_reconciliation.v1` / `qcrl.binance_settlement_cohort.v1` | `execution_truth/binance_resolution.py` | resolution-source consistency audit | result printed and hashed |
 | Capture worker report | `qcrl.capture_worker_report.v1` | `execution_truth/capture_worker.py` | local scheduler log | derived, not promoted as market evidence |
+| Authenticated execution probe plan/result | `qcrl.authenticated_execution_probe_plan.v1` / `qcrl.authenticated_execution_probe.v1` | fixed GET declaration / `execution_truth/authenticated_probe.py` | sanitized execution-field visibility audit | credentials and raw account payloads never persisted |
 
 The QCRL engine version and schema versions are different concerns. The clean
 baseline pins engine 2.2.0, most directional campaigns pin 2.3.0, and temporal

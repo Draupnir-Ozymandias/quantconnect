@@ -21,6 +21,7 @@ measurements authorize.
 | D-013 | Build read-only Polymarket execution truth as the next engineering lane. | accepted | known-gap audit | Define timing/market contracts, fixtures, replay, and reconciliation before credentials or orders. |
 | D-014 | Do not map the current QCRL daily signal to Polymarket daily series 41. | accepted | durable public discovery, market bundle, and source contract | Coinbase/Binance feeds, midnight-UTC/noon-Eastern anchors, and tie semantics are not equivalent; retain the capture for mechanics only and require a new aligned research declaration before reconsideration. |
 | D-015 | Materialize the current candidate only at the next UTC daily boundary from completed Coinbase bars. | accepted | QCRL source contract and boundary adapter | Late or malformed bars fail closed; emitted intent names its source contract and cannot bind under an unapproved source policy. |
+| D-016 | Permit an authenticated CLOB probe only through a mechanically GET-only transport. | accepted | fixed-route probe contract and credential-redaction tests | No wallet signing, order submission, cancellation, heartbeat, raw account persistence, or inference from missing fields. |
 
 ## Decision discipline
 

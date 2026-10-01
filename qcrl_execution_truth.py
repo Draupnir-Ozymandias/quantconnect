@@ -1,8 +1,9 @@
-"""Operator CLI for public Polymarket evidence capture and promotion."""
+"""Operator CLI for read-only Polymarket execution evidence."""
 
 import argparse
 import json
 from pathlib import Path
+import sys
 
 from execution_truth import (
     PublicPolymarketAcquirer,
@@ -23,6 +24,10 @@ from execution_truth import (
     run_capture_with_retries,
     reconcile_settlement_cohort,
     reconcile_binance_cohort,
+    normalize_probe_credentials,
+    probe_plan,
+    run_authenticated_probe,
+    store_authenticated_probe,
     store_raw_bundle,
     store_raw_book_sequence,
     store_raw_binance_resolution,
@@ -38,6 +43,7 @@ LOCAL_RAW_DIR = PROJECT_DIR / ".qcrl" / "execution_truth" / "raw"
 DURABLE_DIR = PROJECT_DIR / "evidence" / "polymarket" / "live"
 DURABLE_RAW_DIR = DURABLE_DIR / "raw"
 PROTOCOL_STATE_DIR = PROJECT_DIR / ".qcrl" / "execution_truth" / "capture_protocols"
+AUTHENTICATED_PROBE_DIR = PROJECT_DIR / ".qcrl" / "execution_truth" / "authenticated_probe"
 
 
 def capture_discovery(args):
@@ -246,6 +252,26 @@ def binance_settlement_cohort(args):
     print(json.dumps(reconcile_binance_cohort(markets), indent=2, sort_keys=True))
 
 
+def authenticated_probe(args):
+    plan = probe_plan(args.condition_id)
+    if not args.execute:
+        print(json.dumps(plan, indent=2, sort_keys=True))
+        print("Dry run only. No credentials read and no network requests made.")
+        return
+    if not args.secret_json_stdin:
+        raise ValueError("--execute requires --secret-json-stdin")
+    try:
+        credentials = normalize_probe_credentials(json.loads(sys.stdin.read()))
+    except json.JSONDecodeError as exc:
+        raise ValueError("credential stdin must be one JSON object") from exc
+    result = run_authenticated_probe(args.condition_id, credentials)
+    path = store_authenticated_probe(result, AUTHENTICATED_PROBE_DIR)
+    print(path)
+    print(f"probe_sha256={result['probe_sha256']}")
+    for name, field in result["execution_fields"].items():
+        print(f"{name}={field['status']}")
+
+
 def _protocol_inputs(spec_value):
     spec_path = Path(spec_value).resolve()
     protocol = json.loads(spec_path.read_text(encoding="utf-8"))
@@ -397,6 +423,15 @@ def build_parser():
     )
     binance_cohort_parser.add_argument("spec")
     binance_cohort_parser.set_defaults(handler=binance_settlement_cohort)
+
+    authenticated_parser = commands.add_parser(
+        "authenticated-probe",
+        help="Run fixed L2-authenticated GETs; never sign, submit, or cancel orders",
+    )
+    authenticated_parser.add_argument("condition_id")
+    authenticated_parser.add_argument("--secret-json-stdin", action="store_true")
+    authenticated_parser.add_argument("--execute", action="store_true")
+    authenticated_parser.set_defaults(handler=authenticated_probe)
 
     protocol_status_parser = commands.add_parser(
         "protocol-status", help="Inspect a predeclared sequence-capture protocol"

@@ -54,6 +54,14 @@ from .binance_resolution import (
     reconcile_binance_cohort,
     reconcile_binance_settlement,
 )
+from .authenticated_probe import (
+    AuthenticatedProbeError,
+    AuthenticatedReadTransport,
+    normalize_probe_credentials,
+    probe_plan,
+    run_authenticated_probe,
+    store_authenticated_probe,
+)
 
 __all__ = [
     "ContractError",
@@ -97,4 +105,10 @@ __all__ = [
     "normalize_resolution_candles",
     "reconcile_binance_cohort",
     "reconcile_binance_settlement",
+    "AuthenticatedProbeError",
+    "AuthenticatedReadTransport",
+    "normalize_probe_credentials",
+    "probe_plan",
+    "run_authenticated_probe",
+    "store_authenticated_probe",
 ]

@@ -1,8 +1,9 @@
 # QCRL AWS collector
 
 [`qcrl-collector.yaml`](qcrl-collector.yaml) creates a small, always-on,
-public-evidence collector. It does not place orders and receives no Polymarket,
-QuantConnect, GitHub, or AWS user credentials.
+execution-evidence collector. It cannot place orders. By default it receives no
+Polymarket credentials; an optional manual probe can read one existing Secrets
+Manager value through a narrowly scoped instance-role permission.
 
 ## What the stack creates
 
@@ -41,6 +42,7 @@ aws cloudformation deploy \
     RepositoryCommit="$(git rev-parse HEAD)" \
     SshIngressCidr=REPLACE_ME/32 \
     SshPublicKey="$(cat ~/.ssh/qcrl_collector_ed25519.pub)" \
+    ProbeSecretArn='' \
     AlertEmail=REPLACE_ME@example.com
 ```
 
@@ -81,6 +83,34 @@ sudo tail -n 200 /var/log/qcrl/collector.log
 
 The heartbeat alarm can initially enter `ALARM` while the instance bootstraps.
 It should return to `OK` after the first successful collector cycle.
+
+## Optional authenticated read probe
+
+`ProbeSecretArn` is empty by default. In that state the instance role has no
+Secrets Manager access and `qcrl-authenticated-probe` refuses to run. The
+periodic collector never invokes the probe.
+
+After separately creating a Secrets Manager value with exactly `address`,
+`api_key`, `secret`, and `passphrase`, update the stack with that one complete
+secret ARN. The conditional IAM policy permits only
+`secretsmanager:GetSecretValue` on that ARN. No secret value is accepted as a
+CloudFormation parameter or exposed as an output.
+
+On the instance, preview the GET-only plan without reading credentials:
+
+```bash
+cd /opt/qcrl
+python3 qcrl_execution_truth.py authenticated-probe 0xCONDITION_ID
+```
+
+Execute the sanitized probe through the root-owned streaming wrapper:
+
+```bash
+sudo qcrl-authenticated-probe 0xCONDITION_ID
+```
+
+See [`docs/AUTHENTICATED_PROBE.md`](../../docs/AUTHENTICATED_PROBE.md) for the
+route allowlist, data-handling contract, and interpretation limits.
 
 ## Submit a locked protocol
 
@@ -126,6 +156,7 @@ aws cloudformation deploy \
     RepositoryCommit=FULL_40_CHARACTER_COMMIT \
     SshIngressCidr=REPLACE_ME/32 \
     SshPublicKey="$(cat ~/.ssh/qcrl_collector_ed25519.pub)" \
+    ProbeSecretArn=REPLACE_WITH_COMPLETE_SECRET_ARN_OR_EMPTY \
     AlertEmail=REPLACE_ME@example.com
 ```
 

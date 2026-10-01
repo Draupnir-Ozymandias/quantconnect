@@ -215,6 +215,14 @@ fixed-grid batch layers now cover all observed phase cells, and public platform
 settlement is reconciled to each latest observed book. See
 [LATENCY_BATCH.md](LATENCY_BATCH.md) and
 [SETTLEMENT_RECONCILIATION.md](SETTLEMENT_RECONCILIATION.md). Independent
-Binance candle verification and signal-to-execution integration remain
-subsequent work. Any Binance noon-to-noon research lane requires a separate
-declaration.
+Binance candle verification is implemented; signal-to-execution integration
+remains subsequent work. Any Binance noon-to-noon research lane requires a
+separate declaration.
+
+The independent Binance and platform-settlement cohorts now agree across five
+markets. The next boundary is the fixture-tested authenticated, non-trading
+field-visibility probe described in
+[AUTHENTICATED_PROBE.md](AUTHENTICATED_PROBE.md). It can issue only two fixed
+L2-signed GET requests, persists no raw account payload, and leaves missing
+`itode` or `oas` values unknown. Live credential provisioning remains a
+separate operator action.

@@ -1,8 +1,9 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
-  Always-on QCRL public-evidence collector. Creates one hardened ARM64 EC2
-  instance, a versioned evidence bucket, SSM administration, operator-CIDR
-  SSH access, centralized logs, health alarms, and a monthly cost budget.
+  Always-on QCRL execution-evidence collector. Creates one hardened ARM64 EC2
+  instance, a versioned evidence bucket, SSM administration, operator-CIDR SSH
+  access, centralized logs, health alarms, an optional one-secret authenticated
+  read probe, and a monthly cost budget.
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -26,6 +27,10 @@ Metadata:
           - SshIngressCidr
           - SshPublicKey
       - Label:
+          default: Optional authenticated read probe
+        Parameters:
+          - ProbeSecretArn
+      - Label:
           default: Operations
         Parameters:
           - AlertEmail
@@ -40,6 +45,8 @@ Metadata:
         default: Operator IPv4 CIDR
       SshPublicKey:
         default: Dedicated SSH public key
+      ProbeSecretArn:
+        default: Existing Secrets Manager credential ARN
 
 Parameters:
   VpcId:
@@ -93,6 +100,15 @@ Parameters:
     AllowedPattern: '^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256) [A-Za-z0-9+/=]+(?: .*)?$'
     ConstraintDescription: Enter one OpenSSH-format public key.
     Description: Dedicated operator public key installed for the ec2-user account.
+  ProbeSecretArn:
+    Type: String
+    Default: ""
+    NoEcho: true
+    AllowedPattern: '^$|^arn:(aws|aws-us-gov|aws-cn):secretsmanager:[a-z0-9-]+:[0-9]{12}:secret:[A-Za-z0-9/_+=.@-]+$'
+    ConstraintDescription: Leave empty or provide one complete Secrets Manager secret ARN.
+    Description: >-
+      Optional existing secret containing exactly address, api_key, secret, and
+      passphrase. The stack never creates, outputs, or reads the secret value.
   AlertEmail:
     Type: String
     AllowedPattern: '^[^@\s]+@[^@\s]+\.[^@\s]+$'
@@ -121,6 +137,9 @@ Rules:
     Assertions:
       - Assert: !Not [!Equals [!Ref SshIngressCidr, "0.0.0.0/0"]]
         AssertDescription: SshIngressCidr must not permit the entire IPv4 internet.
+
+Conditions:
+  HasProbeSecret: !Not [!Equals [!Ref ProbeSecretArn, ""]]
 
 Resources:
   ArtifactBucket:
@@ -258,6 +277,21 @@ Resources:
         - Key: Project
           Value: QCRL
 
+  ProbeSecretReadPolicy:
+    Condition: HasProbeSecret
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: QcrlReadOneProbeSecret
+      Roles:
+        - !Ref CollectorRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: ReadOnlyDeclaredProbeSecret
+            Effect: Allow
+            Action: secretsmanager:GetSecretValue
+            Resource: !Ref ProbeSecretArn
+
   CollectorInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -295,7 +329,7 @@ Resources:
           - ResourceType: instance
             Tags:
               - Key: QcrlDeploymentRevision
-                Value: !Sub "${RepositoryCommit}-bootstrap-4"
+                Value: !Sub "${RepositoryCommit}-bootstrap-5"
 
   CollectorInstance:
     Type: AWS::EC2::Instance
@@ -377,6 +411,7 @@ Resources:
           QCRL_BUCKET=${ArtifactBucket}
           QCRL_PROJECT_DIR=/opt/qcrl
           QCRL_PROTOCOL_DIR=/var/lib/qcrl/protocols
+          QCRL_PROBE_SECRET_ARN=${ProbeSecretArn}
           AWS_DEFAULT_REGION=${AWS::Region}
           PYTHONDONTWRITEBYTECODE=1
           EOF
@@ -491,6 +526,35 @@ Resources:
           raise SystemExit(1 if problems else 0)
           PYTHON
           chmod 0755 /usr/local/bin/qcrl-collector-cycle
+
+          cat >/usr/local/bin/qcrl-authenticated-probe <<'SHELL'
+          #!/bin/bash
+          set -euo pipefail
+          if [[ "$EUID" -ne 0 ]]; then
+            echo "Run with sudo; the secret is streamed directly to the unprivileged probe." >&2
+            exit 2
+          fi
+          if [[ "$#" -ne 1 ]]; then
+            echo "Usage: sudo qcrl-authenticated-probe CONDITION_ID" >&2
+            exit 2
+          fi
+          set -a
+          source /etc/qcrl-collector.env
+          set +a
+          if [[ -z "$QCRL_PROBE_SECRET_ARN" ]]; then
+            echo "ProbeSecretArn is not configured on this stack." >&2
+            exit 2
+          fi
+          aws secretsmanager get-secret-value \
+            --secret-id "$QCRL_PROBE_SECRET_ARN" \
+            --query SecretString \
+            --output text \
+            --no-cli-pager | \
+            runuser -u qcrl -- /usr/bin/python3 \
+              "$QCRL_PROJECT_DIR/qcrl_execution_truth.py" \
+              authenticated-probe "$1" --secret-json-stdin --execute
+          SHELL
+          chmod 0755 /usr/local/bin/qcrl-authenticated-probe
 
           cat >/etc/systemd/system/qcrl-collector.service <<'EOF'
           [Unit]
