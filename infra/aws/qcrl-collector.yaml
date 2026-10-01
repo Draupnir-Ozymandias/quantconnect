@@ -1,8 +1,8 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
   Always-on QCRL public-evidence collector. Creates one hardened ARM64 EC2
-  instance, a versioned evidence bucket, SSM-only administration, centralized
-  logs, health alarms, and a monthly cost budget.
+  instance, a versioned evidence bucket, SSM administration, operator-CIDR
+  SSH access, centralized logs, health alarms, and a monthly cost budget.
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -21,6 +21,11 @@ Metadata:
           - RepositoryCommit
           - RootVolumeGiB
       - Label:
+          default: Operator access
+        Parameters:
+          - SshIngressCidr
+          - SshPublicKey
+      - Label:
           default: Operations
         Parameters:
           - AlertEmail
@@ -31,6 +36,10 @@ Metadata:
         default: Immutable QCRL Git commit
       AlertEmail:
         default: Operations alert email
+      SshIngressCidr:
+        default: Operator IPv4 CIDR
+      SshPublicKey:
+        default: Dedicated SSH public key
 
 Parameters:
   VpcId:
@@ -72,6 +81,18 @@ Parameters:
     Default: 20
     MinValue: 12
     MaxValue: 100
+  SshIngressCidr:
+    Type: String
+    AllowedPattern: '^(?:[0-9]{1,3}\.){3}[0-9]{1,3}/(?:[0-9]|[12][0-9]|3[0-2])$'
+    ConstraintDescription: Enter one IPv4 CIDR, preferably the operator public IP with /32.
+    Description: >-
+      Sole network allowed to reach TCP/22. Use the operator's current public
+      IPv4 address with /32; never use 0.0.0.0/0.
+  SshPublicKey:
+    Type: String
+    AllowedPattern: '^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp256) [A-Za-z0-9+/=]+(?: .*)?$'
+    ConstraintDescription: Enter one OpenSSH-format public key.
+    Description: Dedicated operator public key installed for the ec2-user account.
   AlertEmail:
     Type: String
     AllowedPattern: '^[^@\s]+@[^@\s]+\.[^@\s]+$'
@@ -94,6 +115,12 @@ Parameters:
       - 90
       - 180
       - 365
+
+Rules:
+  SshIngressMustNotBeWorldOpen:
+    Assertions:
+      - Assert: !Not [!Equals [!Ref SshIngressCidr, "0.0.0.0/0"]]
+        AssertDescription: SshIngressCidr must not permit the entire IPv4 internet.
 
 Resources:
   ArtifactBucket:
@@ -240,8 +267,14 @@ Resources:
   CollectorSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: QCRL collector - no ingress, HTTPS egress only
+      GroupDescription: QCRL collector - operator-CIDR SSH ingress, HTTPS egress
       VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - Description: SSH from the explicitly declared operator network only
+          IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref SshIngressCidr
       SecurityGroupEgress:
         - Description: HTTPS to AWS services, GitHub, and public evidence APIs
           IpProtocol: tcp
@@ -262,7 +295,7 @@ Resources:
           - ResourceType: instance
             Tags:
               - Key: QcrlDeploymentRevision
-                Value: !Sub "${RepositoryCommit}-bootstrap-2"
+                Value: !Sub "${RepositoryCommit}-bootstrap-3"
 
   CollectorInstance:
     Type: AWS::EC2::Instance
@@ -313,8 +346,21 @@ Resources:
             systemctl enable --now amazon-ssm-agent
           fi
 
-          dnf install -y git python3 amazon-cloudwatch-agent
+          dnf install -y git python3 amazon-cloudwatch-agent openssh-server
           command -v aws
+
+          install -d -o ec2-user -g ec2-user -m 0700 /home/ec2-user/.ssh
+          printf '%s\n' '${SshPublicKey}' >/home/ec2-user/.ssh/authorized_keys
+          chown ec2-user:ec2-user /home/ec2-user/.ssh/authorized_keys
+          chmod 0600 /home/ec2-user/.ssh/authorized_keys
+          cat >/etc/ssh/sshd_config.d/90-qcrl-hardening.conf <<'EOF'
+          PasswordAuthentication no
+          KbdInteractiveAuthentication no
+          PermitRootLogin no
+          PubkeyAuthentication yes
+          AllowUsers ec2-user
+          EOF
+          systemctl enable --now sshd
 
           useradd --system --home-dir /var/lib/qcrl --create-home --shell /sbin/nologin qcrl || true
           install -d -o qcrl -g qcrl -m 0750 /var/lib/qcrl/protocols /var/log/qcrl
@@ -642,3 +688,9 @@ Outputs:
     Description: AWS console URL for Session Manager access.
     Value: !Sub >-
       https://${AWS::Region}.console.aws.amazon.com/systems-manager/session-manager/${CollectorInstance}?region=${AWS::Region}
+  CollectorPublicIp:
+    Description: Public IPv4 address restricted by SshIngressCidr.
+    Value: !GetAtt CollectorInstance.PublicIp
+  SshCommand:
+    Description: SSH command; replace the identity path if a different dedicated key was used.
+    Value: !Sub "ssh -i ~/.ssh/qcrl_collector_ed25519 ec2-user@${CollectorInstance.PublicIp}"

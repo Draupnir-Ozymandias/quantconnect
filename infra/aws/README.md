@@ -7,9 +7,9 @@ QuantConnect, GitHub, or AWS user credentials.
 ## What the stack creates
 
 - One Amazon Linux 2023 ARM64 EC2 instance, pinned to a reviewed QCRL commit.
-- No inbound security-group rules; administration uses AWS Systems Manager.
-  Bootstrap explicitly starts the bundled SSM Agent and installs the regional
-  AWS ARM64 package if the selected AMI unexpectedly lacks it.
+- AWS Systems Manager remains the recovery and bootstrap channel. Hardened SSH
+  is also available from one explicitly declared operator IPv4 CIDR; password,
+  keyboard-interactive, and root login are disabled.
 - An encrypted, versioned S3 bucket retained when the stack is deleted.
 - A one-minute `systemd` timer that discovers locked protocols from S3.
 - Bounded execution retries using QCRL's existing capture worker.
@@ -19,9 +19,11 @@ QuantConnect, GitHub, or AWS user credentials.
   100% actual monthly budget notices.
 
 The supplied subnet must have a route through an internet gateway. The template
-explicitly assigns the instance a public IPv4 address but creates no inbound
-rules. HTTPS egress is required for GitHub, AWS APIs, and the public Gamma/CLOB
-endpoints. AWS bills public IPv4 addresses separately from the instance.
+explicitly assigns the instance a public IPv4 address and allows TCP/22 only
+from `SshIngressCidr`. Use the operator's current public IPv4 address with
+`/32`; never supply `0.0.0.0/0`. HTTPS egress is required for GitHub, AWS APIs,
+and the public Gamma/CLOB endpoints. AWS bills public IPv4 addresses separately
+from the instance.
 
 ## Deploy
 
@@ -37,6 +39,8 @@ aws cloudformation deploy \
     VpcId=vpc-REPLACE_ME \
     SubnetId=subnet-REPLACE_ME \
     RepositoryCommit="$(git rev-parse HEAD)" \
+    SshIngressCidr=REPLACE_ME/32 \
+    SshPublicKey="$(cat ~/.ssh/qcrl_collector_ed25519.pub)" \
     AlertEmail=REPLACE_ME@example.com
 ```
 
@@ -51,7 +55,16 @@ aws cloudformation describe-stacks \
 
 ## Smoke test
 
-Use Session Manager rather than SSH:
+Use the stack's `SshCommand` output for routine administration and file
+transfer:
+
+```bash
+ssh -i ~/.ssh/qcrl_collector_ed25519 ec2-user@PUBLIC_IP_FROM_STACK_OUTPUTS
+scp -i ~/.ssh/qcrl_collector_ed25519 FILE ec2-user@PUBLIC_IP_FROM_STACK_OUTPUTS:/tmp/
+```
+
+The security group accepts SSH only from `SshIngressCidr`. Session Manager
+remains the recovery path if the operator's public IP changes or SSH fails:
 
 ```bash
 aws ssm start-session --target INSTANCE_ID_FROM_STACK_OUTPUTS
@@ -109,6 +122,8 @@ aws cloudformation deploy \
     VpcId=vpc-REPLACE_ME \
     SubnetId=subnet-REPLACE_ME \
     RepositoryCommit=FULL_40_CHARACTER_COMMIT \
+    SshIngressCidr=REPLACE_ME/32 \
+    SshPublicKey="$(cat ~/.ssh/qcrl_collector_ed25519.pub)" \
     AlertEmail=REPLACE_ME@example.com
 ```
 
