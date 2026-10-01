@@ -95,6 +95,32 @@ class SettlementTests(unittest.TestCase):
             result["cohort_sha256"],
         )
 
+    def test_extended_live_settlement_cohort_includes_september_30(self):
+        root = Path(__file__).resolve().parents[1]
+        spec_path = root / "execution_truth/specs/settlement_cohort_daily_20260915_20260930.json"
+        spec = json.loads(spec_path.read_text(encoding="utf-8"))
+        markets = {
+            label: {
+                "settlement": json.loads(
+                    (spec_path.parent / paths["settlement"]).resolve().read_text(encoding="utf-8")
+                ),
+                "sequences": [json.loads(
+                    (spec_path.parent / path).resolve().read_text(encoding="utf-8")
+                ) for path in paths["sequences"]],
+            }
+            for label, paths in spec["markets"].items()
+        }
+        result = reconcile_settlement_cohort(markets)
+        self.assertEqual({"Down": 2, "Up": 3}, result["winner_counts"])
+        self.assertEqual(
+            {"true": 5, "false": 0, "unknown": 0},
+            result["latest_book_direction_consistency_counts"],
+        )
+        self.assertEqual(
+            "ecaff2e2892c7cd434c5b585d7b3c79afe2c63aaa28a7ebbf69dc04fe7c54fa2",
+            result["cohort_sha256"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

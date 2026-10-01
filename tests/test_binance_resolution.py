@@ -126,6 +126,29 @@ class BinanceResolutionTests(unittest.TestCase):
             result["cohort_sha256"],
         )
 
+    def test_extended_live_cohort_matches_september_30_settlement(self):
+        root = Path(__file__).resolve().parents[1]
+        spec_path = root / (
+            "execution_truth/specs/"
+            "binance_settlement_cohort_daily_20260915_20260930.json"
+        )
+        spec = json.loads(spec_path.read_text(encoding="utf-8"))
+        markets = {
+            label: {
+                key: json.loads(
+                    (spec_path.parent / paths[key]).resolve().read_text(encoding="utf-8")
+                )
+                for key in ("candles", "settlement")
+            }
+            for label, paths in spec["markets"].items()
+        }
+        result = reconcile_binance_cohort(markets)
+        self.assertEqual({"match": 5, "mismatch": 0}, result["verdict_counts"])
+        self.assertEqual(
+            "df71f644be525d92122a2aaa46d8c30fdd18df3c9aa5ac5af2a86c5734a4f693",
+            result["cohort_sha256"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
