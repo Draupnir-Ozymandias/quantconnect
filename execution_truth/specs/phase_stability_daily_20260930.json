@@ -1,0 +1,8 @@
+{
+  "schema_version": "qcrl.phase_sequence_stability_spec.v1",
+  "phases": {
+    "early": "../../evidence/polymarket/live/raw/sequence-market-5082315-7f098b9a764b2b6c5d4414b6465c15cfe5f2a694d3657c88bdc20fdd2fa2afe9.json",
+    "middle": "../../evidence/polymarket/live/raw/sequence-market-5082315-c17dc0378d4a9f46b56ecae0492346e02d3e520f3d17874cbde4516212c060c9.json",
+    "late": "../../evidence/polymarket/live/raw/sequence-market-5082315-0876ccb623207649df433528906c173fb9ce03a120bdcba3524e7fb174bf85e3.json"
+  }
+}

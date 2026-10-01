@@ -276,7 +276,7 @@ def analyze_cross_market_phases(markets):
         },
         "limitations": [
             "partial markets contribute only observed phases and no missing value is imputed",
-            "two complete markets are insufficient for a stability or execution verdict",
+            f"{len(complete_labels)} complete markets are insufficient for a stability or execution verdict",
             "directional extremes describe contract price state, not signal accuracy",
             "displayed depth is public snapshot depth, not executable fill evidence",
             "polling gaps include request and network duration and are not latency measurements",

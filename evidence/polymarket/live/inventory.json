@@ -713,6 +713,129 @@
         "market_id": "4761727",
         "start_close": "85910.99"
       }
+    },
+    {
+      "artifact_sha256": "54967997ba90716068649975d9e6dc5220c70752447234494f793147393d3903",
+      "captured_at_utc": "2026-09-29T17:00:03.049273Z",
+      "evidence_role": "daily_phase_market_identity_resolution",
+      "limitations": [
+        "exact market-slug lookup at one predeclared phase only",
+        "does not prove order-book availability, execution, fill, or settlement"
+      ],
+      "path": "raw/market-slug-bitcoin-up-or-down-on-september-30-2026-54967997ba90716068649975d9e6dc5220c70752447234494f793147393d3903.json",
+      "schema_version": "qcrl.polymarket_raw_slug_resolution.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260930-v1",
+        "market_id": "5082315",
+        "phase": "early",
+        "reference_kind": "market",
+        "slug": "bitcoin-up-or-down-on-september-30-2026"
+      }
+    },
+    {
+      "artifact_sha256": "7f098b9a764b2b6c5d4414b6465c15cfe5f2a694d3657c88bdc20fdd2fa2afe9",
+      "captured_at_utc": "2026-09-29T17:00:03.100704Z",
+      "evidence_role": "daily_phase_temporal_liquidity_compatibility_audit",
+      "limitations": [
+        "twelve discrete early-phase samples do not establish continuous liquidity",
+        "Binance noon-Eastern contract is incompatible with the current Coinbase midnight-UTC signal",
+        "cannot prove queue position, fill, latency, settlement, or profitability"
+      ],
+      "normalized_sha256": "0f475e9d0dc5994977dd2d86bf5d311001ada32bf60a52c333ecf4010dc7c4e9",
+      "path": "raw/sequence-market-5082315-7f098b9a764b2b6c5d4414b6465c15cfe5f2a694d3657c88bdc20fdd2fa2afe9.json",
+      "schema_version": "qcrl.polymarket_raw_book_sequence.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260930-v1",
+        "event_end_at_utc": "2026-09-30T16:00:00Z",
+        "event_start_at_utc": "2026-09-29T16:00:00Z",
+        "market_id": "5082315",
+        "phase": "early",
+        "requested_interval_seconds": 5,
+        "requested_sample_count": 12,
+        "resolution_source": "https://www.binance.com/en/trade/BTC_USDT"
+      }
+    },
+    {
+      "artifact_sha256": "8ce5c78514e3aebf7685eea426642bbffdad2c0d7a61f82fb34625297c05e1bd",
+      "captured_at_utc": "2026-09-30T04:00:41.815655Z",
+      "evidence_role": "daily_phase_market_identity_resolution",
+      "limitations": [
+        "exact market-slug lookup at one predeclared phase only",
+        "does not prove order-book availability, execution, fill, or settlement"
+      ],
+      "path": "raw/market-slug-bitcoin-up-or-down-on-september-30-2026-8ce5c78514e3aebf7685eea426642bbffdad2c0d7a61f82fb34625297c05e1bd.json",
+      "schema_version": "qcrl.polymarket_raw_slug_resolution.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260930-v1",
+        "market_id": "5082315",
+        "phase": "middle",
+        "reference_kind": "market",
+        "slug": "bitcoin-up-or-down-on-september-30-2026"
+      }
+    },
+    {
+      "artifact_sha256": "c17dc0378d4a9f46b56ecae0492346e02d3e520f3d17874cbde4516212c060c9",
+      "captured_at_utc": "2026-09-30T04:00:41.863277Z",
+      "evidence_role": "daily_phase_temporal_liquidity_compatibility_audit",
+      "limitations": [
+        "twelve discrete middle-phase samples do not establish continuous liquidity",
+        "Binance noon-Eastern contract is incompatible with the current Coinbase midnight-UTC signal",
+        "cannot prove queue position, fill, latency, settlement, or profitability"
+      ],
+      "normalized_sha256": "d1f291eb6569d6fe1a844072726ef76165392144d57df2a93acbd0f648219363",
+      "path": "raw/sequence-market-5082315-c17dc0378d4a9f46b56ecae0492346e02d3e520f3d17874cbde4516212c060c9.json",
+      "schema_version": "qcrl.polymarket_raw_book_sequence.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260930-v1",
+        "event_end_at_utc": "2026-09-30T16:00:00Z",
+        "event_start_at_utc": "2026-09-29T16:00:00Z",
+        "market_id": "5082315",
+        "phase": "middle",
+        "requested_interval_seconds": 5,
+        "requested_sample_count": 12,
+        "resolution_source": "https://www.binance.com/en/trade/BTC_USDT"
+      }
+    },
+    {
+      "artifact_sha256": "a718f1ef5634df9293a939195c6f16ecb5d5057d9aefd182ec1f163a977cc573",
+      "captured_at_utc": "2026-09-30T15:00:22.890055Z",
+      "evidence_role": "daily_phase_market_identity_resolution",
+      "limitations": [
+        "exact market-slug lookup at one predeclared phase only",
+        "does not prove order-book availability, execution, fill, or settlement"
+      ],
+      "path": "raw/market-slug-bitcoin-up-or-down-on-september-30-2026-a718f1ef5634df9293a939195c6f16ecb5d5057d9aefd182ec1f163a977cc573.json",
+      "schema_version": "qcrl.polymarket_raw_slug_resolution.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260930-v1",
+        "market_id": "5082315",
+        "phase": "late",
+        "reference_kind": "market",
+        "slug": "bitcoin-up-or-down-on-september-30-2026"
+      }
+    },
+    {
+      "artifact_sha256": "0876ccb623207649df433528906c173fb9ce03a120bdcba3524e7fb174bf85e3",
+      "captured_at_utc": "2026-09-30T15:00:22.957808Z",
+      "evidence_role": "daily_phase_temporal_liquidity_compatibility_audit",
+      "limitations": [
+        "twelve discrete late-phase samples do not establish continuous liquidity",
+        "Binance noon-Eastern contract is incompatible with the current Coinbase midnight-UTC signal",
+        "cannot prove queue position, fill, latency, settlement, or profitability"
+      ],
+      "normalized_sha256": "fe712596c806d172b4a93fd9533c2fb32f22c24ad2dae75482ce535406c476bb",
+      "path": "raw/sequence-market-5082315-0876ccb623207649df433528906c173fb9ce03a120bdcba3524e7fb174bf85e3.json",
+      "schema_version": "qcrl.polymarket_raw_book_sequence.v1",
+      "subject": {
+        "capture_protocol_id": "btc-daily-phase-capture-20260930-v1",
+        "event_end_at_utc": "2026-09-30T16:00:00Z",
+        "event_start_at_utc": "2026-09-29T16:00:00Z",
+        "market_id": "5082315",
+        "phase": "late",
+        "requested_interval_seconds": 5,
+        "requested_sample_count": 12,
+        "resolution_source": "https://www.binance.com/en/trade/BTC_USDT"
+      }
     }
   ],
   "compatibility_findings": [

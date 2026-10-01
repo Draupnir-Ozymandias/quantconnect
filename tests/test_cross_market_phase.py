@@ -7,14 +7,15 @@ from execution_truth import ContractError, analyze_cross_market_phases
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC = ROOT / "execution_truth" / "specs" / "cross_market_phase_daily_20260915_20260922.json"
+EXTENDED_SPEC = ROOT / "execution_truth" / "specs" / "cross_market_phase_daily_20260915_20260930.json"
 
 
-def load_markets():
-    spec = json.loads(SPEC.read_text(encoding="utf-8"))
+def load_markets(spec_path=SPEC):
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
     return {
         label: {
             phase: (
-                json.loads((SPEC.parent / path).resolve().read_text(encoding="utf-8"))
+                json.loads((spec_path.parent / path).resolve().read_text(encoding="utf-8"))
                 if path is not None else None
             )
             for phase, path in phases.items()
@@ -47,6 +48,16 @@ class CrossMarketPhaseTests(unittest.TestCase):
         )
         self.assertEqual(3, first["descriptive_findings"]["late_directional_extreme_market_count"])
         self.assertEqual(64, len(first["analysis_sha256"]))
+
+    def test_extended_live_cohort_includes_complete_september_30_market(self):
+        result = analyze_cross_market_phases(load_markets(EXTENDED_SPEC))
+        self.assertEqual(5, result["coverage"]["market_count"])
+        self.assertEqual(3, result["coverage"]["complete_market_count"])
+        self.assertEqual(13, result["coverage"]["available_sequence_count"])
+        self.assertIn(
+            "3 complete markets are insufficient for a stability or execution verdict",
+            result["limitations"],
+        )
 
     def test_less_than_two_complete_markets_is_rejected(self):
         markets = load_markets()
