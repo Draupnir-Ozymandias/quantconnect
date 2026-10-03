@@ -38,6 +38,7 @@
 | Binance settlement reconciliation/cohort | `qcrl.binance_settlement_reconciliation.v1` / `qcrl.binance_settlement_cohort.v1` | `execution_truth/binance_resolution.py` | resolution-source consistency audit | result printed and hashed |
 | Capture worker report | `qcrl.capture_worker_report.v1` | `execution_truth/capture_worker.py` | local scheduler log | derived, not promoted as market evidence |
 | Authenticated execution probe plan/result | `qcrl.authenticated_execution_probe_plan.v1` / `qcrl.authenticated_execution_probe.v1` | fixed GET declaration / `execution_truth/authenticated_probe.py` | sanitized execution-field visibility audit | credentials and raw account payloads never persisted |
+| CLOB documentation interpretation | `qcrl.clob_schema_interpretation.v1` | `execution_truth/schema_interpretation.py` | offline documentation audit; not consumed by replay | hashed sidecar with pinned policy and source hashes |
 
 The QCRL engine version and schema versions are different concerns. The clean
 baseline pins engine 2.2.0, most directional campaigns pin 2.3.0, and temporal
@@ -100,6 +101,13 @@ coerced booleans or integers. Replay result v2 rejects unknown minimum order
 age as well as unknown delay. Normalized bundle v2 embeds market v3; derive it
 again from raw evidence rather than consuming old normalized contracts.
 See [TAKER_REPLAY.md](TAKER_REPLAY.md) for rules and migration boundaries.
+
+The October 3 documentation review adds a separate interpretation sidecar.
+Explicitly declared current-documentation applicability resolves omitted
+`itode` to false for observations on or after the review date; null stays
+unknown. Historical captures and market v3 semantics are unchanged. `oas`
+defaults and operational scope remain unresolved, and replay still rejects
+unknown age. See [CLOB_SCHEMA_REVIEW.md](CLOB_SCHEMA_REVIEW.md).
 
 A raw book sequence is a bounded list of complete raw market bundles. It keeps
 every repeated response as an independently timed observation. Its derived

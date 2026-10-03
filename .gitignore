@@ -19,6 +19,9 @@ venv/
 .env
 .env.*
 !.env.example
+# Operator credential-bootstrap scripts; never upload to GitHub or QuantConnect
+/poly.py
+/poly2.py
 
 # LEAN-generated data and results
 .lean/

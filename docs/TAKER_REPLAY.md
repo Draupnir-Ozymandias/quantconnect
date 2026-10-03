@@ -64,6 +64,12 @@ these crypto captures. The [order lifecycle](https://docs.polymarket.com/concept
 describes a sports-market delay; that is not evidence for crypto timing.
 Minimum order age is not treated as the matching-delay duration.
 
+Update (2026-10-03): the current reference now explicitly documents omitted
+`itode` as false and an enabled 250 ms crypto taker delay. This resolves the
+current documentation gap, not the settings' historical effective date or
+`oas` semantics. The separate [interpretation policy](CLOB_SCHEMA_REVIEW.md)
+records those findings without changing market v3 or replay result v2.
+
 Market contract v3 uses these rules:
 
 - `itode`, `acceptingOrders`, and `feesEnabled`: boolean or unknown (`null`).

@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 import sys
 
+from execution_truth.schema_interpretation import interpret_market_bundle
+
 from execution_truth import (
     PublicPolymarketAcquirer,
     PublicBinanceAcquirer,
@@ -252,6 +254,14 @@ def binance_settlement_cohort(args):
     print(json.dumps(reconcile_binance_cohort(markets), indent=2, sort_keys=True))
 
 
+def interpret_market(args):
+    raw = json.loads(Path(args.raw_bundle).read_text(encoding="utf-8"))
+    result = interpret_market_bundle(
+        raw, apply_current_documentation=args.apply_current_documentation
+    )
+    print(json.dumps(result, indent=2, sort_keys=True))
+
+
 def authenticated_probe(args):
     plan = probe_plan(args.condition_id)
     if not args.execute:
@@ -423,6 +433,17 @@ def build_parser():
     )
     binance_cohort_parser.add_argument("spec")
     binance_cohort_parser.set_defaults(handler=binance_settlement_cohort)
+
+    interpretation_parser = commands.add_parser(
+        "interpret-market",
+        help="Audit a raw bundle against versioned CLOB documentation offline",
+    )
+    interpretation_parser.add_argument("raw_bundle")
+    interpretation_parser.add_argument(
+        "--apply-current-documentation", action="store_true",
+        help="Declare applicability of 2026-10-03 docs; rejects pre-review captures",
+    )
+    interpretation_parser.set_defaults(handler=interpret_market)
 
     authenticated_parser = commands.add_parser(
         "authenticated-probe",
