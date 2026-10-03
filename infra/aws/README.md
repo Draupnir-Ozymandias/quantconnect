@@ -96,6 +96,31 @@ secret ARN. The conditional IAM policy permits only
 `secretsmanager:GetSecretValue` on that ARN. No secret value is accepted as a
 CloudFormation parameter or exposed as an output.
 
+Bootstrap 6 stores the ARN reference in the stack-managed SSM String parameter
+`/qcrl/STACK_NAME/probe-secret-arn`; an empty `ProbeSecretArn` stores `disabled`.
+The instance role can read exactly that parameter. Each manual probe fetches
+the latest reference before reading the credential secret, so subsequent ARN
+changes do not require a reboot or edits to `/etc/qcrl-collector.env`.
+Failed parameter reads and invalid/disabled values stop before secret access.
+
+The first deployment of this repair replaces the launch template and EC2
+instance. Review the change set for that replacement and for preservation of
+the evidence bucket. Before execution, ensure there is no active/near-term
+capture and the latest runtime evidence has reached S3. Reconnect using the new
+stack outputs after bootstrap completes. Preserve the existing secret ARN,
+network parameters, SSH key/CIDR, and other settings during the update.
+
+Inspect the reference without reading credential contents:
+
+```bash
+aws ssm get-parameter --region us-east-2 \
+  --name /qcrl/qcrl-collector/probe-secret-arn \
+  --query Parameter.Value --output text
+```
+
+Fresh public captures remain protocol-driven. The collector does not run
+`interpret-market`; documentation interpretation is a separate offline audit.
+
 On the instance, preview the GET-only plan without reading credentials:
 
 ```bash
@@ -160,9 +185,10 @@ aws cloudformation deploy \
     AlertEmail=REPLACE_ME@example.com
 ```
 
-`RepositoryCommit` is embedded in a launch-template version, so changing it
-causes CloudFormation to replace the instance and execute the bootstrap from a
-clean host. Perform that update during a planned no-capture window. Template
-maintainers must increment the launch template's `bootstrap-N` tag whenever the
-embedded bootstrap itself changes. S3 evidence survives stack deletion because
-the bucket is retained.
+`RepositoryCommit` and `bootstrap-N` are embedded in the launch template name.
+Changing either replaces the template and its referenced instance, ensuring
+bootstrap executes on a fresh host. Perform that update during a planned
+no-capture window. Template maintainers must increment both the name and tag's
+`bootstrap-N` whenever embedded bootstrap changes. S3 evidence survives stack
+deletion because the bucket is retained. Secret-reference-only updates change
+the SSM parameter and conditional IAM policy without instance replacement.

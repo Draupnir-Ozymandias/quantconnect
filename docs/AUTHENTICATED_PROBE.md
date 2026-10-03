@@ -73,6 +73,13 @@ complete ARN. Then connect through SSH or Session Manager and run:
 sudo qcrl-authenticated-probe 0xCONDITION_ID
 ```
 
+With bootstrap 6, the wrapper fetches the ARN reference from the stack-managed
+SSM parameter on every invocation. `/etc/qcrl-collector.env` holds only the
+parameter name, avoiding stale secret references after stack updates. The role
+can read exactly that parameter and the one declared credential secret. An
+empty stack parameter stores `disabled` and prevents secret access. The first
+upgrade to bootstrap 6 replaces EC2; later secret-reference changes do not.
+
 The wrapper streams `SecretString` directly from AWS CLI into the unprivileged
 Python process. It does not place the value in command arguments, environment
 variables, files, service logs, S3 paths, or shell history. The sanitized probe

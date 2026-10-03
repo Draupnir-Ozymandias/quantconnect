@@ -55,8 +55,8 @@ Parameters:
   SubnetId:
     Type: AWS::EC2::Subnet::Id
     Description: >-
-      Public subnet with a route to an internet gateway. The instance has no
-      inbound rules but needs outbound HTTPS for AWS, GitHub, and public data APIs.
+      Public subnet with a route to an internet gateway. SSH is restricted to
+      the declared operator CIDR; HTTPS egress reaches AWS and public data APIs.
   InstanceType:
     Type: String
     Default: t4g.small
@@ -292,6 +292,28 @@ Resources:
             Action: secretsmanager:GetSecretValue
             Resource: !Ref ProbeSecretArn
 
+  ProbeConfiguration:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/qcrl/${AWS::StackName}/probe-secret-arn"
+      Type: String
+      Value: !If [HasProbeSecret, !Ref ProbeSecretArn, "disabled"]
+      Description: Credential secret ARN reference only; disabled blocks the manual probe.
+
+  ProbeConfigurationReadPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: QcrlReadOneProbeConfiguration
+      Roles:
+        - !Ref CollectorRole
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: ReadDeclaredProbeConfiguration
+            Effect: Allow
+            Action: ssm:GetParameter
+            Resource: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${ProbeConfiguration}"
+
   CollectorInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -324,12 +346,14 @@ Resources:
   CollectorLaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
     Properties:
+      # Name replacement gives code/bootstrap changes an explicit fresh host.
+      LaunchTemplateName: !Sub "${AWS::StackName}-${RepositoryCommit}-bootstrap-6"
       LaunchTemplateData:
         TagSpecifications:
           - ResourceType: instance
             Tags:
               - Key: QcrlDeploymentRevision
-                Value: !Sub "${RepositoryCommit}-bootstrap-5"
+                Value: !Sub "${RepositoryCommit}-bootstrap-6"
 
   CollectorInstance:
     Type: AWS::EC2::Instance
@@ -411,7 +435,7 @@ Resources:
           QCRL_BUCKET=${ArtifactBucket}
           QCRL_PROJECT_DIR=/opt/qcrl
           QCRL_PROTOCOL_DIR=/var/lib/qcrl/protocols
-          QCRL_PROBE_SECRET_ARN=${ProbeSecretArn}
+          QCRL_PROBE_CONFIG_PARAMETER=${ProbeConfiguration}
           AWS_DEFAULT_REGION=${AWS::Region}
           PYTHONDONTWRITEBYTECODE=1
           EOF
@@ -541,8 +565,17 @@ Resources:
           set -a
           source /etc/qcrl-collector.env
           set +a
-          if [[ -z "$QCRL_PROBE_SECRET_ARN" ]]; then
+          QCRL_PROBE_SECRET_ARN="$(aws ssm get-parameter \
+            --name "$QCRL_PROBE_CONFIG_PARAMETER" \
+            --query Parameter.Value \
+            --output text \
+            --no-cli-pager)"
+          if [[ "$QCRL_PROBE_SECRET_ARN" == "disabled" ]]; then
             echo "ProbeSecretArn is not configured on this stack." >&2
+            exit 2
+          fi
+          if [[ ! "$QCRL_PROBE_SECRET_ARN" =~ ^arn:(aws|aws-us-gov|aws-cn):secretsmanager:[a-z0-9-]+:[0-9]{12}:secret:[A-Za-z0-9/_+=.@-]+$ ]]; then
+            echo "Probe configuration did not return a valid secret ARN." >&2
             exit 2
           fi
           aws secretsmanager get-secret-value \
