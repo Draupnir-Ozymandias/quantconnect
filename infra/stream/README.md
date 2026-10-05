@@ -1,5 +1,9 @@
 # Separate BTC five-minute observer pilot
 
+Current segmented deployment:
+[2026-10-05 deployment record](DEPLOYMENT_SEGMENTED_2026_10_05.md).
+Earlier single-file history and troubleshooting remain below.
+
 Public GETs and public market-channel WebSockets only. No Polymarket credentials,
 account endpoints, orders or cancellations. Daily collection logic/timing is
 unchanged; installation backs up its S3 wrapper and excludes `streams/*` in both

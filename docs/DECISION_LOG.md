@@ -34,6 +34,14 @@ measurements authorize.
 
 ## Decision discipline
 
+2026-10-05 segmented-observer follow-up: the six-market single-file pilot
+exhausted 128 MiB in every case; verified prefixes and S3 copies remain retained.
+Stream plan v3 uses compressed hash-linked rotation and bounded totals. Rolling
+pilot v2 attempts final/post-close metadata after reader errors and propagates
+unhealthy cases to service failure. A new three-market prospective pilot was
+deployed at `319e0a9`; full-window outcomes remain pending. See
+`infra/stream/DEPLOYMENT_SEGMENTED_2026_10_05.md`.
+
 Verification update, 2026-10-05 (D-025): isolated `websockets==15.0.1` runtime
 and a 25-second public BTC 5m smoke passed; both token books and two PONGs were
 retained in a verified chain. Two future markets passed exact terms/interval
