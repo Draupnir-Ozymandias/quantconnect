@@ -1,10 +1,40 @@
 # EC2 BTC five-minute pilot deployment — 2026-10-05
 
+## Final deployment state
+
+The repaired observer is active/running at
+`55ae4adc1b2c85081f44f0c52789a7303d86203b`. The replacement six-market plan is
+`86fd6c8ee5eb98ecc92292594a7a74fc4557fede5e4af816912dca0ad7c09883`, declared
+at 18:10:09 UTC, with starts 18:15 through 18:40 UTC. Its trading windows end
+at 18:45 UTC (2:45 p.m. Eastern), with the last bounded follow-up around
+2:47 p.m. Eastern. The old environment was backed up; the interrupted cohort
+was not replayed. Daily timer remains active.
+
+Final local suite: 362 tests pass. EC2 full suite: 362 run, one explicitly
+Python-3.10-only inventory test skipped, no failures. Stream plan v2 records
+64-record/one-second fsync batching, immediate control/footer sync, and the
+possible loss of the last unsynced batch on power failure. Raw hashes and gap
+reporting are unchanged; no lossless-delivery claim follows.
+
+The passing 35-second smoke under the service's 75% CPU / 512 MiB limits retained
+19,000 frames, both token books, three PONGs and one connection. Its 19,007-row
+chain verifies. Exchange-timestamp-to-receipt age was about 0.053 seconds median,
+0.707 seconds maximum. An earlier per-frame-fsync run accumulated about 19 seconds
+of age; these are operational diagnostics on different traffic, not a controlled
+network-latency benchmark. One intervening v2 attempt also reconnected; reliability
+is not established by the later passing smoke. Bounded close-code diagnostics
+remain enabled for the cohort. All failed attempts are retained in S3.
+
+Replacement evidence prefix:
+`s3://qcrl-collector-artifactbucket-icipysa9venc/runtime/streams/pilot-86fd6c8ee5eb98ecc92292594a7a74fc4557fede5e4af816912dca0ad7c09883/`.
+
+The following sections retain the initial deployment and repair history.
+
 Instance: `i-039c11d5ea49cf413`, Ohio (`us-east-2`), account `690971215658`.
 SSH host fingerprint was independently confirmed by the operator through
 Session Manager before first-use trust was saved.
 
-Observer source is pinned to `744b556ee4daef7c2a2e1cff00498f83867b3448` in
+Initial observer source was pinned to `744b556ee4daef7c2a2e1cff00498f83867b3448` in
 `/opt/qcrl-stream`, using a dedicated Python 3.9 virtual environment and
 `websockets==15.0.1`. The daily checkout remains at
 `da280f59684dd4bc80e314b31e23154d620de721`; its collection logic and timer were
