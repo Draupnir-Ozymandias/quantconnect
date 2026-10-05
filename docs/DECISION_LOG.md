@@ -39,7 +39,10 @@ and a 25-second public BTC 5m smoke passed; both token books and two PONGs were
 retained in a verified chain. Two future markets passed exact terms/interval
 discovery. Add a separate bounded six-market EC2 pilot with explicit quota/gap
 reporting and encrypted S3 replication, not an indefinitely restarting service.
-Deployment remains pending AWS access; no daily service or stack was changed.
+Initial deployment was pending AWS access. Later the operator disabled the VPN
+and verified the host fingerprint; the separate six-market pilot launched at
+revision `744b556`. Two backed-up daily S3 exclusions protect observer-owned
+objects; daily logic/timing remain unchanged. See the dated deployment record.
 
 - A decision may cite multiple hypotheses, campaigns, or syntheses, but must
   state an operational consequence.

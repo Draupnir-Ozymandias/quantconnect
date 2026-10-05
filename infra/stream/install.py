@@ -25,6 +25,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--plan", required=True)
     parser.add_argument("--bucket", required=True)
+    parser.add_argument("--replace-plan", action="store_true",
+                        help="Replace only an inactive observer's plan, retaining the previous environment")
     args = parser.parse_args()
     if os.geteuid() != 0 or Path(__file__).resolve().parents[2] != Path("/opt/qcrl-stream"):
         raise SystemExit("Run as root from the isolated /opt/qcrl-stream checkout")
@@ -33,9 +35,23 @@ def main():
     plan = validate_plan(json.loads(Path(args.plan).read_text()))
     daily = Path("/usr/local/bin/qcrl-collector-cycle")
     daily_backup = Path("/usr/local/bin/qcrl-collector-cycle.pre-stream")
-    updated_daily = isolated_daily_sync(daily.read_text())
-    if daily_backup.exists() or Path("/etc/qcrl-stream.env").exists():
-        raise SystemExit("Existing stream installation/backup: inspect before updating")
+    config = Path("/etc/qcrl-stream.env")
+    if args.replace_plan:
+        if (not config.exists() or not daily_backup.exists()
+                or isolated_daily_sync(daily_backup.read_text()) != daily.read_text()):
+            raise SystemExit("Existing installation differs from backed-up namespace isolation")
+        if subprocess.run(["systemctl", "is-active", "--quiet", "qcrl-stream-pilot.service"]).returncode == 0:
+            raise SystemExit("Stop the observer before replacing its prospective plan")
+        previous = next(line.split("=", 1)[1] for line in config.read_text().splitlines()
+                        if line.startswith("QCRL_STREAM_ROOT="))
+        config_backup = config.with_name(config.name + "." + Path(previous).name)
+        if config_backup.exists():
+            raise SystemExit("Previous environment backup already exists; inspect before updating")
+        updated_daily = None
+    else:
+        updated_daily = isolated_daily_sync(daily.read_text())
+        if daily_backup.exists() or config.exists():
+            raise SystemExit("Existing stream installation/backup: inspect before updating")
     root = Path("/var/lib/qcrl-stream")
     root.mkdir(mode=0o700, exist_ok=True)
     shutil.chown(root, user="qcrl", group="qcrl")
@@ -44,18 +60,18 @@ def main():
         json.dump(plan, handle, indent=2)
     shutil.chown(target, user="qcrl", group="qcrl")
     state = root / ("pilot-" + plan["plan_sha256"])
-    config = Path("/etc/qcrl-stream.env")
-    if config.exists():
-        raise SystemExit("Existing stream environment: inspect before updating")
+    if args.replace_plan:
+        shutil.copy2(config, config_backup)
     config.write_text("QCRL_STREAM_PLAN=" + str(target) + "\nQCRL_STREAM_ROOT=" + str(state)
                       + "\nQCRL_STREAM_BUCKET=" + args.bucket + "\nAWS_DEFAULT_REGION=us-east-2\n")
     config.chmod(0o644)
-    shutil.copy2(daily, daily_backup)
-    replacement = daily.with_name("qcrl-collector-cycle.stream-new")
-    with replacement.open("x") as handle:
-        handle.write(updated_daily)
-    replacement.chmod(daily.stat().st_mode & 0o777)
-    replacement.replace(daily)
+    if updated_daily is not None:
+        shutil.copy2(daily, daily_backup)
+        replacement = daily.with_name("qcrl-collector-cycle.stream-new")
+        with replacement.open("x") as handle:
+            handle.write(updated_daily)
+        replacement.chmod(daily.stat().st_mode & 0o777)
+        replacement.replace(daily)
     shutil.copyfile(Path(__file__).parent / "qcrl-stream-pilot.service",
                     "/etc/systemd/system/qcrl-stream-pilot.service")
     subprocess.run(["systemctl", "daemon-reload"], check=True)

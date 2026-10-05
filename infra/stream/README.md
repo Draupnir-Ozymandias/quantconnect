@@ -100,7 +100,7 @@ false even for apparently clean sessions. Raw tick-change events are preserved;
 book reconstruction and exchange delivery-completeness auditing are still future
 work. No queue, fill or profitability inference follows from the pilot.
 
-## Status on 2026-10-05
+## Foundation verification on 2026-10-05
 
 Local 25-second live smoke passed (market 5291768): 14,979 frames, both token
 books, two PONGs, one connection and a verified 14,986-row hash chain. Raw artifacts
@@ -109,6 +109,7 @@ Prospective discovery also verified markets 5292498 and 5292787 (17:50 and
 17:55 UTC), including exact intervals, source/description and both token books.
 The upcoming-book missing last-price edge case now records unknown explicitly.
 All 357 local tests and all 43 promoted evidence artifacts pass verification.
-EC2 deployment has **not** occurred: the last-known SSH address timed out and
-the AWS browser session requires Identity Center sign-in. No existing service,
-IAM rule, security group, CloudFormation stack or QuantConnect project was changed.
+EC2 deployment subsequently proceeded after the operator disabled the VPN and
+independently confirmed the SSH host fingerprint. See
+[the deployment record](DEPLOYMENT_2026_10_05.md) for the pinned revision,
+EC2 smoke, namespace isolation, locked cohort and first-capture verification.

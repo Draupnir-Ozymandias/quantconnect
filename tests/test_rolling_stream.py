@@ -24,6 +24,12 @@ class RollingTests(unittest.TestCase):
             with self.assertRaises(ContractError):
                 pilot_plan(start, count, now=self.now)
 
+    def test_early_followup_never_claims_postclose(self):
+        from execution_truth.rolling_stream import followup_label
+        self.assertEqual(followup_label(self.start, self.start + 180), "bounded_followup_before_close")
+        self.assertEqual(followup_label(self.start, self.start + 310), "bounded_followup_after_close")
+        self.assertEqual(followup_label(self.start, self.start + 420), "postclose_120s")
+
     def test_policy_mutation_rejected_even_rehashed(self):
         for key, value in (("orders_authorized", True), ("resolution_source", "other"),
                            ("max_spool_bytes", 999999999999)):

@@ -25,6 +25,7 @@ class SyncContractTests(unittest.TestCase):
         self.assertNotIn("tests/test_sync_contract.py", result.stdout)
         self.assertNotIn("ops/launchd/generate_capture_jobs.py", result.stdout)
 
+    @unittest.skipUnless(hasattr(sys, "stdlib_module_names"), "Standard-library name inventory requires Python 3.10+")
     def test_tracked_python_files_do_not_shadow_standard_library_modules(self):
         result = subprocess.run(
             ["git", "ls-files", "*.py"],

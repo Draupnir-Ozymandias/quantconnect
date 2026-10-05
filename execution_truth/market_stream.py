@@ -130,6 +130,10 @@ def live_connector():
         def recv(self, timeout):
             try:
                 return self.connection.recv(timeout=timeout)
+            except TimeoutError:
+                # TimeoutError is an OSError subclass: idle reads must reach
+                # the recorder's idle branch, not consume reconnect attempts.
+                raise
             except (OSError, WebSocketException) as exc:
                 raise StreamTransportError(type(exc).__name__) from exc
 

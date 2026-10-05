@@ -86,6 +86,14 @@ def spool_ok(root, plan):
             and shutil.disk_usage(root).free >= plan["minimum_free_bytes"])
 
 
+def followup_label(start, observed_epoch):
+    if observed_epoch < start + 300:
+        return "bounded_followup_before_close"
+    if observed_epoch < start + 420:
+        return "bounded_followup_after_close"
+    return "postclose_120s"
+
+
 def observe_window(start, plan, root):
     """Keep HTTP checkpoints off the socket reader; bound discovery and follow-up."""
     directory = root / str(start)
@@ -145,7 +153,7 @@ def observe_window(start, plan, root):
         checkpoint("final")
         # A single bounded follow-up is evidence, not a promise of final settlement.
         time.sleep(max(0, min(120, start + 420 - utc_now().timestamp())))
-        checkpoint("postclose_120s")
+        checkpoint(followup_label(start, utc_now().timestamp()))
         result["status"] = "observed_" + result["stream_summary"]["status"]
     except Exception as exc:
         result["status"] = "failed"

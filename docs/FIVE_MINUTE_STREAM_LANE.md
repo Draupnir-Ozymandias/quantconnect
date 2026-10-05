@@ -91,8 +91,11 @@ Offline verification:
 ```
 
 Stream logs are derived local capture state, not automatically promoted into
-the existing live-evidence inventory. No CloudFormation or running EC2 changes
-have been made. The separate prospective discovery pilot and service packaging
+the existing live-evidence inventory. The separate prospective discovery pilot
+has now been deployed alongside the daily collector; its sync namespace is
+excluded from the daily wrapper in both directions. Collection logic/timing
+remain unchanged. No CloudFormation stack update or QuantConnect push occurred.
+The separate discovery pilot and service packaging
 are described in [the stream deployment guide](../infra/stream/README.md).
 The existing minute-dispatch daily collector is not used to launch the recorder.
 
@@ -117,3 +120,6 @@ The daily candle-streak signal, Binance/noon-Eastern delayed contracts and
 provisional daily binding limits are not five-minute strategies. No daily
 success/failure finding is transferred. Unknown execution semantics restrict
 future execution modeling but do not prevent public observation.
+
+Deployment and first-capture details are in the
+[2026-10-05 deployment record](../infra/stream/DEPLOYMENT_2026_10_05.md).

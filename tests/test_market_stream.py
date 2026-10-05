@@ -5,10 +5,27 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
+from types import ModuleType
 
 from execution_truth.contracts import ContractError
 from execution_truth.market_stream import stream_plan, classify_frame, collect_market_stream, verify_stream_log, StreamTransportError
 from tests.test_taker_replay import raw_bundle
+
+
+class AdapterTests(unittest.TestCase):
+    def test_real_adapter_preserves_idle_timeout(self):
+        from execution_truth.market_stream import live_connector
+        client, exceptions = ModuleType("websockets.sync.client"), ModuleType("websockets.exceptions")
+        class Connection:
+            def recv(self, timeout):
+                raise TimeoutError("idle")
+        client.connect = lambda *args, **kwargs: Connection()
+        exceptions.WebSocketException = type("WebSocketException", (Exception,), {})
+        with patch.dict(sys.modules, {"websockets.sync.client": client, "websockets.exceptions": exceptions}):
+            socket = live_connector()()
+            with self.assertRaises(TimeoutError):
+                socket.recv(1)
 
 
 class Clock:
