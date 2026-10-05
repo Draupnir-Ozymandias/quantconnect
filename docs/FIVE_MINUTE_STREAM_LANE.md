@@ -10,7 +10,8 @@ while this observation lane is validated. No account access or trading.
 for both outcome tokens of one hash-verified five-minute market bundle. The
 engine checks the explicit event interval, not the slug suffix. Market IDs,
 condition, outcome tokens, contract and source-bundle hashes are pinned in the
-plan. Asset and resolution semantics still require explicit review when
+plan. Version 2 records bounded batched fsync; archived v1 plans fsynced every
+row. Asset and resolution semantics still require explicit review when
 selecting the BTC pilot; a five-minute interval alone does not prove BTC or
 compatibility with any QCRL strategy.
 
@@ -34,7 +35,10 @@ monotonic time are recorded separately. No one-way network-latency claim is made
 ## Durability and discontinuity
 
 Each NDJSON row is hash-chained with its ordinal and previous row hash. Writes
-are flushed and fsynced; a fresh exclusive path is required. The header pins the
+are flushed on each row. Fsync occurs every 64 records or one second, with
+immediate sync at session/control boundaries and close. Idle reads also check
+the one-second deadline. Power loss can lose the last unsynced batch; an
+interrupted prefix remains incomplete. A fresh exclusive path is required. The header pins the
 plan and raw bundle. Connection attempts, subscriptions, heartbeats, received
 frames and connection failures remain explicit. The footer records stop reason,
 counts and book-message assets per connection, not full-coverage success.

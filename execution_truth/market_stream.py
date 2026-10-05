@@ -13,7 +13,7 @@ from .contracts import ContractError, payload_hash, verify_artifact_hash
 
 
 ENDPOINT = "wss://ws-subscriptions-clob.polymarket.com/ws/market"
-SPEC_SCHEMA = "qcrl.public_market_stream_spec.v1"
+SPEC_SCHEMA = "qcrl.public_market_stream_spec.v2"
 ROW_SCHEMA = "qcrl.public_market_stream_record.v1"
 
 
@@ -38,6 +38,7 @@ def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000):
         "max_seconds": max_seconds, "max_frames": max_frames,
         "preopen_seconds": 30, "postclose_seconds": 30,
         "max_frame_bytes": 262144, "max_log_bytes": 134217728,
+        "fsync_every_records": 64, "fsync_interval_seconds": 1,
         "heartbeat_seconds": 10, "pong_timeout_seconds": 30,
         "max_connections": 3, "reconnect_pause_seconds": 2,
         "subscription": {"type": "market", "assets_ids": [o["token_id"] for o in market["outcomes"]],
@@ -85,6 +86,16 @@ class StreamLog:
         self.handle = path.open("x", encoding="utf-8")
         self.clock, self.monotonic, self.maximum = clock, monotonic, maximum
         self.ordinal, self.previous, self.size = 0, None, 0
+        self.pending, self.last_sync = 0, monotonic()
+
+    def sync(self):
+        self.handle.flush()
+        os.fsync(self.handle.fileno())
+        self.pending, self.last_sync = 0, self.monotonic()
+
+    def sync_if_due(self):
+        if self.pending and self.monotonic() - self.last_sync >= 1:
+            self.sync()
 
     def append(self, kind, payload):
         row = {"schema_version": ROW_SCHEMA, "ordinal": self.ordinal,
@@ -97,12 +108,16 @@ class StreamLog:
             raise ContractError("stream log size limit reached; existing prefix retained")
         self.handle.write(content)
         self.handle.flush()
-        os.fsync(self.handle.fileno())
+        self.pending += 1
+        if kind != "frame" or self.pending >= 64 or self.monotonic() - self.last_sync >= 1:
+            self.sync()
         self.size += size
         self.ordinal += 1
         self.previous = row["record_sha256"]
 
     def close(self):
+        if self.pending:
+            self.sync()
         self.handle.close()
 
 
@@ -182,6 +197,7 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
                     try:
                         frame = socket.recv(timeout=min(1, max(0.001, spec["max_seconds"] - (now - started))))
                     except TimeoutError:
+                        log.sync_if_due()
                         continue
                     if not isinstance(frame, str) or len(frame.encode("utf-8")) > spec["max_frame_bytes"]:
                         raise StreamTransportError("binary_or_oversize_frame")

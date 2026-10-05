@@ -14,6 +14,26 @@ from tests.test_taker_replay import raw_bundle
 
 
 class AdapterTests(unittest.TestCase):
+    def test_batched_fsync_is_bounded_and_footer_is_durable(self):
+        from execution_truth.market_stream import StreamLog
+        clock = Clock()
+        with tempfile.TemporaryDirectory() as directory, patch("execution_truth.market_stream.os.fsync") as sync:
+            log = StreamLog(Path(directory) / "test.ndjson", clock.utc, clock.mono, 1000000)
+            log.append("session_start", {})
+            self.assertEqual(sync.call_count, 1)
+            for _ in range(63):
+                log.append("frame", {})
+            self.assertEqual(sync.call_count, 1)
+            log.append("frame", {})
+            self.assertEqual(sync.call_count, 2)
+            log.append("frame", {})
+            clock.pause(1)
+            log.sync_if_due()
+            self.assertEqual(sync.call_count, 3)
+            log.append("session_end", {})
+            self.assertEqual(sync.call_count, 4)
+            log.close()
+
     def test_real_adapter_preserves_idle_timeout(self):
         from execution_truth.market_stream import live_connector
         client, exceptions = ModuleType("websockets.sync.client"), ModuleType("websockets.exceptions")
