@@ -1,0 +1,63 @@
+{
+  "schema_version": "qcrl.aligned_research_lane_spec.v1",
+  "lane_id": "btcusdt-binance-noon-eastern-candle-streak-2-v1",
+  "declared_on": "2026-10-04",
+  "status": "declared_not_executed",
+  "source": {
+    "venue": "binance_spot",
+    "symbol": "BTCUSDT",
+    "endpoint": "https://data-api.binance.vision/api/v3/klines",
+    "interval": "1m",
+    "price_field": "close",
+    "boundary_candle_selection": "open_time_equals_calendar_boundary",
+    "timezone": "America/New_York",
+    "local_boundary_time": "12:00:00",
+    "window_rule": "consecutive_local_calendar_noons",
+    "availability_rule": "after_boundary_candle_end_and_actual_observation",
+    "candle_duration_seconds": 60,
+    "missing_candle_policy": "reject_no_substitution",
+    "dst_policy": "retain_actual_elapsed_seconds_no_fixed_utc_offset"
+  },
+  "signal": {
+    "entry_model": "candle_streak",
+    "streak_length": 2,
+    "streak_mode": "reverse",
+    "filter_model": "none",
+    "direction_rule": "compare_consecutive_boundary_candle_closes",
+    "history_tie_policy": "skip_ties_use_most_recent_non_tied_intervals",
+    "sizing_policy": "none_direction_only"
+  },
+  "target": {
+    "series_id": "41",
+    "resolution_source": "https://www.binance.com/en/trade/BTC_USDT",
+    "tie_settlement": "split_50_50",
+    "future_market_compatibility": "verify_explicit_terms_per_market_not_slug_or_series_alone"
+  },
+  "evaluation": {
+    "historical_results_transfer": false,
+    "historical_role": "new_lane_exploration_only",
+    "prospective_window": null,
+    "acceptance_gate": null,
+    "parameter_search": "none",
+    "execution_or_profitability_claims": false
+  },
+  "activation": {
+    "orders_authorized": false,
+    "collector_changes_authorized": false,
+    "legacy_adapter_compatible": false,
+    "requires": [
+      "versioned_calendar_close_to_close_source_adapter",
+      "observed_availability_and_delayed_decision_intent_contract",
+      "explicit_dst_window_binding_policy",
+      "hash_verified_boundary_candle_dataset_and_gap_audit",
+      "separate_evaluation_window_and_acceptance_gate_before_confirmatory_test"
+    ]
+  },
+  "authority": {
+    "market_terms_path": "../../evidence/polymarket/live/raw/settlement-market-4761727-341a6033a50cda13d746801d59c30cd25eb570608c99742410e5129679bdab4f.json",
+    "market_terms_file_sha256": "88f44c5c329d03716c97ea28b7a6241c3dfe17e88d9b951146c4541350b2a8a7",
+    "market_id": "4761727",
+    "binance_documentation": "https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market",
+    "documentation_reviewed_on": "2026-10-04"
+  }
+}

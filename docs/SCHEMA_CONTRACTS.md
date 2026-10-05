@@ -1,11 +1,12 @@
 # QCRL Schema Contracts
 
-**As of:** 2026-09-23
+**As of:** 2026-10-04
 
 ## Contract matrix
 
 | Contract | Current version | Primary producer | Primary consumers | Persistence |
 |---|---|---|---|---|
+| Batch metadata audit spec/report | `qcrl.batch_metadata_audit_spec.v1` / `qcrl.batch_metadata_audit.v1` | pinned declaration / `execution_truth/metadata_audit.py` | offline descriptive review only; never replay | versioned spec / ignored content-addressed audit |
 | Research report | `qcrl.research_report.v6` | `report_models.py` / algorithm | ObjectStore, API summary publication | canonical run artifact |
 | Experiment record | `qcrl.experiment_record.v5` | `ResearchReport.to_record()` | `ExperimentStore`, `ResearchTools`, discovery | normalized research row |
 | Campaign manifest | `qcrl.campaign.v1` | human-authored JSON | `qcrl_campaign.py`, `synch.sh` | version controlled |
@@ -21,12 +22,14 @@
 | Polymarket raw discovery | `qcrl.polymarket_raw_discovery.v1` | `execution_truth/acquisition.py` | discovery normalization and audit | content-addressed raw observation |
 | Polymarket discovery spec/result | `qcrl.polymarket_discovery_spec.v1` / `qcrl.polymarket_discovery_result.v1` | human declaration / `execution_truth/discovery.py` | market-contract acquisition and audit | versioned declaration / derived evidence |
 | Directional source contract/bar | `qcrl.directional_source_contract.v1` / `qcrl.directional_source_bar.v1` | human declaration / future data adapter | boundary signal materialization | versioned declaration / hashed observation |
+| Aligned research lane declaration/plan | `qcrl.aligned_research_lane_spec.v1` / `qcrl.aligned_research_boundary_plan.v1` | separate declaration / `execution_truth/research_lane.py` | offline semantic and calendar checks only | pinned captured terms; hashed declaration/plan; no source bars or intents emitted |
 | Candle-streak signal spec/decision | `qcrl.candle_streak_signal_spec.v1` / `qcrl.directional_signal_decision.v1` | human declaration / `execution_truth/signal_adapter.py` | signal intent and audit | versioned declaration / derived evidence |
 | Directional signal intent | `qcrl.directional_signal_intent.v2` | `execution_truth/signal_adapter.py` | market binding and replay | content-addressed decision input |
 | Polymarket binding policy/result | `qcrl.polymarket_binding_policy.v2` / `qcrl.polymarket_binding_result.v2` | human declaration / `execution_truth/binding.py` | replay and shadow-decision layers | versioned declaration / derived evidence |
 | Polymarket live evidence inventory | `qcrl.polymarket_live_evidence_inventory.v1` | deliberate operator promotion | regression tests and audit | version controlled |
 | Taker replay request/policy/result | `qcrl.taker_replay_request.v1` / `qcrl.taker_replay_policy.v1` / `qcrl.taker_replay_result.v2` | local declaration / `execution_truth/taker_replay.py` | offline mechanics audit | hashed result; output to stdout |
 | Taker replay example | `qcrl.taker_replay_example.v1` | versioned JSON specification | `qcrl_execution_truth.py` | version controlled |
+| Constraint revalidation policy/result/example | `qcrl.constraint_revalidation_policy.v1` / `qcrl.constraint_revalidated_replay.v1` / `qcrl.constraint_revalidated_replay_example.v1` | explicit declaration / `execution_truth/constraint_revalidation.py` | guarded offline replay only | hashed sources and policies; result on stdout |
 | Latency sensitivity policy/result/example | `qcrl.latency_sensitivity_policy.v1` / `qcrl.latency_sensitivity_result.v1` / `qcrl.latency_sensitivity_example.v1` | versioned declaration / `execution_truth/latency_sensitivity.py` | execution-truth audit | declaration versioned; result printed and hashed |
 | Phase latency batch spec/template/result | `qcrl.latency_phase_batch_spec.v1` / `qcrl.latency_phase_request_template.v1` / `qcrl.latency_phase_batch.v1` | versioned declaration / `execution_truth/latency_batch.py` | cross-market mechanics audit | declaration versioned; result printed and hashed |
 | Book-sequence capture protocol/state/status | `qcrl.book_sequence_capture_protocol.v1` / `qcrl.book_sequence_capture_state.v1` / `qcrl.book_sequence_capture_status.v1` | versioned declaration / `execution_truth/capture_protocol.py` | bounded public sequence acquisition | protocol versioned; state ignored; status derived |

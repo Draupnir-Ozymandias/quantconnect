@@ -1,0 +1,13 @@
+{
+  "schema_version": "qcrl.batch_metadata_audit_spec.v1",
+  "policy_id": "qcrl.clob_documentation_policy.20261003.v1",
+  "cohort": "cross_market_phase_daily_20260915_20260930.json",
+  "cohort_file_sha256": "4a7619934657d67d75683af7289cb8acdaa70c3d91c6115da70db7a63c40d9e8",
+  "apply_current_documentation": false,
+  "evidence_role": "historical_descriptive_execution_metadata_audit",
+  "limitations": [
+    "Historical September observations cannot receive the October 3 omission default.",
+    "Missing phases and unknown execution fields remain unresolved evidence gaps.",
+    "No fill, trading, or profitability authorization."
+  ]
+}

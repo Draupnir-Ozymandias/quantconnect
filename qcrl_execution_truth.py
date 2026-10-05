@@ -6,6 +6,9 @@ from pathlib import Path
 import sys
 
 from execution_truth.schema_interpretation import interpret_market_bundle
+from execution_truth.constraint_revalidation import replay_taker_buy_revalidated
+from execution_truth.research_lane import load_research_lane, plan_research_boundary
+from execution_truth.metadata_audit import analyze_metadata_batch, store_metadata_audit, SPEC_SCHEMA
 
 from execution_truth import (
     PublicPolymarketAcquirer,
@@ -146,6 +149,26 @@ def replay(args):
     print(json.dumps(results, indent=2, sort_keys=True))
 
 
+def research_lane(args):
+    declaration = load_research_lane(args.spec)
+    result = (plan_research_boundary(declaration, args.target_end_date)
+              if args.target_end_date else declaration)
+    print(json.dumps(result, indent=2, sort_keys=True))
+
+
+def replay_revalidated(args):
+    spec_path = Path(args.spec).resolve()
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    if spec.get("schema_version") != "qcrl.constraint_revalidated_replay_example.v1":
+        raise ValueError("unsupported revalidated replay example schema")
+    origin = json.loads((spec_path.parent / spec["origin_raw_bundle_path"]).read_text(encoding="utf-8"))
+    current = json.loads((spec_path.parent / spec["current_raw_bundle_path"]).read_text(encoding="utf-8"))
+    results = [replay_taker_buy_revalidated(
+        origin, current, request, spec["replay_policy"], spec["revalidation_policy"]
+    ) for request in spec["requests"]]
+    print(json.dumps(results, indent=2, sort_keys=True))
+
+
 def latency(args):
     spec_path = Path(args.spec).resolve()
     spec = json.loads(spec_path.read_text(encoding="utf-8"))
@@ -260,6 +283,42 @@ def interpret_market(args):
         raw, apply_current_documentation=args.apply_current_documentation
     )
     print(json.dumps(result, indent=2, sort_keys=True))
+
+
+def metadata_audit(args):
+    import hashlib
+    from execution_truth.contracts import ContractError, payload_hash
+    from execution_truth.schema_interpretation import POLICY_ID
+
+    spec_path = Path(args.spec).resolve()
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    if spec.get("schema_version") != SPEC_SCHEMA or spec.get("policy_id") != POLICY_ID:
+        raise ContractError("unsupported metadata audit declaration or policy")
+    if type(spec.get("apply_current_documentation")) is not bool:
+        raise ContractError("metadata audit must declare documentation applicability")
+    cohort_path = (spec_path.parent / spec["cohort"]).resolve()
+    content = cohort_path.read_bytes()
+    if hashlib.sha256(content).hexdigest() != spec.get("cohort_file_sha256"):
+        raise ContractError("metadata audit cohort file hash mismatch")
+    cohort = json.loads(content)
+    if cohort.get("schema_version") != "qcrl.cross_market_phase_stability_spec.v1":
+        raise ContractError("unsupported metadata audit cohort schema")
+    markets = {
+        label: {phase: json.loads((cohort_path.parent / path).resolve().read_text(encoding="utf-8"))
+                if path is not None else None for phase, path in phases.items()}
+        for label, phases in cohort["markets"].items()
+    }
+    result = analyze_metadata_batch(
+        markets, apply_current_documentation=spec["apply_current_documentation"]
+    )
+    result.pop("audit_sha256")
+    result["declaration_sha256"] = payload_hash(spec)
+    result["cohort_file_sha256"] = spec["cohort_file_sha256"]
+    result["audit_sha256"] = payload_hash(result)
+    if args.output_directory:
+        print(store_metadata_audit(result, args.output_directory))
+    else:
+        print(json.dumps(result, indent=2, sort_keys=True))
 
 
 def authenticated_probe(args):
@@ -394,6 +453,19 @@ def build_parser():
     replay_parser.add_argument("spec")
     replay_parser.set_defaults(handler=replay)
 
+    guarded_parser = commands.add_parser(
+        "replay-revalidated", help="Revalidate metadata before offline replay; no network or orders"
+    )
+    guarded_parser.add_argument("spec")
+    guarded_parser.set_defaults(handler=replay_revalidated)
+
+    research_parser = commands.add_parser(
+        "research-lane", help="Verify aligned lane declaration and optionally plan calendar boundaries offline"
+    )
+    research_parser.add_argument("spec")
+    research_parser.add_argument("--target-end-date", help="Local Eastern YYYY-MM-DD; no acquisition or signals")
+    research_parser.set_defaults(handler=research_lane)
+
     latency_parser = commands.add_parser(
         "latency", help="Evaluate assumed latency against observed sequence books"
     )
@@ -444,6 +516,13 @@ def build_parser():
         help="Declare applicability of 2026-10-03 docs; rejects pre-review captures",
     )
     interpretation_parser.set_defaults(handler=interpret_market)
+
+    metadata_parser = commands.add_parser(
+        "metadata-audit", help="Audit verified phase metadata offline; never changes replay gates"
+    )
+    metadata_parser.add_argument("spec")
+    metadata_parser.add_argument("--output-directory", help="Save a content-addressed audit without overwriting evidence")
+    metadata_parser.set_defaults(handler=metadata_audit)
 
     authenticated_parser = commands.add_parser(
         "authenticated-probe",

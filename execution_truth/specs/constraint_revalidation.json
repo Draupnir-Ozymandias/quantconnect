@@ -1,0 +1,4 @@
+{
+  "schema_version": "qcrl.constraint_revalidation_policy.v1",
+  "mode": "reject_any_observed_change"
+}
