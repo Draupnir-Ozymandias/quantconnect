@@ -21,6 +21,16 @@ class StreamTransportError(RuntimeError):
     pass
 
 
+def transport_reason(exc):
+    """Preserve bounded close codes, not arbitrary server text or credentials."""
+    reason = type(exc).__name__
+    for field in ("rcvd", "sent"):
+        code = getattr(getattr(exc, field, None), "code", None)
+        if type(code) is int:
+            reason += ":" + field + "_code=" + str(code)
+    return reason
+
+
 def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000):
     market = normalize_bundle(raw_bundle)["market_contract"]
     if (_time(market["terms"]["end_at_utc"]) - _time(market["terms"]["event_start_at_utc"])).total_seconds() != 300:
@@ -134,13 +144,13 @@ def live_connector():
                                           max_size=262144, max_queue=16, compression=None,
                                           ping_interval=None, proxy=None)
             except (OSError, WebSocketException, TimeoutError) as exc:
-                raise StreamTransportError(type(exc).__name__) from exc
+                raise StreamTransportError(transport_reason(exc)) from exc
 
         def send(self, value):
             try:
                 self.connection.send(value)
             except (OSError, WebSocketException) as exc:
-                raise StreamTransportError(type(exc).__name__) from exc
+                raise StreamTransportError(transport_reason(exc)) from exc
 
         def recv(self, timeout):
             try:
@@ -150,7 +160,7 @@ def live_connector():
                 # the recorder's idle branch, not consume reconnect attempts.
                 raise
             except (OSError, WebSocketException) as exc:
-                raise StreamTransportError(type(exc).__name__) from exc
+                raise StreamTransportError(transport_reason(exc)) from exc
 
         def close(self):
             self.connection.close()
