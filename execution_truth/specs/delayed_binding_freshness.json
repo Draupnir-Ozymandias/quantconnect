@@ -1,0 +1,14 @@
+{
+  "schema_version": "qcrl.delayed_binding_policy.v1",
+  "policy_id": "qcrl.delayed_binding.super_fresh_diagnostic.20261005.v1",
+  "declaration_sha256": "75aa97275f80435dd2abf4d853e4c877debe114e1b8808a75320de1362db271e",
+  "max_entry_delay_seconds": 300,
+  "max_intent_age_seconds": 30,
+  "max_metadata_age_seconds": 5,
+  "max_book_age_seconds": 2,
+  "max_exchange_age_seconds": 2,
+  "entry_cutoff_seconds_before_end": 60,
+  "evidence_role": "offline_diagnostic_only",
+  "threshold_basis": "provisional_engineering_limits_not_exchange_defaults_or_optimized",
+  "orders_authorized": false
+}

@@ -1,6 +1,6 @@
 # QCRL Schema Contracts
 
-**As of:** 2026-10-04
+**As of:** 2026-10-05
 
 ## Contract matrix
 
@@ -26,6 +26,8 @@
 | Binance boundary dataset/calendar source record/audit | `qcrl.binance_boundary_dataset.v1` / `qcrl.binance_calendar_source_record.v1` / `qcrl.binance_calendar_source_audit.v1` | explicit hashed dataset / `execution_truth/binance_source.py` | offline aligned-lane exploration only | raw payload and dataset hashes; actual retrieval times; gaps/ties retained; no signals |
 | Retained Binance boundary assembly spec/result | `qcrl.binance_boundary_assembly_spec.v1` / `qcrl.binance_boundary_assembly.v1` | versioned source-file pins / `execution_truth/binance_dataset.py` | provenance-preserving offline source assembly | hashed spec, lane, source files/artifacts, raw observation references, nested dataset/audit; optional content-addressed local output |
 | Delayed directional decision/intent | `qcrl.delayed_directional_signal_decision.v1` / `qcrl.delayed_directional_signal_intent.v1` | verified lane/dataset and explicit decision time / `execution_truth/delayed_signal.py` | offline diagnostic only; legacy binder rejects | hashes pin inputs, selected records, actual availability, target window and decision; no approved entry-delay or execution policy |
+| Delayed binding policy/terms/result/example | `qcrl.delayed_binding_policy.v1` / `qcrl.delayed_market_terms_declaration.v1` / `qcrl.delayed_binding_result.v1` / `qcrl.delayed_binding_example.v1` | explicit policy and semantic terms / `execution_truth/delayed_binding.py` | separate offline binding diagnostics | reproduced signal; independent metadata/local/exchange ages; unknown fields block; revalidation required; no orders |
+| Five-minute public stream plan/record | `qcrl.public_market_stream_spec.v1` / `qcrl.public_market_stream_record.v1` | verified five-minute bundle / `execution_truth/market_stream.py` | bounded public observation and offline chain verification | exclusive hash-chained NDJSON, raw frames and connection gaps; optional isolated runtime; no reconstructed books or orders |
 | Candle-streak signal spec/decision | `qcrl.candle_streak_signal_spec.v1` / `qcrl.directional_signal_decision.v1` | human declaration / `execution_truth/signal_adapter.py` | signal intent and audit | versioned declaration / derived evidence |
 | Directional signal intent | `qcrl.directional_signal_intent.v2` | `execution_truth/signal_adapter.py` | market binding and replay | content-addressed decision input |
 | Polymarket binding policy/result | `qcrl.polymarket_binding_policy.v2` / `qcrl.polymarket_binding_result.v2` | human declaration / `execution_truth/binding.py` | replay and shadow-decision layers | versioned declaration / derived evidence |
@@ -232,3 +234,11 @@ EMA 5/10 filter. Temporal declarations use 2.4.0 and the surviving research
 candidate uses `filter_model=none`. Until normalized in a separate code change,
 manual defaults must never be used to infer the candidate or reproduce a
 campaign. Use the versioned manifest.
+
+## Upcoming-market last-trade prices
+
+As verified during prospective BTC five-minute discovery on 2026-10-05, a
+book may omit or return an empty/null `last_trade_price` before it has traded.
+The normalized book records `null` (unknown), never zero or a synthetic trade.
+Supplied nonempty prices still require numeric validation. Existing complete
+books retain their previous normalized hashes. This is not a fill/price signal.

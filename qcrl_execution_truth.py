@@ -11,6 +11,8 @@ from execution_truth.research_lane import load_research_lane, plan_research_boun
 from execution_truth.binance_source import adapt_boundary_dataset
 from execution_truth.binance_dataset import assemble_boundary_evidence, store_boundary_assembly
 from execution_truth.delayed_signal import materialize_delayed_signal
+from execution_truth.delayed_binding import bind_delayed_decision
+from execution_truth.market_stream import stream_plan, collect_market_stream, verify_stream_log
 from execution_truth.metadata_audit import analyze_metadata_batch, store_metadata_audit, SPEC_SCHEMA
 
 from execution_truth import (
@@ -150,6 +152,35 @@ def replay(args):
     results = [replay_taker_buy(raw, request, spec["policy"])
                for request in spec["requests"]]
     print(json.dumps(results, indent=2, sort_keys=True))
+
+
+def market_stream(args):
+    raw = json.loads(Path(args.raw_bundle).read_text(encoding="utf-8"))
+    plan = stream_plan(raw, max_seconds=args.max_seconds, max_frames=args.max_frames)
+    if not args.execute:
+        print(json.dumps(plan, indent=2, sort_keys=True))
+        return
+    if not args.output:
+        raise ValueError("--output is required for execution; existing logs are never overwritten")
+    print(json.dumps(collect_market_stream(raw, plan, args.output), indent=2, sort_keys=True))
+
+
+def verify_market_stream(args):
+    print(json.dumps(verify_stream_log(args.path), indent=2, sort_keys=True))
+
+
+def delayed_binding(args):
+    spec_path = Path(args.spec).resolve()
+    spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    if spec.get("schema_version") != "qcrl.delayed_binding_example.v1":
+        raise ValueError("unsupported delayed binding example schema")
+    lane = load_research_lane(spec_path.parent / spec["declaration_path"])
+    def read(key):
+        return json.loads((spec_path.parent / spec[key]).read_text(encoding="utf-8"))
+    result = bind_delayed_decision(lane, read("dataset_path"), read("decision_path"),
+                                   read("raw_bundle_path"), read("terms_declaration_path"),
+                                   read("policy_path"), spec["binding_at_utc"])
+    print(json.dumps(result, indent=2, sort_keys=True))
 
 
 def delayed_signal(args):
@@ -512,6 +543,25 @@ def build_parser():
     delayed_parser.add_argument("--target-end-date", required=True)
     delayed_parser.add_argument("--decision-at-utc", required=True)
     delayed_parser.set_defaults(handler=delayed_signal)
+
+    binding_parser = commands.add_parser(
+        "delayed-binding", help="Check separate delayed intent, explicit terms, and source freshness offline"
+    )
+    binding_parser.add_argument("spec")
+    binding_parser.set_defaults(handler=delayed_binding)
+
+    stream_parser = commands.add_parser(
+        "market-stream", help="Preview or record a bounded public five-minute stream; no account or order access"
+    )
+    stream_parser.add_argument("raw_bundle")
+    stream_parser.add_argument("--max-seconds", type=int, default=360)
+    stream_parser.add_argument("--max-frames", type=int, default=100000)
+    stream_parser.add_argument("--output")
+    stream_parser.add_argument("--execute", action="store_true")
+    stream_parser.set_defaults(handler=market_stream)
+    stream_verify_parser = commands.add_parser("verify-stream", help="Verify append-only public stream record chain offline")
+    stream_verify_parser.add_argument("path")
+    stream_verify_parser.set_defaults(handler=verify_market_stream)
 
     latency_parser = commands.add_parser(
         "latency", help="Evaluate assumed latency against observed sequence books"

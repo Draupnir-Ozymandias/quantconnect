@@ -1,0 +1,27 @@
+[Unit]
+Description=QCRL bounded BTC 5m public observation pilot
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=qcrl
+Group=qcrl
+WorkingDirectory=/opt/qcrl-stream
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=/etc/qcrl-stream.env
+ExecStart=/opt/qcrl-stream/venv/bin/python infra/stream/service.py
+Restart=no
+TimeoutStopSec=45
+KillSignal=SIGINT
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/qcrl-stream
+MemoryMax=512M
+CPUQuota=75%
+TasksMax=32
+
+# Deliberately no enable/install target: each prospective pilot is started manually.

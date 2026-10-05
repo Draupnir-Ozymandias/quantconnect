@@ -354,8 +354,8 @@ def normalize_order_book(book_payload, market_contract, observed_at_utc):
         "asks": asks,
         "best_bid": bids[0] if bids else None,
         "best_ask": asks[0] if asks else None,
-        "last_trade_price": _decimal_text(
-            _required(book_payload, "last_trade_price", "order_book"),
+        "last_trade_price": None if book_payload.get("last_trade_price") in (None, "") else _decimal_text(
+            book_payload["last_trade_price"],
             "order_book.last_trade_price",
             maximum=1,
         ),

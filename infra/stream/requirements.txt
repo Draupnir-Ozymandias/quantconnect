@@ -1,0 +1,2 @@
+# Optional, isolated public stream runtime; not installed in the existing collector.
+websockets==15.0.1

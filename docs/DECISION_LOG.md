@@ -29,8 +29,17 @@ measurements authorize.
 | D-021 | Derive aligned source intervals only from verified exact, adjacent calendar-noon candles with recorded retrieval times. | accepted 2026-10-04 | D-020; `BINANCE_CALENDAR_SOURCE_ADAPTER.md` | Preserve gaps and split ties, reject unfinished or mismatched candles, and never backdate availability. Source records do not emit signals or establish historical executability. |
 | D-022 | Assemble retained Binance evidence with complete source provenance and explicit missing boundaries. | accepted 2026-10-05 | pinned five-artifact assembly; `RETAINED_BINANCE_DATASET.md` | Ten of seventeen boundaries produce seven adjacent comparisons, not signal success rates. Reject conflicting shared candles and duplicate sources; no gap bridging, new acquisition, or evaluation activation. |
 | D-023 | Represent post-boundary diagnostic decisions with a separate schema and actual observation times. | accepted 2026-10-05 | aligned lane and synthetic contract tests; `DELAYED_DECISION_SIGNAL.md` | Preserve the original target window; no emission before input completion/observation, across gaps, or after expiry. Legacy binding remains incompatible; no maximum entry-delay policy or orders approved. |
+| D-024 | Add opt-in delayed diagnostic binding with explicit terms and independent source freshness. | accepted 2026-10-05 | reproduced decisions and synthetic binding tests; `DELAYED_BINDING_FRESHNESS.md` | Provisional 300-second entry, 30-second intent, 5-second metadata and 2-second book limits; unknown execution fields still block. No live terms approval, acquisition, revalidation shortcut, or orders. |
+| D-025 | Restore BTC five-minute observation as the next priority; retain daily as a separate comparison lane. | accepted 2026-10-05 | user scope correction; `FIVE_MINUTE_STREAM_LANE.md` | Bounded public recorder first, then live verification and rolling cohort/service. Preserve raw frames and gaps; no daily-signal transfer, credentials, order actions, or deployment activated by implementation. |
 
 ## Decision discipline
+
+Verification update, 2026-10-05 (D-025): isolated `websockets==15.0.1` runtime
+and a 25-second public BTC 5m smoke passed; both token books and two PONGs were
+retained in a verified chain. Two future markets passed exact terms/interval
+discovery. Add a separate bounded six-market EC2 pilot with explicit quota/gap
+reporting and encrypted S3 replication, not an indefinitely restarting service.
+Deployment remains pending AWS access; no daily service or stack was changed.
 
 - A decision may cite multiple hypotheses, campaigns, or syntheses, but must
   state an operational consequence.

@@ -63,7 +63,8 @@ The current retained September sample must not be forced to emit a historical
 intent by rewriting retrieval times or removing gaps. Tests use explicitly
 synthetic contiguous histories to exercise the contract honestly.
 
-Next is a separately declared delayed-binding/freshness policy, including a
-maximum entry delay, compatible target terms, and execution-field interpretation.
-That policy is not implied by this diagnostic contract. Neither an emission
+The separate delayed-binding/freshness diagnostic policy is implemented; see
+`DELAYED_BINDING_FRESHNESS.md`. It requires explicit target terms and timing
+limits while retaining unknown-field restrictions. It is opt-in, not implied
+by this signal contract. Neither an emission
 nor a support reply establishes actual order acceptance, fills, or profitability.
