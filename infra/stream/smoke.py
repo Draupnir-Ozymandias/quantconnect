@@ -25,7 +25,7 @@ def main():
     spec = check_market(bundle, start, {"resolution_source": SOURCE,
                                        "description_sha256": payload_hash(DESCRIPTION)})
     spec["max_seconds"] = 35
-    log = root / "stream.ndjson"
+    log = root / "stream"
     summary = collect_market_stream(bundle, spec, log)
     verification = verify_stream_log(log)
     passed = (summary["connections"] == 1

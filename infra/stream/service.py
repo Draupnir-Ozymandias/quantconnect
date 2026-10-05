@@ -14,7 +14,7 @@ def upload(root, bucket, region):
     # Never delete, promote, or claim that a successfully uploaded prefix is complete.
     subprocess.run(["aws", "s3", "sync", str(root),
                     "s3://" + bucket + "/runtime/streams/" + root.name + "/",
-                    "--region", region, "--sse", "AES256", "--only-show-errors"],
+                    "--region", region, "--sse", "AES256", "--exclude", "*.partial", "--only-show-errors"],
                    check=True, timeout=120)
 
 
@@ -42,14 +42,18 @@ def main():
     thread = threading.Thread(target=replicate, daemon=True)
     thread.start()
     try:
-        run_pilot(plan, root)
+        health = run_pilot(plan, root)
+        from execution_truth.rolling_stream import persist
+        persist(root / "health.json", health)
     finally:
         stop.set()
         thread.join(timeout=125)
         upload(root, bucket, region)
     # A past failed replication is visible even when a later sync repairs it.
-    print(json.dumps({"pilot_finished": True, "upload_failures": upload_failures,
+    print(json.dumps({"pilot_finished": True, "health": health, "upload_failures": upload_failures,
                       "orders_authorized": False}), flush=True)
+    if not health["healthy"] or upload_failures:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

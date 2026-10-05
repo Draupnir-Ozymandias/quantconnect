@@ -156,7 +156,7 @@ def replay(args):
 
 def market_stream(args):
     raw = json.loads(Path(args.raw_bundle).read_text(encoding="utf-8"))
-    plan = stream_plan(raw, max_seconds=args.max_seconds, max_frames=args.max_frames)
+    plan = stream_plan(raw, max_seconds=args.max_seconds, max_frames=args.max_frames or (1000000 if args.segmented else 100000), segmented=args.segmented)
     if not args.execute:
         print(json.dumps(plan, indent=2, sort_keys=True))
         return
@@ -555,7 +555,8 @@ def build_parser():
     )
     stream_parser.add_argument("raw_bundle")
     stream_parser.add_argument("--max-seconds", type=int, default=360)
-    stream_parser.add_argument("--max-frames", type=int, default=100000)
+    stream_parser.add_argument("--max-frames", type=int)
+    stream_parser.add_argument("--segmented", action="store_true", help="Use bounded compressed hash-linked segments")
     stream_parser.add_argument("--output")
     stream_parser.add_argument("--execute", action="store_true")
     stream_parser.set_defaults(handler=market_stream)

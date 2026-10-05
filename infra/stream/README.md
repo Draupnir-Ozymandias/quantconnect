@@ -72,6 +72,10 @@ until this finite pilot has been reviewed.
 
 ## Guardrails and verification after launch
 
+See [segmented capture](../../docs/SEGMENTED_STREAM_CAPTURE.md) for the current
+v3 recorder, failure-aware health and checkpoint policy. Legacy budgets below
+describe the original single-file pilot; they are retained as deployment history.
+
 Two market workers permit overlap at rollover. Each market re-discovers its exact
 slug, verifies both token identities, the explicit 300-second interval, open
 state, Chainlink source and exact reviewed description hash. Changed terms fail

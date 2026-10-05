@@ -10,6 +10,7 @@ from .acquisition import utc_now, utc_text
 from .binance_source import _time
 from .bundle import normalize_bundle
 from .contracts import ContractError, payload_hash, verify_artifact_hash
+from .stream_segments import SegmentedStreamLog, StreamQuotaError, verify_segments
 
 
 ENDPOINT = "wss://ws-subscriptions-clob.polymarket.com/ws/market"
@@ -31,15 +32,17 @@ def transport_reason(exc):
     return reason
 
 
-def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000):
+def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=False):
     market = normalize_bundle(raw_bundle)["market_contract"]
     if (_time(market["terms"]["end_at_utc"]) - _time(market["terms"]["event_start_at_utc"])).total_seconds() != 300:
         raise ContractError("stream lane requires an explicit five-minute market interval")
-    for value, maximum in ((max_seconds, 600), (max_frames, 100000)):
+    if type(segmented) is not bool:
+        raise ContractError("segmented must be a boolean")
+    for value, maximum in ((max_seconds, 600), (max_frames, 1000000 if segmented else 100000)):
         if type(value) is not int or not 1 <= value <= maximum:
             raise ContractError("stream duration/frame limit outside bounded range")
-    return {
-        "schema_version": SPEC_SCHEMA, "endpoint": ENDPOINT,
+    plan = {
+        "schema_version": "qcrl.public_market_stream_spec.v3" if segmented else SPEC_SCHEMA, "endpoint": ENDPOINT,
         "raw_bundle_sha256": raw_bundle["bundle_sha256"],
         "market_contract_sha256": market["contract_sha256"],
         "market_id": market["identity"]["market_id"], "condition_id": market["identity"]["condition_id"],
@@ -55,6 +58,13 @@ def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000):
                          "custom_feature_enabled": True},
         "orders_authorized": False,
     }
+    if segmented:
+        plan["storage"] = {"format": "hash_linked_gzip_segments.v1", "segment_uncompressed_bytes": 8 * 1024**2,
+                           "max_uncompressed_bytes": 1024**3, "max_compressed_bytes": 256 * 1024**2,
+                           "gzip_level": 1, "footer_reserve_bytes": 4 * 1024**2,
+                           "max_encoded_record_bytes": 4 * 1024**2, "counter_key_limit": 128}
+        plan.pop("max_log_bytes")
+    return plan
 
 
 def classify_frame(frame, spec):
@@ -169,7 +179,8 @@ def live_connector():
 
 def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_now,
                           monotonic=time.monotonic, pause=time.sleep):
-    expected = stream_plan(raw_bundle, max_seconds=spec.get("max_seconds"), max_frames=spec.get("max_frames"))
+    segmented = spec.get("schema_version") == "qcrl.public_market_stream_spec.v3"
+    expected = stream_plan(raw_bundle, max_seconds=spec.get("max_seconds"), max_frames=spec.get("max_frames"), segmented=segmented)
     if expected != spec:
         raise ContractError("stream spec differs from verified public-only plan")
     stop = _time(spec["event_end_at_utc"]) + timedelta(seconds=spec["postclose_seconds"])
@@ -178,7 +189,7 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
         raise ContractError("capture must start within declared market lifecycle window")
     connector = connector or live_connector()
     started = monotonic()
-    log = StreamLog(path, clock, monotonic, spec["max_log_bytes"])
+    log = SegmentedStreamLog(path, clock, monotonic, spec["storage"]) if segmented else StreamLog(path, clock, monotonic, spec["max_log_bytes"])
     counts, snapshots = {}, {}
     frames, connections, status = 0, 0, "duration_limit"
     try:
@@ -217,7 +228,10 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
                     if frame == "PONG":
                         last_pong = monotonic()
                     for event in classes:
-                        key = event["scope"] + ":" + event["event_type"]
+                        kind = event["event_type"] if len(event["event_type"]) <= 64 else "oversized_event_name"
+                        key = event["scope"] + ":" + kind
+                        if key not in counts and len(counts) >= 128:
+                            key = "overflow_event_types"
                         counts[key] = counts.get(key, 0) + 1
                         if event["scope"] == "selected_market" and event["event_type"] == "book":
                             snapshots[str(connections)] = sorted(set(snapshots[str(connections)] + event["asset_ids"]))
@@ -237,11 +251,19 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
                    "continuous_coverage_proven": False, "orders_authorized": False}
         log.append("session_end", summary)
         return summary
+    except StreamQuotaError as exc:
+        summary = {"status": "storage_limit", "frames": frames, "connections": connections,
+                   "event_counts": counts, "book_snapshot_assets_by_connection": snapshots,
+                   "reason": str(exc), "continuous_coverage_proven": False, "orders_authorized": False}
+        log.append("session_end", summary)
+        return summary
     finally:
         log.close()
 
 
 def verify_stream_log(path):
+    if Path(path).is_dir():
+        return verify_segments(path)
     previous, rows, final = None, 0, False
     with Path(path).open(encoding="utf-8") as handle:
         for line in handle:
