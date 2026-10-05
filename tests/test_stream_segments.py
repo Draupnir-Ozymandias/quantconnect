@@ -136,6 +136,32 @@ class SegmentTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertFalse(cohort_health(plan, tmp)["healthy"])
 
+    def test_zero_cli_frame_limit_is_not_replaced_with_default(self):
+        import subprocess, sys
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "bundle.json"
+            path.write_text(json.dumps(raw_bundle()))
+            result = subprocess.run([sys.executable, "qcrl_execution_truth.py", "market-stream", str(path),
+                                     "--segmented", "--max-frames", "0"], capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+
+    def test_service_exits_nonzero_when_cohort_is_unhealthy(self):
+        import os
+        from datetime import timedelta
+        from infra.stream import service
+        clock = Clock()
+        plan = pilot_plan(int(clock.base.timestamp()), 1, now=clock.base - timedelta(seconds=60))
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "plan.json"
+            persist(path, plan)
+            env = {"QCRL_STREAM_PLAN": str(path), "QCRL_STREAM_ROOT": "/var/lib/qcrl-stream/pilot-test",
+                   "QCRL_STREAM_BUCKET": "test-bucket", "AWS_DEFAULT_REGION": "us-east-2"}
+            with patch.dict(os.environ, env), patch("infra.stream.service.run_pilot", return_value={"healthy": False}), patch("infra.stream.service.upload") as upload, patch("execution_truth.rolling_stream.persist"):
+                with self.assertRaises(SystemExit) as failure:
+                    service.main()
+                self.assertEqual(failure.exception.code, 1)
+                upload.assert_called_once()
+
     def test_final_and_true_postclose_checkpoint_survive_reader_failure(self):
         from execution_truth.rolling_stream import observe_window
         clock, raw = Clock(), raw_bundle()

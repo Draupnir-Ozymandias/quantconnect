@@ -156,7 +156,8 @@ def replay(args):
 
 def market_stream(args):
     raw = json.loads(Path(args.raw_bundle).read_text(encoding="utf-8"))
-    plan = stream_plan(raw, max_seconds=args.max_seconds, max_frames=args.max_frames or (1000000 if args.segmented else 100000), segmented=args.segmented)
+    frames = args.max_frames if args.max_frames is not None else (1000000 if args.segmented else 100000)
+    plan = stream_plan(raw, max_seconds=args.max_seconds, max_frames=frames, segmented=args.segmented)
     if not args.execute:
         print(json.dumps(plan, indent=2, sort_keys=True))
         return
