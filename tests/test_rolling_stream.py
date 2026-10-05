@@ -110,3 +110,14 @@ class RollingTests(unittest.TestCase):
                 with self.assertRaises(FileExistsError):
                     run_pilot(self.plan, tmp)
                 worker.assert_not_called()
+
+    def test_daily_sync_excludes_only_stream_namespace(self):
+        from infra.stream.install import isolated_daily_sync
+        source = ('str(runtime), "--only-show-errors",\n'
+                  'f"s3://{bucket}/runtime/", "--sse", "AES256",\n        "--only-show-errors",')
+        updated = isolated_daily_sync(source)
+        self.assertEqual(updated.count('"--exclude", "streams/*"'), 2)
+        with self.assertRaises(ValueError):
+            isolated_daily_sync("unexpected wrapper")
+        with self.assertRaises(ValueError):
+            isolated_daily_sync(updated)

@@ -482,7 +482,7 @@ Resources:
           runtime.mkdir(parents=True, exist_ok=True)
           run([
               "aws", "s3", "sync", f"s3://{bucket}/runtime/",
-              str(runtime), "--only-show-errors",
+              str(runtime), "--exclude", "streams/*", "--only-show-errors",
           ])
 
           problems = 0
@@ -530,7 +530,7 @@ Resources:
               run([
                   "aws", "s3", "sync", str(runtime),
                   f"s3://{bucket}/runtime/", "--sse", "AES256",
-                  "--only-show-errors",
+                  "--exclude", "streams/*", "--only-show-errors",
               ])
 
           run([

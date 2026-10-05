@@ -1,7 +1,10 @@
 # Separate BTC five-minute observer pilot
 
 Public GETs and public market-channel WebSockets only. No Polymarket credentials,
-account endpoints, orders or cancellations. The daily collector is not modified.
+account endpoints, orders or cancellations. Daily collection logic/timing is
+unchanged; installation backs up its S3 wrapper and excludes `streams/*` in both
+sync directions to prevent two producers writing observer objects. The same
+exclusions are recorded in CloudFormation bootstrap for future instances.
 
 The first rollout is a **six-market prospective pilot**, not an indefinitely
 restarting daemon. Declare the exact consecutive windows ahead of collection;
@@ -18,7 +21,7 @@ python3 -m unittest discover -s tests -q
 .qcrl/stream-venv/bin/python infra/stream/smoke.py
 ```
 
-The smoke is 25 seconds on the current market and checks both token snapshots,
+The smoke is 35 seconds on the current market and checks both token snapshots,
 two text heartbeat replies, a single connection and the persisted hash chain.
 It is a partial diagnostic capture, never proof of lossless delivery.
 

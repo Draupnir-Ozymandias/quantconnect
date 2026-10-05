@@ -13,8 +13,8 @@ from execution_truth.rolling_stream import SOURCE, DESCRIPTION, check_market
 
 def main():
     start = int(utc_now().timestamp()) // 300 * 300
-    # Avoid testing on a market that will end during the 25-second smoke.
-    if utc_now().timestamp() > start + 260:
+    # Allow two heartbeat replies on the lower-throughput EC2 runtime too.
+    if utc_now().timestamp() > start + 250:
         raise SystemExit("Too close to rollover; run again in the next window")
     root = Path(".qcrl/execution_truth/streams") / ("smoke-" + str(int(utc_now().timestamp())))
     acquirer = PublicPolymarketAcquirer()
@@ -24,7 +24,7 @@ def main():
     store_raw_bundle(bundle, root)
     spec = check_market(bundle, start, {"resolution_source": SOURCE,
                                        "description_sha256": payload_hash(DESCRIPTION)})
-    spec["max_seconds"] = 25
+    spec["max_seconds"] = 35
     log = root / "stream.ndjson"
     summary = collect_market_stream(bundle, spec, log)
     verification = verify_stream_log(log)
