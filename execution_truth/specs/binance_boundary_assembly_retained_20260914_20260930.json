@@ -1,0 +1,14 @@
+{
+  "schema_version": "qcrl.binance_boundary_assembly_spec.v1",
+  "declaration_path": "binance_noon_eastern_research_lane.json",
+  "declaration_sha256": "75aa97275f80435dd2abf4d853e4c877debe114e1b8808a75320de1362db271e",
+  "first_boundary_local_date": "2026-09-14",
+  "last_boundary_local_date": "2026-09-30",
+  "sources": [
+    {"market_id": "4528044", "path": "../../evidence/polymarket/live/raw/binance-resolution-market-4528044-19868e23e8a3f471b882a5a26e1bd92ae5cfc0159db49a3fdde111734b6805bc.json", "file_sha256": "8856adf1df498bfe9bf06cc4c0335c14f7cf13146eb63d694327518717aa2995"},
+    {"market_id": "4617749", "path": "../../evidence/polymarket/live/raw/binance-resolution-market-4617749-042256ad73d919d8905a8c972f7d3512010470bfabb7d0d89be9185e837e52df.json", "file_sha256": "4d9783594e275ec041550e0da9e9f49d28a993a9a9bb344851725ea0d8cd964b"},
+    {"market_id": "4689506", "path": "../../evidence/polymarket/live/raw/binance-resolution-market-4689506-95234882b2bff3c6e3e689d31fa04edf2fadd8f9898d4eac78561a19c995ef7e.json", "file_sha256": "0530a3263904c57bae66cd4abfed892806e4a793dde4151573e62094047bfb99"},
+    {"market_id": "4761727", "path": "../../evidence/polymarket/live/raw/binance-resolution-market-4761727-ec117455fa4b71ab74c068bffd16f5c4e7120fd72687c2c498f66a7e204a96af.json", "file_sha256": "f2556e193ba287a78e24123a1cf450393a8dde569ea84201a6c707d74bb26ebd"},
+    {"market_id": "5082315", "path": "../../evidence/polymarket/live/raw/binance-resolution-market-5082315-bc804b7ebe93356d36c0df4d3ae6b5cd376a0cfbe4fb2e277d86e7ad28811395.json", "file_sha256": "5839fc6b99a044e9b9d9d90d850f66b22727b941da8a3ce82fdb96646ab47da9"}
+  ]
+}

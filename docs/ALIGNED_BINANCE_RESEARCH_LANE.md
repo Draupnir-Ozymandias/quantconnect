@@ -84,10 +84,12 @@ no candles, changes no collector schedule, and submits no orders.
 
 ## Next engineering step
 
-Build a separately versioned, offline close-to-close source adapter using
-hash-verified exact boundary candles. Test gaps, ties, calendar/DST windows,
-observed availability, and the delayed decision before acquiring a historical
-dataset or declaring a confirmatory campaign. Settlement, paper direction
+The separately versioned offline close-to-close source adapter is implemented;
+see `BINANCE_CALENDAR_SOURCE_ADAPTER.md`. It verifies exact boundary candles,
+gaps, ties, calendar/DST windows, and actual retrieval timestamps without
+emitting signals. Next, assemble a provenance-preserving dataset from retained
+evidence and define the delayed-decision signal contract before acquiring a
+historical dataset or declaring a confirmatory campaign. Settlement, paper direction
 accuracy, and executable returns remain distinct evidence layers. Unknown
 execution fields and the new metadata-revalidation gate still apply to any
 later mechanics or trading path.

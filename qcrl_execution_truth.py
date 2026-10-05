@@ -8,6 +8,9 @@ import sys
 from execution_truth.schema_interpretation import interpret_market_bundle
 from execution_truth.constraint_revalidation import replay_taker_buy_revalidated
 from execution_truth.research_lane import load_research_lane, plan_research_boundary
+from execution_truth.binance_source import adapt_boundary_dataset
+from execution_truth.binance_dataset import assemble_boundary_evidence, store_boundary_assembly
+from execution_truth.delayed_signal import materialize_delayed_signal
 from execution_truth.metadata_audit import analyze_metadata_batch, store_metadata_audit, SPEC_SCHEMA
 
 from execution_truth import (
@@ -147,6 +150,27 @@ def replay(args):
     results = [replay_taker_buy(raw, request, spec["policy"])
                for request in spec["requests"]]
     print(json.dumps(results, indent=2, sort_keys=True))
+
+
+def delayed_signal(args):
+    lane = load_research_lane(args.declaration)
+    dataset = json.loads(Path(args.dataset).read_text(encoding="utf-8"))
+    result = materialize_delayed_signal(lane, dataset, args.target_end_date, args.decision_at_utc)
+    print(json.dumps(result, indent=2, sort_keys=True))
+
+
+def research_dataset(args):
+    result = assemble_boundary_evidence(args.spec)
+    if args.output_directory:
+        print(store_boundary_assembly(result, args.output_directory))
+    else:
+        print(json.dumps(result, indent=2, sort_keys=True))
+
+
+def research_source(args):
+    declaration = load_research_lane(args.declaration)
+    raw = json.loads(Path(args.dataset).read_text(encoding="utf-8"))
+    print(json.dumps(adapt_boundary_dataset(declaration, raw), indent=2, sort_keys=True))
 
 
 def research_lane(args):
@@ -465,6 +489,29 @@ def build_parser():
     research_parser.add_argument("spec")
     research_parser.add_argument("--target-end-date", help="Local Eastern YYYY-MM-DD; no acquisition or signals")
     research_parser.set_defaults(handler=research_lane)
+
+    source_parser = commands.add_parser(
+        "research-source", help="Verify exact Binance boundary dataset and derive calendar source records offline"
+    )
+    source_parser.add_argument("declaration")
+    source_parser.add_argument("dataset")
+    source_parser.set_defaults(handler=research_source)
+
+    dataset_parser = commands.add_parser(
+        "research-dataset", help="Assemble pinned retained Binance candles offline, preserving provenance and gaps"
+    )
+    dataset_parser.add_argument("spec")
+    dataset_parser.add_argument("--output-directory", help="Save content-addressed assembly without overwriting evidence")
+    dataset_parser.set_defaults(handler=research_dataset)
+
+    delayed_parser = commands.add_parser(
+        "delayed-signal", help="Emit separate offline diagnostic intent using actual input observation times"
+    )
+    delayed_parser.add_argument("declaration")
+    delayed_parser.add_argument("dataset")
+    delayed_parser.add_argument("--target-end-date", required=True)
+    delayed_parser.add_argument("--decision-at-utc", required=True)
+    delayed_parser.set_defaults(handler=delayed_signal)
 
     latency_parser = commands.add_parser(
         "latency", help="Evaluate assumed latency against observed sequence books"
