@@ -8,6 +8,7 @@ outcome-token mapping, or trading constraints.
 
 import hashlib
 import json
+import re
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 
@@ -64,7 +65,13 @@ def _utc_text(value, name):
     if not isinstance(value, str):
         raise ContractError(f"{name} must be an ISO-8601 string")
     try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        # Python 3.9 accepts only three/six fractional digits; newer Python
+        # accepts Gamma's variable precision. Preserve datetime's microsecond
+        # semantics without depending on the host's Python minor version.
+        compatible = re.sub(r"\.([0-9]{1,9})(?=[+-][0-9]{2}:[0-9]{2}$|$)",
+                            lambda match: "." + match.group(1).ljust(6, "0")[:6],
+                            value.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(compatible)
     except ValueError as exc:
         raise ContractError(f"{name} is not valid ISO-8601") from exc
     if parsed.tzinfo is None:

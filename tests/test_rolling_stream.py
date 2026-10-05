@@ -61,6 +61,15 @@ class RollingTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 persist(target, self.plan)
 
+    def test_gamma_variable_fractional_precision(self):
+        from execution_truth.contracts import _utc_text
+        for fraction, normalized in (("1", "100000"), ("97781", "977810"),
+                                     ("123456789", "123456")):
+            self.assertEqual(_utc_text("2026-10-04T17:54:21." + fraction + "Z", "gamma.startDate"),
+                             "2026-10-04T17:54:21." + normalized + "Z")
+        with self.assertRaises(ContractError):
+            _utc_text("2026-10-04T17:54:21.12345", "gamma.startDate")
+
     def test_not_yet_traded_book_price_is_unknown_not_zero(self):
         from execution_truth.bundle import normalize_bundle
         for value in (None, "", "MISSING"):
