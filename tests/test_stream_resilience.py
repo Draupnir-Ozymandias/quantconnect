@@ -130,7 +130,7 @@ class ResilienceTests(unittest.TestCase):
             finished.append(start)
         def finalize_mock(plan,root):
             self.assertEqual(set(finished),set(plan["market_starts"]))
-        with tempfile.TemporaryDirectory() as tmp, patch("execution_truth.rolling_stream.utc_now",return_value=clock.base+timedelta(seconds=1000)), patch("execution_truth.rolling_stream.observe_window",side_effect=observe_mock), patch("execution_truth.rolling_stream.finalize_cases",side_effect=finalize_mock) as finalize, patch("execution_truth.rolling_stream.cohort_health",return_value={"healthy":False}):
+        with tempfile.TemporaryDirectory() as tmp, patch("execution_truth.rolling_stream.spool_ok",return_value=True), patch("execution_truth.rolling_stream.utc_now",return_value=clock.base+timedelta(seconds=1000)), patch("execution_truth.rolling_stream.observe_window",side_effect=observe_mock), patch("execution_truth.rolling_stream.finalize_cases",side_effect=finalize_mock) as finalize, patch("execution_truth.rolling_stream.cohort_health",return_value={"healthy":False}):
             run_pilot(plan,tmp)
             finalize.assert_called_once()
 
