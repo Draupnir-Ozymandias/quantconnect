@@ -1,5 +1,10 @@
 # Five-minute public observation lane
 
+Latest review: [October 6 receipt-age analysis](STREAM_FRESHNESS_REVIEW_2026_10_06.md).
+The segmented pilot completed, but freshness tails require profiling before
+multi-timeframe concurrency expands.
+The next opt-in diagnostic is [bounded recorder profiling](STREAM_PROFILING.md).
+
 Implemented foundation: 2026-10-05. Priority: BTC five-minute market mechanics.
 Daily research remains separate; further daily-specific expansion is deferred
 while this observation lane is validated. No account access or trading.

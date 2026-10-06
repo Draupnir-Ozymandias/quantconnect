@@ -38,10 +38,11 @@ def file_hash(path):
 
 
 class SegmentedStreamLog:
-    def __init__(self, path, clock, monotonic, policy):
+    def __init__(self, path, clock, monotonic, policy, profiler=None):
         self.root = Path(path)
         self.root.mkdir(parents=True, exist_ok=False)
         self.clock, self.monotonic, self.policy = clock, monotonic, policy
+        self.profiler = profiler
         self.ordinal, self.previous, self.size = 0, None, 0
         self.pending, self.last_sync = 0, monotonic()
         self.segments, self.compressed_size, self.final = [], 0, False
@@ -57,16 +58,20 @@ class SegmentedStreamLog:
         self.first_ordinal, self.first_previous = self.ordinal, self.previous
 
     def sync(self):
+        started = self.monotonic() if self.profiler else None
         self.writer.flush()
         self.raw.flush()
         os.fsync(self.raw.fileno())
         self.pending, self.last_sync = 0, self.monotonic()
+        if self.profiler:
+            self.profiler.record("fsync", self.monotonic() - started)
 
     def sync_if_due(self):
         if self.pending and self.monotonic() - self.last_sync >= 1:
             self.sync()
 
     def _seal(self):
+        started = self.monotonic() if self.profiler else None
         self.writer.close()
         self.raw.flush()
         os.fsync(self.raw.fileno())
@@ -85,13 +90,18 @@ class SegmentedStreamLog:
         self.segments.append(artifact)
         self.compressed_size += artifact["compressed_bytes"]
         self.raw = self.writer = None
+        if self.profiler:
+            self.profiler.record("seal", self.monotonic() - started)
 
     def append(self, kind, payload):
+        started = self.monotonic() if self.profiler else None
         row = {"schema_version": "qcrl.public_market_stream_record.v1", "ordinal": self.ordinal,
                "previous_sha256": self.previous, "received_at_utc": utc_text(self.clock()),
                "local_monotonic_seconds": self.monotonic(), "kind": kind, "payload": payload}
         row["record_sha256"] = payload_hash(row)
         content = (json.dumps(row, sort_keys=True) + "\n").encode("utf-8")
+        if self.profiler:
+            self.profiler.record("encode_hash", self.monotonic() - started)
         if len(content) > 4 * 1024**2:
             raise StreamQuotaError("encoded stream record exceeds bounded reserve")
         # Reserve room for a terminal failure/quota summary, even at the data cap.
@@ -102,7 +112,10 @@ class SegmentedStreamLog:
         if self.segment_records and self.segment_bytes + len(content) > self.policy["segment_uncompressed_bytes"]:
             self._seal()
             self._open()
+        write_started = self.monotonic() if self.profiler else None
         self.writer.write(content)
+        if self.profiler:
+            self.profiler.record("compress_write", self.monotonic() - write_started)
         self.pending += 1
         self.size += len(content)
         self.segment_bytes += len(content)
@@ -112,6 +125,8 @@ class SegmentedStreamLog:
         self.final = kind == "session_end"
         if kind != "frame" or self.pending >= 64 or self.monotonic() - self.last_sync >= 1:
             self.sync()
+        if self.profiler:
+            self.profiler.record("append", self.monotonic() - started)
 
     def close(self):
         if self.writer is None:

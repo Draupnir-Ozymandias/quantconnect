@@ -32,12 +32,14 @@ def transport_reason(exc):
     return reason
 
 
-def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=False):
+def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=False, profiling=False):
     market = normalize_bundle(raw_bundle)["market_contract"]
     if (_time(market["terms"]["end_at_utc"]) - _time(market["terms"]["event_start_at_utc"])).total_seconds() != 300:
         raise ContractError("stream lane requires an explicit five-minute market interval")
     if type(segmented) is not bool:
         raise ContractError("segmented must be a boolean")
+    if type(profiling) is not bool or (profiling and not segmented):
+        raise ContractError("profiling requires explicit segmented mode")
     for value, maximum in ((max_seconds, 600), (max_frames, 1000000 if segmented else 100000)):
         if type(value) is not int or not 1 <= value <= maximum:
             raise ContractError("stream duration/frame limit outside bounded range")
@@ -64,6 +66,10 @@ def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=Fal
                            "gzip_level": 1, "footer_reserve_bytes": 4 * 1024**2,
                            "max_encoded_record_bytes": 4 * 1024**2, "counter_key_limit": 128}
         plan.pop("max_log_bytes")
+    if profiling:
+        from copy import deepcopy
+        from .stream_profiling import POLICY
+        plan["profiling"] = deepcopy(POLICY)
     return plan
 
 
@@ -180,7 +186,8 @@ def live_connector():
 def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_now,
                           monotonic=time.monotonic, pause=time.sleep):
     segmented = spec.get("schema_version") == "qcrl.public_market_stream_spec.v3"
-    expected = stream_plan(raw_bundle, max_seconds=spec.get("max_seconds"), max_frames=spec.get("max_frames"), segmented=segmented)
+    expected = stream_plan(raw_bundle, max_seconds=spec.get("max_seconds"), max_frames=spec.get("max_frames"),
+                           segmented=segmented, profiling="profiling" in spec)
     if expected != spec:
         raise ContractError("stream spec differs from verified public-only plan")
     stop = _time(spec["event_end_at_utc"]) + timedelta(seconds=spec["postclose_seconds"])
@@ -189,11 +196,21 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
         raise ContractError("capture must start within declared market lifecycle window")
     connector = connector or live_connector()
     started = monotonic()
-    log = SegmentedStreamLog(path, clock, monotonic, spec["storage"]) if segmented else StreamLog(path, clock, monotonic, spec["max_log_bytes"])
+    profiler = None
+    if "profiling" in spec:
+        from .stream_profiling import StreamProfiler
+        profiler = StreamProfiler(monotonic=monotonic)
+    if segmented:
+        log = (SegmentedStreamLog(path, clock, monotonic, spec["storage"], profiler=profiler) if profiler
+               else SegmentedStreamLog(path, clock, monotonic, spec["storage"]))
+    else:
+        log = StreamLog(path, clock, monotonic, spec["max_log_bytes"])
     counts, snapshots = {}, {}
     frames, connections, status = 0, 0, "duration_limit"
     try:
         log.append("session_start", {"spec": spec, "spec_sha256": payload_hash(spec)})
+        if profiler:
+            profiler.sample(log, force=True)
         while monotonic() - started < spec["max_seconds"] and frames < spec["max_frames"] and clock() < stop:
             if connections >= spec["max_connections"]:
                 status = "connection_limit"
@@ -216,14 +233,29 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
                     if now - last_pong >= spec["pong_timeout_seconds"]:
                         raise StreamTransportError("pong_timeout")
                     try:
+                        read_started = monotonic() if profiler else None
                         frame = socket.recv(timeout=min(1, max(0.001, spec["max_seconds"] - (now - started))))
                     except TimeoutError:
+                        if profiler:
+                            profiler.record("recv_wait", monotonic() - read_started)
+                            profiler.sample(log)
                         log.sync_if_due()
                         continue
+                    if profiler:
+                        received_mono, received_utc = monotonic(), utc_text(clock())
+                        profiler.record("recv_wait", received_mono - read_started)
                     if not isinstance(frame, str) or len(frame.encode("utf-8")) > spec["max_frame_bytes"]:
                         raise StreamTransportError("binary_or_oversize_frame")
+                    classify_started = monotonic() if profiler else None
                     classes = classify_frame(frame, spec)
-                    log.append("frame", {"connection": connections, "raw_text": frame, "classification": classes})
+                    frame_payload = {"connection": connections, "raw_text": frame, "classification": classes}
+                    if profiler:
+                        profiler.record("classify", monotonic() - classify_started)
+                        frame_payload.update(socket_received_at_utc=received_utc,
+                                             socket_received_monotonic_seconds=received_mono)
+                    log.append("frame", frame_payload)
+                    if profiler:
+                        profiler.sample(log)
                     frames += 1
                     if frame == "PONG":
                         last_pong = monotonic()
@@ -249,6 +281,8 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
         summary = {"status": status, "frames": frames, "connections": connections,
                    "event_counts": counts, "book_snapshot_assets_by_connection": snapshots,
                    "continuous_coverage_proven": False, "orders_authorized": False}
+        if profiler:
+            profiler.sample(log, force=True)
         log.append("session_end", summary)
         return summary
     except StreamQuotaError as exc:

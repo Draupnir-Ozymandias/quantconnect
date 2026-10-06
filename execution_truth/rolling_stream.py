@@ -23,7 +23,7 @@ DESCRIPTION = ('This market will resolve to "Up" if the time-weighted average pr
                'Please note that this market is about the price according to the TWAP Chainlink data stream for the asset pair BTC/USD, not according to any other sources or spot markets.')
 
 
-def pilot_plan(first_start, count=6, *, now=None):
+def pilot_plan(first_start, count=6, *, now=None, profiling=False):
     now = now or utc_now()
     if type(first_start) is not int or first_start % 300:
         raise ContractError("first start must be an aligned epoch integer")
@@ -31,11 +31,18 @@ def pilot_plan(first_start, count=6, *, now=None):
         raise ContractError("pilot requires 1..24 markets")
     if first_start < now.timestamp() + 45:
         raise ContractError("declare pilot at least 45 seconds before first market")
+    if type(profiling) is not bool:
+        raise ContractError("profiling must be boolean")
     plan = {"schema_version": SCHEMA, "declared_at_utc": utc_text(now),
             "market_starts": [first_start + 300 * i for i in range(count)],
             "resolution_source": SOURCE, "description_sha256": payload_hash(DESCRIPTION),
             "max_spool_bytes": 2 * 1024**3, "minimum_free_bytes": 1024**3,
             "orders_authorized": False, "continuous_coverage_proven": False}
+    if profiling:
+        from copy import deepcopy
+        from .stream_profiling import POLICY
+        plan["schema_version"] = "qcrl.btc_5m_rolling_pilot.v3"
+        plan["profiling"] = deepcopy(POLICY)
     plan["plan_sha256"] = payload_hash(plan)
     return plan
 
@@ -46,7 +53,8 @@ def validate_plan(plan):
     if not isinstance(starts, list) or not starts:
         raise ContractError("pilot has no market starts")
     declared = datetime.fromisoformat(plan["declared_at_utc"].replace("Z", "+00:00"))
-    if declared.tzinfo is None or pilot_plan(starts[0], len(starts), now=declared) != plan:
+    if declared.tzinfo is None or pilot_plan(starts[0], len(starts), now=declared,
+                                          profiling="profiling" in plan) != plan:
         raise ContractError("pilot differs from bounded public-only policy")
     return plan
 
@@ -56,7 +64,7 @@ def check_market(bundle, start, plan):
     expected = "btc-updown-5m-" + str(start)
     if market["identity"]["slug"] != expected:
         raise ContractError("discovered slug differs from locked market")
-    spec = stream_plan(bundle, max_frames=1000000, segmented=True)
+    spec = stream_plan(bundle, max_frames=1000000, segmented=True, profiling="profiling" in plan)
     if (datetime.fromisoformat(spec["event_start_at_utc"].replace("Z", "+00:00")).timestamp() != start
             or datetime.fromisoformat(spec["event_end_at_utc"].replace("Z", "+00:00")).timestamp() != start + 300):
         raise ContractError("explicit interval differs from locked window")
@@ -282,12 +290,13 @@ def main():
     declare.add_argument("--first-start", type=int, required=True)
     declare.add_argument("--markets", type=int, default=6)
     declare.add_argument("--output", required=True)
+    declare.add_argument("--profile", action="store_true")
     run = sub.add_parser("run")
     run.add_argument("plan")
     run.add_argument("--root", required=True)
     args = parser.parse_args()
     if args.command == "declare":
-        plan = pilot_plan(args.first_start, args.markets)
+        plan = pilot_plan(args.first_start, args.markets, profiling=args.profile)
         persist(args.output, plan)
         print(json.dumps(plan, indent=2))
     else:

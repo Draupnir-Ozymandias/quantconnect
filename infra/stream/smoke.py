@@ -1,5 +1,6 @@
 """Bounded public wire smoke: current BTC 5m market, no credentials/orders."""
 import json
+import argparse
 from pathlib import Path
 import sys
 
@@ -12,6 +13,9 @@ from execution_truth.rolling_stream import SOURCE, DESCRIPTION, check_market
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--profile", action="store_true")
+    args = parser.parse_args()
     start = int(utc_now().timestamp()) // 300 * 300
     # Allow two heartbeat replies on the lower-throughput EC2 runtime too.
     if utc_now().timestamp() > start + 250:
@@ -22,8 +26,11 @@ def main():
     store_raw_slug_resolution(resolution, root)
     bundle = acquirer.acquire_market_bundle(resolution["resolved_market_id"])
     store_raw_bundle(bundle, root)
-    spec = check_market(bundle, start, {"resolution_source": SOURCE,
-                                       "description_sha256": payload_hash(DESCRIPTION)})
+    plan = {"resolution_source": SOURCE, "description_sha256": payload_hash(DESCRIPTION)}
+    if args.profile:
+        from execution_truth.stream_profiling import POLICY
+        plan["profiling"] = POLICY
+    spec = check_market(bundle, start, plan)
     spec["max_seconds"] = 35
     log = root / "stream"
     summary = collect_market_stream(bundle, spec, log)
