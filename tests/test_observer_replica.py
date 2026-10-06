@@ -5,9 +5,24 @@ import unittest
 
 from infra.stream.bootstrap_replica import validate_settings, stop_units
 from infra.stream.install_replica import within_deadline
+from infra.aws.prepare_observer_changesets import budget_parameters, budget_only
 
 
 class ReplicaTests(unittest.TestCase):
+    def test_budget_update_preserves_every_other_parameter_without_values(self):
+        parameters = [{"ParameterKey":"MonthlyBudgetUsd","ParameterValue":"25"},
+                      {"ParameterKey":"ProbeSecretArn","ParameterValue":"masked"},
+                      {"ParameterKey":"RepositoryCommit","ParameterValue":"old"}]
+        result = budget_parameters(parameters,75)
+        self.assertEqual(result[0],{"ParameterKey":"MonthlyBudgetUsd","ParameterValue":"75"})
+        self.assertTrue(all(p.get("UsePreviousValue") is True and "ParameterValue" not in p for p in result[1:]))
+
+    def test_budget_only_guard_rejects_instance_and_replacement_changes(self):
+        safe = {"Changes":[{"ResourceChange":{"LogicalResourceId":"MonthlyCostBudget","Action":"Modify","Replacement":"False"}}]}
+        self.assertTrue(budget_only(safe))
+        self.assertFalse(budget_only({"Changes":[]}))
+        for name, replacement in (("CollectorInstance","False"),("MonthlyCostBudget","True")):
+            self.assertFalse(budget_only({"Changes":[{"ResourceChange":{"LogicalResourceId":name,"Action":"Modify","Replacement":replacement}}]}))
     def test_replica_settings_fail_closed(self):
         validate_settings("example-bucket", "eu-west-1", "ireland", "ssh-ed25519 ABC123=", 48)
         cases = [("bad/", "eu-west-1", "ireland", "", 48),
