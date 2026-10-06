@@ -4,6 +4,8 @@ Current segmented deployment:
 [2026-10-05 deployment record](DEPLOYMENT_SEGMENTED_2026_10_05.md).
 Latest opt-in profiling deployment:
 [2026-10-06 deployment record](DEPLOYMENT_PROFILING_2026_10_06.md).
+Latest controlled follow-up:
+[deferred verification deployment](DEPLOYMENT_DEFERRED_2026_10_06.md).
 Earlier single-file history and troubleshooting remain below.
 
 Public GETs and public market-channel WebSockets only. No Polymarket credentials,
