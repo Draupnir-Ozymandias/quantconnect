@@ -32,7 +32,7 @@ def transport_reason(exc):
     return reason
 
 
-def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=False, profiling=False):
+def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=False, profiling=False, resilient=False):
     market = normalize_bundle(raw_bundle)["market_contract"]
     if (_time(market["terms"]["end_at_utc"]) - _time(market["terms"]["event_start_at_utc"])).total_seconds() != 300:
         raise ContractError("stream lane requires an explicit five-minute market interval")
@@ -40,6 +40,8 @@ def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=Fal
         raise ContractError("segmented must be a boolean")
     if type(profiling) is not bool or (profiling and not segmented):
         raise ContractError("profiling requires explicit segmented mode")
+    if type(resilient) is not bool or (resilient and not segmented):
+        raise ContractError("resilience requires explicit segmented mode")
     for value, maximum in ((max_seconds, 600), (max_frames, 1000000 if segmented else 100000)):
         if type(value) is not int or not 1 <= value <= maximum:
             raise ContractError("stream duration/frame limit outside bounded range")
@@ -70,6 +72,10 @@ def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=Fal
         from copy import deepcopy
         from .stream_profiling import POLICY
         plan["profiling"] = deepcopy(POLICY)
+    if resilient:
+        from copy import deepcopy
+        from .stream_resilience import POLICY
+        plan["resilience"] = deepcopy(POLICY)
     return plan
 
 
@@ -187,7 +193,7 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
                           monotonic=time.monotonic, pause=time.sleep):
     segmented = spec.get("schema_version") == "qcrl.public_market_stream_spec.v3"
     expected = stream_plan(raw_bundle, max_seconds=spec.get("max_seconds"), max_frames=spec.get("max_frames"),
-                           segmented=segmented, profiling="profiling" in spec)
+                           segmented=segmented, profiling="profiling" in spec, resilient="resilience" in spec)
     if expected != spec:
         raise ContractError("stream spec differs from verified public-only plan")
     stop = _time(spec["event_end_at_utc"]) + timedelta(seconds=spec["postclose_seconds"])
@@ -222,10 +228,18 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
                 socket = connector()
                 socket.send(json.dumps(spec["subscription"]))
                 log.append("subscribed", {"connection": connections})
+                watchdog = None
+                if "resilience" in spec:
+                    from .stream_resilience import DataWatchdog
+                    watchdog = DataWatchdog(spec["asset_ids"], monotonic())
                 snapshots[str(connections)] = []
                 last_ping = last_pong = monotonic()
                 while monotonic() - started < spec["max_seconds"] and frames < spec["max_frames"] and clock() < stop:
                     now = monotonic()
+                    if watchdog:
+                        reason = watchdog.reason(now, _time(spec["event_start_at_utc"]) <= clock() < _time(spec["event_end_at_utc"]))
+                        if reason:
+                            raise StreamTransportError(reason)
                     if now - last_ping >= spec["heartbeat_seconds"]:
                         socket.send("PING")
                         last_ping = now
@@ -248,6 +262,8 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
                         raise StreamTransportError("binary_or_oversize_frame")
                     classify_started = monotonic() if profiler else None
                     classes = classify_frame(frame, spec)
+                    if watchdog:
+                        watchdog.observe(frame, classes, monotonic(), clock().timestamp())
                     frame_payload = {"connection": connections, "raw_text": frame, "classification": classes}
                     if profiler:
                         profiler.record("classify", monotonic() - classify_started)
@@ -269,8 +285,18 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
                             snapshots[str(connections)] = sorted(set(snapshots[str(connections)] + event["asset_ids"]))
             except StreamTransportError as exc:
                 log.append("connection_gap", {"connection": connections, "reason": str(exc)[:120]})
-                if monotonic() - started < spec["max_seconds"]:
-                    pause(min(spec["reconnect_pause_seconds"], spec["max_seconds"] - (monotonic() - started)))
+                # Resilient mode closes before its jittered wait. Legacy wait
+                # ordering remains unchanged for controlled comparisons.
+                if "resilience" in spec and socket is not None:
+                    socket.close()
+                    socket = None
+                if monotonic() - started < spec["max_seconds"] and connections < spec["max_connections"]:
+                    delay = spec["reconnect_pause_seconds"]
+                    if "resilience" in spec:
+                        from .stream_resilience import retry_delay
+                        delay = retry_delay(connections)
+                        log.append("retry_wait", {"connection": connections, "seconds": delay})
+                    pause(max(0, min(delay, spec["max_seconds"] - (monotonic() - started), (stop - clock()).total_seconds())))
             finally:
                 if socket is not None:
                     socket.close()

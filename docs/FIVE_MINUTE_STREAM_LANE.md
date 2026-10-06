@@ -4,6 +4,7 @@ Latest review: [October 6 receipt-age analysis](STREAM_FRESHNESS_REVIEW_2026_10_
 The segmented pilot completed, but freshness tails require profiling before
 multi-timeframe concurrency expands.
 The next opt-in diagnostic is [bounded recorder profiling](STREAM_PROFILING.md).
+Latest follow-up: [deferred verification and staged watchdogs](STREAM_RESILIENCE_AND_DEFERRED_VERIFICATION.md).
 
 Implemented foundation: 2026-10-05. Priority: BTC five-minute market mechanics.
 Daily research remains separate; further daily-specific expansion is deferred

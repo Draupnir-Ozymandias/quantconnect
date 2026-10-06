@@ -23,7 +23,7 @@ DESCRIPTION = ('This market will resolve to "Up" if the time-weighted average pr
                'Please note that this market is about the price according to the TWAP Chainlink data stream for the asset pair BTC/USD, not according to any other sources or spot markets.')
 
 
-def pilot_plan(first_start, count=6, *, now=None, profiling=False):
+def pilot_plan(first_start, count=6, *, now=None, profiling=False, resilient=False, deferred=False):
     now = now or utc_now()
     if type(first_start) is not int or first_start % 300:
         raise ContractError("first start must be an aligned epoch integer")
@@ -33,6 +33,10 @@ def pilot_plan(first_start, count=6, *, now=None, profiling=False):
         raise ContractError("declare pilot at least 45 seconds before first market")
     if type(profiling) is not bool:
         raise ContractError("profiling must be boolean")
+    if type(resilient) is not bool:
+        raise ContractError("resilient must be boolean")
+    if type(deferred) is not bool:
+        raise ContractError("deferred must be boolean")
     plan = {"schema_version": SCHEMA, "declared_at_utc": utc_text(now),
             "market_starts": [first_start + 300 * i for i in range(count)],
             "resolution_source": SOURCE, "description_sha256": payload_hash(DESCRIPTION),
@@ -43,6 +47,14 @@ def pilot_plan(first_start, count=6, *, now=None, profiling=False):
         from .stream_profiling import POLICY
         plan["schema_version"] = "qcrl.btc_5m_rolling_pilot.v3"
         plan["profiling"] = deepcopy(POLICY)
+    if resilient:
+        from copy import deepcopy
+        from .stream_resilience import POLICY
+        plan["schema_version"] = "qcrl.btc_5m_rolling_pilot.v4"
+        plan["resilience"] = deepcopy(POLICY)
+    if deferred or resilient:
+        plan["schema_version"] = "qcrl.btc_5m_rolling_pilot.v4"
+        plan["verification_phase"] = "after_all_capture_workers"
     plan["plan_sha256"] = payload_hash(plan)
     return plan
 
@@ -54,7 +66,8 @@ def validate_plan(plan):
         raise ContractError("pilot has no market starts")
     declared = datetime.fromisoformat(plan["declared_at_utc"].replace("Z", "+00:00"))
     if declared.tzinfo is None or pilot_plan(starts[0], len(starts), now=declared,
-                                          profiling="profiling" in plan) != plan:
+                                          profiling="profiling" in plan, resilient="resilience" in plan,
+                                          deferred="verification_phase" in plan) != plan:
         raise ContractError("pilot differs from bounded public-only policy")
     return plan
 
@@ -64,7 +77,8 @@ def check_market(bundle, start, plan):
     expected = "btc-updown-5m-" + str(start)
     if market["identity"]["slug"] != expected:
         raise ContractError("discovered slug differs from locked market")
-    spec = stream_plan(bundle, max_frames=1000000, segmented=True, profiling="profiling" in plan)
+    spec = stream_plan(bundle, max_frames=1000000, segmented=True,
+                       profiling="profiling" in plan, resilient="resilience" in plan)
     if (datetime.fromisoformat(spec["event_start_at_utc"].replace("Z", "+00:00")).timestamp() != start
             or datetime.fromisoformat(spec["event_end_at_utc"].replace("Z", "+00:00")).timestamp() != start + 300):
         raise ContractError("explicit interval differs from locked window")
@@ -158,15 +172,17 @@ def observe_window(start, plan, root):
         log = directory / "stream"
         try:
             result["stream_summary"] = collect_market_stream(bundle, spec, log)
-            result["verification"] = verify_stream_log(log)
+            if "verification_phase" not in plan:
+                result["verification"] = verify_stream_log(log)
             result["status"] = "observed_" + result["stream_summary"]["status"]
         except Exception as exc:
             result["status"] = "failed"
             result["error_type"], result["error"] = type(exc).__name__, str(exc)[:300]
-            try:
-                result["verification"] = verify_stream_log(log)
-            except Exception as verification_error:
-                result["verification_error_type"] = type(verification_error).__name__
+            if "verification_phase" not in plan:
+                try:
+                    result["verification"] = verify_stream_log(log)
+                except Exception as verification_error:
+                    result["verification_error_type"] = type(verification_error).__name__
         finally:
             done.set()
             checkpoint_thread.join()
@@ -179,7 +195,7 @@ def observe_window(start, plan, root):
         result["status"] = "failed"
         result["error_type"] = type(exc).__name__
         result["error"] = str(exc)[:300]
-        if (directory / "stream.ndjson").exists():
+        if "verification_phase" not in plan and (directory / "stream.ndjson").exists():
             try:
                 result["verification"] = verify_stream_log(directory / "stream.ndjson")
             except Exception as verification_error:
@@ -190,7 +206,7 @@ def observe_window(start, plan, root):
             checkpoint_thread.join()
         result["finished_at_utc"] = utc_text(utc_now())
         result["result_sha256"] = payload_hash(result)
-        persist(directory / "result.json", result)
+        persist(directory / ("capture_result.json" if "verification_phase" in plan else "result.json"), result)
         print(json.dumps(result), flush=True)
 
 
@@ -210,7 +226,27 @@ def run_pilot(plan, root):
             futures.append(workers.submit(observe_window, start, plan, root))
         for future in futures:
             future.result()
+    if "verification_phase" in plan:
+        finalize_cases(plan, root)
     return cohort_health(plan, root)
+
+
+def finalize_cases(plan, root):
+    """Only call after all observation workers have joined; never overwrite."""
+    for start in plan["market_starts"]:
+        directory = Path(root) / str(start)
+        capture = json.loads((directory / "capture_result.json").read_text())
+        verify_artifact_hash(capture, "result_sha256", "capture result")
+        result = dict(capture)
+        result["capture_result_sha256"] = capture["result_sha256"]
+        try:
+            result["verification"] = verify_stream_log(directory / "stream")
+        except Exception as exc:
+            result["verification_error_type"] = type(exc).__name__
+        result["verified_at_utc"] = utc_text(utc_now())
+        result.pop("result_sha256")
+        result["result_sha256"] = payload_hash(result)
+        persist(directory / "result.json", result)
 
 
 def cohort_health(plan, root):
@@ -222,6 +258,14 @@ def cohort_health(plan, root):
             continue
         case = json.loads(path.read_text())
         verify_artifact_hash(case, "result_sha256", "pilot result")
+        if "verification_phase" in plan:
+            capture = json.loads((path.parent / "capture_result.json").read_text())
+            verify_artifact_hash(capture, "result_sha256", "capture result")
+            derived = {k: v for k, v in case.items() if k not in
+                       ("verification", "verification_error_type", "verified_at_utc", "capture_result_sha256", "result_sha256")}
+            if (case.get("capture_result_sha256") != capture["result_sha256"] or
+                    derived != {k: v for k, v in capture.items() if k != "result_sha256"}):
+                raise ContractError("final result differs from immutable capture result")
         summary, verification = case.get("stream_summary", {}), case.get("verification", {})
         verified_tokens = set()
         try:
@@ -291,12 +335,15 @@ def main():
     declare.add_argument("--markets", type=int, default=6)
     declare.add_argument("--output", required=True)
     declare.add_argument("--profile", action="store_true")
+    declare.add_argument("--resilient", action="store_true")
+    declare.add_argument("--defer-verification", action="store_true")
     run = sub.add_parser("run")
     run.add_argument("plan")
     run.add_argument("--root", required=True)
     args = parser.parse_args()
     if args.command == "declare":
-        plan = pilot_plan(args.first_start, args.markets, profiling=args.profile)
+        plan = pilot_plan(args.first_start, args.markets, profiling=args.profile,
+                          resilient=args.resilient, deferred=args.defer_verification)
         persist(args.output, plan)
         print(json.dumps(plan, indent=2))
     else:
