@@ -1,0 +1,476 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Temporary public-only QCRL observer replica. No trading credentials, daily jobs, or automatic capture. Stops after declared runtime; retains evidence.",
+  "Parameters": {
+    "RepositoryCommit": {
+      "Type": "String",
+      "AllowedPattern": "^[0-9a-f]{40}$",
+      "Description": "Full reviewed pushed commit containing replica bootstrap code."
+    },
+    "ObserverLabel": {
+      "Type": "String",
+      "Default": "ireland",
+      "AllowedPattern": "^[a-z][a-z0-9-]{0,31}$"
+    },
+    "InstanceType": {
+      "Type": "String",
+      "Default": "t4g.small",
+      "AllowedValues": [
+        "t4g.small"
+      ]
+    },
+    "LatestAmiId": {
+      "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+      "Default": "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64"
+    },
+    "RuntimeHours": {
+      "Type": "Number",
+      "Default": 48,
+      "MinValue": 1,
+      "MaxValue": 168
+    },
+    "SshPublicKey": {
+      "Type": "String",
+      "Default": "",
+      "AllowedPattern": "^$|^(ssh-ed25519|ssh-rsa) [A-Za-z0-9+/=]+$",
+      "Description": "Optional dedicated public key, type and base64 only. Never a private key."
+    },
+    "SshIngressCidr": {
+      "Type": "String",
+      "Default": "127.0.0.1/32",
+      "AllowedPattern": "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}/(?:[0-9]|[12][0-9]|3[0-2])$",
+      "Description": "Operator CIDR only; use /32. No world-open SSH."
+    }
+  },
+  "Rules": {
+    "NoWorldOpenSsh": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Equals": [
+                  {
+                    "Ref": "SshIngressCidr"
+                  },
+                  "0.0.0.0/0"
+                ]
+              }
+            ]
+          },
+          "AssertDescription": "SSH cannot be world-open."
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "HasSshKey": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "SshPublicKey"
+            },
+            ""
+          ]
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "Vpc": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.91.0.0/16",
+        "EnableDnsSupport": true,
+        "EnableDnsHostnames": true
+      }
+    },
+    "Gateway": {
+      "Type": "AWS::EC2::InternetGateway"
+    },
+    "GatewayAttachment": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "InternetGatewayId": {
+          "Ref": "Gateway"
+        }
+      }
+    },
+    "Subnet": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "CidrBlock": "10.91.1.0/24",
+        "MapPublicIpOnLaunch": true,
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        }
+      }
+    },
+    "RouteTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        }
+      }
+    },
+    "Route": {
+      "Type": "AWS::EC2::Route",
+      "DependsOn": "GatewayAttachment",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "RouteTable"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "Gateway"
+        }
+      }
+    },
+    "RouteAssociation": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "Subnet"
+        },
+        "RouteTableId": {
+          "Ref": "RouteTable"
+        }
+      }
+    },
+    "SecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "GroupDescription": "Public observer: HTTPS egress and optional operator-only SSH",
+        "SecurityGroupIngress": [
+          {
+            "Fn::If": [
+              "HasSshKey",
+              {
+                "IpProtocol": "tcp",
+                "FromPort": 22,
+                "ToPort": 22,
+                "CidrIp": {
+                  "Ref": "SshIngressCidr"
+                }
+              },
+              {
+                "Ref": "AWS::NoValue"
+              }
+            ]
+          }
+        ],
+        "SecurityGroupEgress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 443,
+            "ToPort": 443,
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "udp",
+            "FromPort": 123,
+            "ToPort": 123,
+            "CidrIp": "169.254.169.123/32"
+          }
+        ]
+      }
+    },
+    "ArtifactBucket": {
+      "Type": "AWS::S3::Bucket",
+      "DeletionPolicy": "Retain",
+      "UpdateReplacePolicy": "Retain",
+      "Properties": {
+        "VersioningConfiguration": {
+          "Status": "Enabled"
+        },
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        },
+        "PublicAccessBlockConfiguration": {
+          "BlockPublicAcls": true,
+          "BlockPublicPolicy": true,
+          "IgnorePublicAcls": true,
+          "RestrictPublicBuckets": true
+        },
+        "OwnershipControls": {
+          "Rules": [
+            {
+              "ObjectOwnership": "BucketOwnerEnforced"
+            }
+          ]
+        }
+      }
+    },
+    "BucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "ArtifactBucket"
+        },
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Deny",
+              "Principal": "*",
+              "Action": "s3:*",
+              "Resource": [
+                {
+                  "Fn::Sub": "${ArtifactBucket.Arn}"
+                },
+                {
+                  "Fn::Sub": "${ArtifactBucket.Arn}/*"
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": "false"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "Role": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ec2.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
+          }
+        ],
+        "Policies": [
+          {
+            "PolicyName": "OwnPublicEvidenceOnly",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetBucketLocation"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "${ArtifactBucket.Arn}"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:ListBucket"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "${ArtifactBucket.Arn}"
+                  },
+                  "Condition": {
+                    "StringLike": {
+                      "s3:prefix": [
+                        "runtime/streams/*"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "${ArtifactBucket.Arn}/runtime/streams/*"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:PutObject"
+                  ],
+                  "Resource": {
+                    "Fn::Sub": "${ArtifactBucket.Arn}/runtime/streams/*"
+                  },
+                  "Condition": {
+                    "StringEquals": {
+                      "s3:x-amz-server-side-encryption": "AES256"
+                    }
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "cloudformation:SignalResource"
+                  ],
+                  "Resource": {
+                    "Ref": "AWS::StackId"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "Profile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "Role"
+          }
+        ]
+      }
+    },
+    "ObserverInstance": {
+      "Type": "AWS::EC2::Instance",
+      "DependsOn": [
+        "Route",
+        "RouteAssociation",
+        "BucketPolicy"
+      ],
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Count": 1,
+          "Timeout": "PT15M"
+        }
+      },
+      "Properties": {
+        "ImageId": {
+          "Ref": "LatestAmiId"
+        },
+        "InstanceType": {
+          "Ref": "InstanceType"
+        },
+        "IamInstanceProfile": {
+          "Ref": "Profile"
+        },
+        "InstanceInitiatedShutdownBehavior": "stop",
+        "NetworkInterfaces": [
+          {
+            "DeviceIndex": 0,
+            "AssociatePublicIpAddress": true,
+            "SubnetId": {
+              "Ref": "Subnet"
+            },
+            "GroupSet": [
+              {
+                "Ref": "SecurityGroup"
+              }
+            ]
+          }
+        ],
+        "MetadataOptions": {
+          "HttpTokens": "required",
+          "HttpPutResponseHopLimit": 1,
+          "InstanceMetadataTags": "disabled"
+        },
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "DeleteOnTermination": true,
+              "Encrypted": true,
+              "VolumeSize": 20,
+              "VolumeType": "gp3"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Sub": "${AWS::StackName}-observer"
+            }
+          },
+          {
+            "Key": "Project",
+            "Value": "QCRL"
+          },
+          {
+            "Key": "Observer",
+            "Value": {
+              "Ref": "ObserverLabel"
+            }
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Sub": "#!/bin/bash\nset -euo pipefail\nexec > >(tee -a /var/log/qcrl-replica-bootstrap.log) 2>&1\ntrap 'aws cloudformation signal-resource --stack-name ${AWS::StackName} --logical-resource-id ObserverInstance --unique-id bootstrap --status FAILURE --region ${AWS::Region}' ERR\ndnf install -y git python3 openssh-server chrony\ncommand -v aws\nsystemctl enable --now amazon-ssm-agent chronyd\ngit init /opt/qcrl-stream\ngit -C /opt/qcrl-stream remote add origin https://github.com/Draupnir-Ozymandias/quantconnect.git\ngit -C /opt/qcrl-stream fetch --depth 1 origin '${RepositoryCommit}'\ngit -C /opt/qcrl-stream checkout --detach FETCH_HEAD\npython3 -m venv /opt/qcrl-stream/venv\n/opt/qcrl-stream/venv/bin/python -m pip install -r /opt/qcrl-stream/infra/stream/requirements.txt\n/opt/qcrl-stream/venv/bin/python /opt/qcrl-stream/infra/stream/bootstrap_replica.py --bucket '${ArtifactBucket}' --region '${AWS::Region}' --label '${ObserverLabel}' --ssh-key '${SshPublicKey}' --runtime-hours '${RuntimeHours}'\naws cloudformation signal-resource --stack-name '${AWS::StackName}' --logical-resource-id ObserverInstance --unique-id bootstrap --status SUCCESS --region '${AWS::Region}'\n"
+          }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "InstanceId": {
+      "Value": {
+        "Ref": "ObserverInstance"
+      }
+    },
+    "PublicIp": {
+      "Value": {
+        "Fn::GetAtt": [
+          "ObserverInstance",
+          "PublicIp"
+        ]
+      }
+    },
+    "ArtifactBucket": {
+      "Value": {
+        "Ref": "ArtifactBucket"
+      }
+    },
+    "Region": {
+      "Value": {
+        "Ref": "AWS::Region"
+      }
+    },
+    "ObserverLabel": {
+      "Value": {
+        "Ref": "ObserverLabel"
+      }
+    },
+    "SourceCommit": {
+      "Value": {
+        "Ref": "RepositoryCommit"
+      }
+    },
+    "RuntimeHours": {
+      "Value": {
+        "Ref": "RuntimeHours"
+      }
+    }
+  }
+}
