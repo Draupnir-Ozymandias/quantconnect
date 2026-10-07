@@ -24,7 +24,7 @@ DESCRIPTION = ('This market will resolve to "Up" if the time-weighted average pr
 
 
 def pilot_plan(first_start, count=6, *, now=None, profiling=False, resilient=False, deferred=False, receive_path=False,
-               receive_policy="v1"):
+               receive_policy="v1", freshness_telemetry=False):
     now = now or utc_now()
     if type(first_start) is not int or first_start % 300:
         raise ContractError("first start must be an aligned epoch integer")
@@ -42,6 +42,8 @@ def pilot_plan(first_start, count=6, *, now=None, profiling=False, resilient=Fal
         raise ContractError("receive path requires profiling and deferred verification")
     if receive_policy not in ("v1", "v2") or (not receive_path and receive_policy != "v1"):
         raise ContractError("receive policy requires an explicit supported receive path")
+    if type(freshness_telemetry) is not bool or (freshness_telemetry and not (receive_path and resilient)):
+        raise ContractError("freshness diagnostics require receive path and resilience")
     plan = {"schema_version": SCHEMA, "declared_at_utc": utc_text(now),
             "market_starts": [first_start + 300 * i for i in range(count)],
             "resolution_source": SOURCE, "description_sha256": payload_hash(DESCRIPTION),
@@ -65,6 +67,11 @@ def pilot_plan(first_start, count=6, *, now=None, profiling=False, resilient=Fal
         from .receive_path import policy_for
         plan["schema_version"] = "qcrl.btc_5m_rolling_pilot.v6" if receive_policy == "v2" else "qcrl.btc_5m_rolling_pilot.v5"
         plan["receive_path"] = policy_for(receive_policy)
+    if freshness_telemetry:
+        from copy import deepcopy
+        from .connection_freshness import POLICY
+        plan["schema_version"] = "qcrl.btc_5m_rolling_pilot.v7"
+        plan["freshness_telemetry"] = deepcopy(POLICY)
     plan["plan_sha256"] = payload_hash(plan)
     return plan
 
@@ -80,7 +87,7 @@ def validate_plan(plan):
     if declared.tzinfo is None or pilot_plan(starts[0], len(starts), now=declared,
                                           profiling="profiling" in plan, resilient="resilience" in plan,
                                           deferred="verification_phase" in plan, receive_path="receive_path" in plan,
-                                          receive_policy=version) != plan:
+                                          receive_policy=version, freshness_telemetry="freshness_telemetry" in plan) != plan:
         raise ContractError("pilot differs from bounded public-only policy")
     return plan
 
@@ -95,7 +102,8 @@ def check_market(bundle, start, plan):
                        profiling="profiling" in plan, resilient="resilience" in plan,
                        receive_path="receive_path" in plan,
                        source_plan_sha256=plan["plan_sha256"] if "receive_path" in plan else None,
-                       receive_policy=policy_version(plan["receive_path"]) if "receive_path" in plan else "v1")
+                       receive_policy=policy_version(plan["receive_path"]) if "receive_path" in plan else "v1",
+                       freshness_telemetry="freshness_telemetry" in plan)
     if (datetime.fromisoformat(spec["event_start_at_utc"].replace("Z", "+00:00")).timestamp() != start
             or datetime.fromisoformat(spec["event_end_at_utc"].replace("Z", "+00:00")).timestamp() != start + 300):
         raise ContractError("explicit interval differs from locked window")
@@ -356,6 +364,7 @@ def main():
     declare.add_argument("--defer-verification", action="store_true")
     declare.add_argument("--receive-path", action="store_true")
     declare.add_argument("--receive-policy", choices=("v1", "v2"), default="v1")
+    declare.add_argument("--freshness-telemetry", action="store_true")
     run = sub.add_parser("run")
     run.add_argument("plan")
     run.add_argument("--root", required=True)
@@ -363,7 +372,7 @@ def main():
     if args.command == "declare":
         plan = pilot_plan(args.first_start, args.markets, profiling=args.profile,
                           resilient=args.resilient, deferred=args.defer_verification, receive_path=args.receive_path,
-                          receive_policy=args.receive_policy)
+                          receive_policy=args.receive_policy, freshness_telemetry=args.freshness_telemetry)
         persist(args.output, plan)
         print(json.dumps(plan, indent=2))
     else:

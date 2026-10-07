@@ -33,7 +33,7 @@ def transport_reason(exc):
 
 
 def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=False, profiling=False, resilient=False,
-                receive_path=False, source_plan_sha256=None, receive_policy="v1"):
+                receive_path=False, source_plan_sha256=None, receive_policy="v1", freshness_telemetry=False):
     market = normalize_bundle(raw_bundle)["market_contract"]
     if (_time(market["terms"]["end_at_utc"]) - _time(market["terms"]["event_start_at_utc"])).total_seconds() != 300:
         raise ContractError("stream lane requires an explicit five-minute market interval")
@@ -49,6 +49,8 @@ def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=Fal
         raise ContractError("source plan binding requires receive path mode")
     if receive_policy not in ("v1", "v2") or (not receive_path and receive_policy != "v1"):
         raise ContractError("receive policy requires an explicit supported receive path")
+    if type(freshness_telemetry) is not bool or (freshness_telemetry and not (receive_path and resilient)):
+        raise ContractError("freshness diagnostics require receive path and resilience")
     for value, maximum in ((max_seconds, 600), (max_frames, 1000000 if segmented else 100000)):
         if type(value) is not int or not 1 <= value <= maximum:
             raise ContractError("stream duration/frame limit outside bounded range")
@@ -90,6 +92,11 @@ def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=Fal
         plan["schema_version"] = "qcrl.public_market_stream_spec.v5" if receive_policy == "v2" else "qcrl.public_market_stream_spec.v4"
         plan["receive_path"] = policy_for(receive_policy)
         plan["source_plan_sha256"] = source_plan_sha256
+    if freshness_telemetry:
+        from copy import deepcopy
+        from .connection_freshness import POLICY
+        plan["freshness_telemetry"] = deepcopy(POLICY)
+        plan["schema_version"] = "qcrl.public_market_stream_spec.v6"
     return plan
 
 
@@ -237,13 +244,13 @@ def live_connector():
 def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_now,
                           monotonic=time.monotonic, pause=time.sleep, clock_domain=None):
     segmented = spec.get("schema_version") in ("qcrl.public_market_stream_spec.v3", "qcrl.public_market_stream_spec.v4",
-                                               "qcrl.public_market_stream_spec.v5")
+                                               "qcrl.public_market_stream_spec.v5", "qcrl.public_market_stream_spec.v6")
     from .receive_path import policy_version
     version = policy_version(spec["receive_path"]) if "receive_path" in spec else "v1"
     expected = stream_plan(raw_bundle, max_seconds=spec.get("max_seconds"), max_frames=spec.get("max_frames"),
                            segmented=segmented, profiling="profiling" in spec, resilient="resilience" in spec,
                            receive_path="receive_path" in spec, source_plan_sha256=spec.get("source_plan_sha256"),
-                           receive_policy=version)
+                           receive_policy=version, freshness_telemetry="freshness_telemetry" in spec)
     if expected != spec:
         raise ContractError("stream spec differs from verified public-only plan")
     stop = _time(spec["event_end_at_utc"]) + timedelta(seconds=spec["postclose_seconds"])
@@ -284,6 +291,7 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
                 break
             connections += 1
             socket = None
+            freshness = None
             try:
                 log.append("connect_attempt", {"connection": connections})
                 socket = (connector(tracker, connections, clock=clock, monotonic=monotonic) if tracker else connector())
@@ -291,6 +299,10 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
                     log.append("receive_path_reset", socket.reset)
                 socket.send(json.dumps(spec["subscription"]))
                 log.append("subscribed", {"connection": connections})
+                if "freshness_telemetry" in spec:
+                    from .connection_freshness import ConnectionFreshness
+                    freshness = ConnectionFreshness(connections, spec["asset_ids"])
+                    freshness.emit(log, monotonic(), "subscribed", force=True)
                 watchdog = None
                 if "resilience" in spec:
                     from .stream_resilience import DataWatchdog
@@ -319,6 +331,8 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
                             profiler.record("recv_wait", monotonic() - read_started)
                             profiler.sample(log)
                         log.sync_if_due()
+                        if freshness:
+                            freshness.emit(log, monotonic())
                         continue
                     if profiler:
                         received_mono, received_utc = monotonic(), utc_text(clock())
@@ -337,6 +351,9 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
                         frame_payload.update(socket_received_at_utc=received_utc,
                                              socket_received_monotonic_seconds=received_mono)
                     log.append("frame", frame_payload)
+                    if freshness:
+                        freshness.observe(frame, classes, receive_record)
+                        freshness.emit(log, monotonic())
                     if profiler:
                         profiler.sample(log)
                     frames += 1
@@ -351,7 +368,11 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
                         if event["scope"] == "selected_market" and event["event_type"] == "book":
                             snapshots[str(connections)] = sorted(set(snapshots[str(connections)] + event["asset_ids"]))
             except StreamTransportError as exc:
-                log.append("connection_gap", {"connection": connections, "reason": str(exc)[:120]})
+                gap = {"connection": connections, "reason": str(exc)[:120]}
+                if "freshness_telemetry" in spec:
+                    from .connection_freshness import close_diagnostics
+                    gap["close_diagnostics"] = close_diagnostics(exc)
+                log.append("connection_gap", gap)
                 # Resilient mode closes before its jittered wait. Legacy wait
                 # ordering remains unchanged for controlled comparisons.
                 if "resilience" in spec and socket is not None:
@@ -365,8 +386,12 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
                         log.append("retry_wait", {"connection": connections, "seconds": delay})
                     pause(max(0, min(delay, spec["max_seconds"] - (monotonic() - started), (stop - clock()).total_seconds())))
             finally:
-                if socket is not None:
-                    socket.close()
+                try:
+                    if freshness:
+                        freshness.emit(log, monotonic(), "connection_end", force=True)
+                finally:
+                    if socket is not None:
+                        socket.close()
         if frames >= spec["max_frames"]:
             status = "frame_limit"
         elif clock() >= stop:

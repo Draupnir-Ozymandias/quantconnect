@@ -28,6 +28,10 @@ POLICY = {"schema_version": "qcrl.receive_phase_analysis_policy.v1",
           "clock_correction": "none", "max_messages": 1000000, "max_classifications": 1000000,
           "library_depth_bins": [0, 16, 32, 64, 128, 1024],
           "max_profiles": 10000, "max_counter_keys": 128, "max_source_file_bytes": 16 * 1024**2}
+POLICY_V2 = deepcopy(POLICY)
+POLICY_V2["schema_version"] = "qcrl.receive_phase_analysis_policy.v2"
+POLICY_V2["accepted_stream_schemas"].append("qcrl.public_market_stream_spec.v6")
+POLICY_V2["freshness_samples"] = "raw_replayed_bounded_connection_snapshots_not_state_validity"
 
 
 def _load(path, hash_field):
@@ -153,6 +157,7 @@ def analyze_rows(rows, spec, contract):
     """Internal scan; public entry verifies sealed rows and source bindings first."""
     total, phases, connections = _bucket(), {p: _bucket() for p in ("normal", "draining", "unknown")}, {}
     gaps, profiles, resets, saturations = [], [], [], {}
+    freshness_samples = []
     previous_mono, previous_wall, initial_offset = None, None, None
     offset_separation, wall_regressions, classification_count = 0.0, 0, 0
     for row in rows:
@@ -183,6 +188,12 @@ def analyze_rows(rows, spec, contract):
             gaps.append({"connection": payload["connection"], "reason": payload["reason"], "monotonic": mono,
                          "logged_at_utc": row["received_at_utc"], "record_ordinal": row["ordinal"],
                          "subscribed": None, "first_selected_message": None, "both_token_books": None})
+            if "freshness_telemetry" in spec:
+                gaps[-1]["close_diagnostics"] = deepcopy(payload["close_diagnostics"])
+        elif kind == "connection_freshness" and "freshness_telemetry" in spec:
+            if len(freshness_samples) >= spec["max_connections"] * spec["freshness_telemetry"]["max_samples_per_connection"]:
+                raise ContractError("freshness analysis sample budget exceeded")
+            freshness_samples.append(deepcopy(payload))
         elif kind == "profiling_sample":
             if len(profiles) >= POLICY["max_profiles"]:
                 raise ContractError("receive analysis profiling budget exceeded")
@@ -238,7 +249,8 @@ def analyze_rows(rows, spec, contract):
             "clock": {"domain": contract["clock_domain"], "application_utc_regressions": wall_regressions,
                       "max_application_wall_minus_monotonic_interval_separation_seconds": round(offset_separation, 6),
                       "clock_correction_applied": False, "cross_host_accuracy_proven": False},
-            "resources": resource_summary(profiles)}
+            "resources": resource_summary(profiles),
+            **({"connection_freshness_samples": freshness_samples} if "freshness_telemetry" in spec else {})}
 
 
 def analyze_capture(root, *, pilot_root=None):
@@ -246,8 +258,8 @@ def analyze_capture(root, *, pilot_root=None):
     stream = root / "stream"
     verified = verify_stream_log(stream)
     if (not verified["manifest_present"] or not verified["session_end_present"]
-            or verified["header_spec"].get("schema_version") not in POLICY["accepted_stream_schemas"]):
-        raise ContractError("receive analysis requires finalized receive-path stream v4/v5")
+            or verified["header_spec"].get("schema_version") not in POLICY_V2["accepted_stream_schemas"]):
+        raise ContractError("receive analysis requires finalized receive-path stream v4/v5/v6")
     cohort = pilot_root is not None
     if cohort:
         pilot_root = Path(pilot_root)
@@ -299,7 +311,8 @@ def analyze_capture(root, *, pilot_root=None):
         bundle, bundle_bytes = _load(bundles[0], "bundle_sha256")
         expected = stream_plan(bundle, max_seconds=spec["max_seconds"], max_frames=spec["max_frames"], segmented=True,
             profiling="profiling" in spec, resilient="resilience" in spec, receive_path=True,
-            source_plan_sha256=declaration["plan_sha256"], receive_policy=policy_version(spec["receive_path"]))
+            source_plan_sha256=declaration["plan_sha256"], receive_policy=policy_version(spec["receive_path"]),
+            freshness_telemetry="freshness_telemetry" in spec)
         if expected != spec:
             raise ContractError("stream specification differs from raw source bundle")
         raw_bundle_sha = bundle["bundle_sha256"]
@@ -321,7 +334,9 @@ def analyze_capture(root, *, pilot_root=None):
     scanned = analyze_rows(_prepend(first, rows), spec, first["payload"]["receive_path_contract"])
     if scanned["total"]["messages"] != verified["frames"]:
         raise ContractError("analysis message counts differ from verified footer")
-    result = {"schema_version": SCHEMA, "policy": deepcopy(POLICY), "policy_sha256": payload_hash(POLICY),
+    selected_policy = POLICY_V2 if "freshness_telemetry" in spec else POLICY
+    result = {"schema_version": "qcrl.receive_phase_analysis.v2" if "freshness_telemetry" in spec else SCHEMA,
+              "policy": deepcopy(selected_policy), "policy_sha256": payload_hash(selected_policy),
               "source": {"manifest_sha256": manifest["manifest_sha256"], "manifest_file_sha256": manifest_bytes,
                          "final_record_sha256": verified["final_record_sha256"], "spec_sha256": payload_hash(spec),
                          "contract_sha256": first["payload"]["receive_path_contract"]["contract_sha256"],

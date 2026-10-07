@@ -2,6 +2,7 @@
 import gzip
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 
@@ -153,6 +154,7 @@ def verify_segments(root):
     sideband_disabled = False
     reset_seen = False
     retained_saturation = None
+    freshness_started = freshness_finished = freshness_samples = 0
     descriptors = sorted(root.glob("segment-*.json"))
     if not descriptors:
         raise ContractError("no sealed stream segments; preserve partial files")
@@ -192,15 +194,26 @@ def verify_segments(root):
                     first_received, header_spec = row["received_at_utc"], row["payload"]["spec"]
                     if not isinstance(header_spec, dict):
                         raise ContractError("stream spec must be an object")
-                    if header_spec.get("schema_version") in ("qcrl.public_market_stream_spec.v4", "qcrl.public_market_stream_spec.v5"):
+                    if header_spec.get("schema_version") in ("qcrl.public_market_stream_spec.v4", "qcrl.public_market_stream_spec.v5", "qcrl.public_market_stream_spec.v6"):
                         from .receive_path import validate_contract, policy_for
                         receive_contract = validate_contract(row["payload"].get("receive_path_contract"))
-                        version = "v2" if header_spec["schema_version"] == "qcrl.public_market_stream_spec.v5" else "v1"
+                        from .receive_path import policy_version
+                        version = policy_version(header_spec["receive_path"])
+                        if header_spec["schema_version"] != "qcrl.public_market_stream_spec.v6" and version != (
+                                "v2" if header_spec["schema_version"] == "qcrl.public_market_stream_spec.v5" else "v1"):
+                            raise ContractError("receive schema/policy version mismatch")
                         if (header_spec.get("receive_path") != policy_for(version)
                                 or receive_contract["policy"] != policy_for(version)
                                 or receive_contract["stream_spec_sha256"] != payload_hash(header_spec)
                                 or receive_contract["source_plan_sha256"] != header_spec.get("source_plan_sha256")):
                             raise ContractError("receive contract differs from stream/source policy")
+                    if header_spec.get("schema_version") == "qcrl.public_market_stream_spec.v6":
+                        from .connection_freshness import POLICY as FRESHNESS_POLICY
+                        from .stream_resilience import POLICY as RESILIENCE_POLICY
+                        if header_spec.get("freshness_telemetry") != FRESHNESS_POLICY or header_spec.get("resilience") != RESILIENCE_POLICY:
+                            raise ContractError("freshness telemetry policy mismatch")
+                        freshness_replay = None
+                        freshness_ended = True
                 elif row["kind"] == "session_start":
                     raise ContractError("duplicate stream session header")
                 last_received = row["received_at_utc"]
@@ -227,8 +240,54 @@ def verify_segments(root):
                     reset_seen = True
                 if row["kind"] == "connection_gap":
                     gaps += 1
+                    if header_spec.get("schema_version") == "qcrl.public_market_stream_spec.v6":
+                        diagnostic = row["payload"].get("close_diagnostics")
+                        keys = {"schema_version", "origin", "error_type", "received_code", "sent_code",
+                                "received_before_sent", "remote_cause_proven"}
+                        if (not isinstance(diagnostic, dict) or set(diagnostic) != keys
+                                or diagnostic["schema_version"] != "qcrl.close_diagnostics.v1"
+                                or diagnostic["origin"] not in ("watchdog", "transport_or_other")
+                                or not isinstance(diagnostic["error_type"], str) or not 1 <= len(diagnostic["error_type"]) <= 64
+                                or diagnostic["remote_cause_proven"] is not False
+                                or any(v is not None and (type(v) is not int or not 0 <= v <= 4999)
+                                       for v in (diagnostic["received_code"], diagnostic["sent_code"]))
+                                or (diagnostic["received_before_sent"] is not None and type(diagnostic["received_before_sent"]) is not bool)):
+                            raise ContractError("invalid structured close diagnostics")
+                        watchdog_reason = row["payload"].get("reason") in (
+                            "initial_books_timeout", "selected_book_data_silence", "stale_timestamped_book_flow")
+                        if ((diagnostic["origin"] == "watchdog") != watchdog_reason
+                                or (watchdog_reason and any(diagnostic[k] is not None for k in
+                                    ("received_code", "sent_code", "received_before_sent")))):
+                            raise ContractError("watchdog close diagnostics claim transport codes")
+                if header_spec.get("schema_version") == "qcrl.public_market_stream_spec.v6":
+                    from .connection_freshness import ConnectionFreshness
+                    if row["kind"] == "subscribed":
+                        if not freshness_ended or row["payload"].get("connection") != active_connection:
+                            raise ContractError("freshness connection reset mismatch")
+                        freshness_replay = ConnectionFreshness(active_connection, header_spec["asset_ids"])
+                        freshness_ended = False
+                        freshness_started += 1
+                    if row["kind"] == "connection_freshness":
+                        sample = row["payload"]
+                        now = sample.get("sample_monotonic_seconds")
+                        if (freshness_replay is None or freshness_ended or type(now) not in (int, float)
+                                or not math.isfinite(now) or now < 0 or now > row["local_monotonic_seconds"]
+                                or (freshness_replay.last_sample is not None and now < freshness_replay.last_sample)
+                                or sample.get("reason") not in ("subscribed", "periodic", "connection_end")
+                                or (freshness_replay.samples == 0 and sample.get("reason") != "subscribed")
+                                or (freshness_replay.samples > 0 and sample.get("reason") == "subscribed")
+                                or freshness_replay.samples >= 123
+                                or sample != freshness_replay.snapshot(now, sample.get("reason"))):
+                            raise ContractError("freshness sample differs from retained raw evidence")
+                        freshness_replay.samples += 1
+                        freshness_replay.last_sample = now
+                        freshness_ended = sample["reason"] == "connection_end"
+                        freshness_samples += 1
+                        freshness_finished += int(freshness_ended)
+                    if row["kind"] == "session_end" and not freshness_ended and row["payload"].get("status") != "storage_limit":
+                        raise ContractError("missing final connection freshness sample")
                 if row["kind"] == "frame" and header_spec.get("schema_version") in (
-                        "qcrl.public_market_stream_spec.v3", "qcrl.public_market_stream_spec.v4", "qcrl.public_market_stream_spec.v5"):
+                        "qcrl.public_market_stream_spec.v3", "qcrl.public_market_stream_spec.v4", "qcrl.public_market_stream_spec.v5", "qcrl.public_market_stream_spec.v6"):
                     from .market_stream import classify_frame
                     payload = row["payload"]
                     classes = classify_frame(payload["raw_text"], header_spec)
@@ -275,6 +334,10 @@ def verify_segments(root):
                         else:
                             sideband_disabled = True
                             receive_counts["unavailable"] += 1
+                    if header_spec.get("schema_version") == "qcrl.public_market_stream_spec.v6":
+                        if freshness_replay is None or freshness_ended:
+                            raise ContractError("frame outside declared freshness connection")
+                        freshness_replay.observe(payload["raw_text"], classes, record)
                     frames += 1
                     for event in classes:
                         if event["scope"] == "selected_market" and event["event_type"] == "book":
@@ -316,4 +379,9 @@ def verify_segments(root):
             raise ContractError("receive stream footer totals differ from evidence")
         result["receive_path_verification"] = {"contract_sha256": receive_contract["contract_sha256"], **receive_counts,
                                                "wire_arrival_measured": False}
+    if header_spec and header_spec.get("schema_version") == "qcrl.public_market_stream_spec.v6":
+        result["freshness_verification"] = {"schema_version": "qcrl.connection_freshness_verification.v1",
+            "raw_replayed_samples": freshness_samples, "subscribed_connections": freshness_started,
+            "final_snapshots": freshness_finished, "all_final_snapshots_present": freshness_started == freshness_finished,
+            "state_freshness_proven": False}
     return result

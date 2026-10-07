@@ -97,3 +97,10 @@ describe unobserved transport-gap messages or total market-to-client latency.
 
 No new captures, EC2 configuration changes or QuantConnect synchronization were
 needed for this offline review. Earlier draft reports remain retained separately.
+
+## Opt-in freshness extension
+
+Stream v6 uses separately versioned analysis/policy v2 to retain raw-replayed
+per-connection freshness snapshots and structured close diagnostics. Old stream
+v4/v5 output remains v1, unchanged. See
+[the opt-in contract and bounds](CONNECTION_FRESHNESS_TELEMETRY.md).

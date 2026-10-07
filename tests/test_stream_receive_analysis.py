@@ -33,12 +33,13 @@ def _source_bundle(start):
     return bundle
 
 
-def public_capture(root, *, pilot=False):
+def public_capture(root, *, pilot=False, freshness=False):
     clock = Clock()
     start = int(clock.base.timestamp())
     if pilot:
         declaration = pilot_plan(start, 1, now=clock.utc() - timedelta(seconds=120), profiling=True,
-                                 deferred=True, receive_path=True, receive_policy="v2")
+                                 deferred=True, receive_path=True, receive_policy="v2",
+                                 resilient=freshness, freshness_telemetry=freshness)
         persist(root / "pilot.json", declaration)
         root = root / str(start)
     else:
@@ -102,6 +103,19 @@ def rewrite_fixture(root, mutate):
 
 
 class ReceiveAnalysisTests(unittest.TestCase):
+    def test_new_freshness_lane_uses_v2_analysis_without_relabeling_legacy(self):
+        with tempfile.TemporaryDirectory() as directory:
+            pilot = Path(directory)
+            root = public_capture(pilot, pilot=True, freshness=True)
+            result = analyze_capture(root, pilot_root=pilot)
+            self.assertEqual(result["schema_version"], "qcrl.receive_phase_analysis.v2")
+            self.assertTrue(result["connection_freshness_samples"])
+            self.assertFalse(result["connection_freshness_samples"][-1]["state_freshness_proven"])
+        with tempfile.TemporaryDirectory() as directory:
+            result = analyze_capture(public_capture(Path(directory)))
+            self.assertEqual(result["schema_version"], "qcrl.receive_phase_analysis.v1")
+            self.assertNotIn("connection_freshness_samples", result)
+
     def test_v1_v2_matrix_phases_denominators_and_saturation(self):
         for version in ("v1", "v2"):
             available = total = 0

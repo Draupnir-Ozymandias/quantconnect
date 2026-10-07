@@ -140,6 +140,12 @@ recovery, use the [offline receive-phase analyzer](../../docs/RECEIVE_PHASE_ANAL
 It supports both receive policies, preserves failed smoke acceptance and missing
 measurements, and does not replace the cross-site or cohort verdict analyzers.
 
+Separately opt-in `--freshness-telemetry` adds
+[per-connection freshness and structured close diagnostics](../../docs/CONNECTION_FRESHNESS_TELEMETRY.md)
+with pilot v7 / stream v6. It requires receive instrumentation and resilience;
+default plans and watchdog/resource limits are unchanged. This implementation
+has not been deployed and does not authorize a new capture.
+
 Local 25-second live smoke passed (market 5291768): 14,979 frames, both token
 books, two PONGs, one connection and a verified 14,986-row hash chain. Raw artifacts
 are retained in ignored `.qcrl/execution_truth/streams/smoke-1791221710/`.
