@@ -1,0 +1,56 @@
+{
+  "continuous_coverage_proven": false,
+  "declared_at_utc": "2026-10-07T16:06:24.860335Z",
+  "description_sha256": "0e8fdd4c094e87019d079354daf1eedbfc2b1e53316458618d6c50c183719c8d",
+  "market_starts": [
+    1791389700,
+    1791390000,
+    1791390300
+  ],
+  "max_spool_bytes": 2147483648,
+  "minimum_free_bytes": 1073741824,
+  "orders_authorized": false,
+  "plan_sha256": "c22409af5e079091930da43dcd0e5760bda2101a681052600b1dffd41f1c5306",
+  "profiling": {
+    "duration_bucket_seconds": [
+      0.001,
+      0.005,
+      0.01,
+      0.05,
+      0.1,
+      0.5,
+      1.0
+    ],
+    "max_samples": 121,
+    "sample_seconds": 5,
+    "schema_version": "qcrl.stream_profiling.v1"
+  },
+  "receive_path": {
+    "clock_sampling": "monotonic_before_utc_monotonic_after",
+    "delivery_boundary": "application_recv_return_before_classification",
+    "elapsed_role": "callback_to_delivery_not_pure_queue_wait_or_network_latency",
+    "library_queue_high_water_frames": 16,
+    "library_version": "websockets==15.0.1",
+    "matching": "connection_scoped_fifo_occurrence_then_raw_utf8_or_binary_sha256",
+    "max_clock_bracket_seconds": 0.001,
+    "max_fragments_per_message": 64,
+    "max_message_bytes": 262144,
+    "max_pending_message_markers": 64,
+    "overflow": "drain_identified_fifo_prefix_then_unknown_until_reconnect",
+    "receiver_boundary": "library_data_frame_callback_entry_before_assembler",
+    "schema_version": "qcrl.receive_path_policy.v2"
+  },
+  "resilience": {
+    "active_data_silence_seconds": 30,
+    "initial_books_seconds": 10,
+    "retry_base_seconds": 2,
+    "retry_cap_seconds": 8,
+    "retry_jitter": "equal_jitter",
+    "schema_version": "qcrl.stream_resilience.v1",
+    "stale_event_seconds": 5,
+    "stale_flow_seconds": 10
+  },
+  "resolution_source": "https://data.chain.link/streams/btc-usd-twap-60s-streams",
+  "schema_version": "qcrl.btc_5m_rolling_pilot.v6",
+  "verification_phase": "after_all_capture_workers"
+}
