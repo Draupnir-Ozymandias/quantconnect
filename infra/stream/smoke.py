@@ -1,4 +1,4 @@
-"""Bounded public wire smoke: current BTC 5m market, no credentials/orders."""
+"""Bounded public application-receipt smoke; no wire-arrival or order claims."""
 import json
 import argparse
 from pathlib import Path
@@ -10,17 +10,24 @@ from execution_truth.bundle import store_raw_bundle, store_raw_slug_resolution
 from execution_truth.contracts import payload_hash
 from execution_truth.market_stream import collect_market_stream, verify_stream_log
 from execution_truth.rolling_stream import SOURCE, DESCRIPTION, check_market
+from execution_truth.rolling_stream import persist
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profile", action="store_true")
+    parser.add_argument("--receive-path", action="store_true")
+    parser.add_argument("--root", type=Path)
     args = parser.parse_args()
+    if args.receive_path and not args.profile:
+        parser.error("receive-path smoke requires --profile")
     start = int(utc_now().timestamp()) // 300 * 300
     # Allow two heartbeat replies on the lower-throughput EC2 runtime too.
     if utc_now().timestamp() > start + 250:
         raise SystemExit("Too close to rollover; run again in the next window")
-    root = Path(".qcrl/execution_truth/streams") / ("smoke-" + str(int(utc_now().timestamp())))
+    root = args.root or Path(".qcrl/execution_truth/streams") / ("smoke-" + str(int(utc_now().timestamp())))
+    if root.exists():
+        raise SystemExit("Refuse to reuse a smoke evidence directory")
     acquirer = PublicPolymarketAcquirer()
     resolution = acquirer.resolve_market_slug("btc-updown-5m-" + str(start), "market")
     store_raw_slug_resolution(resolution, root)
@@ -30,6 +37,14 @@ def main():
     if args.profile:
         from execution_truth.stream_profiling import POLICY
         plan["profiling"] = POLICY
+    if args.receive_path:
+        from execution_truth.receive_path import POLICY
+        plan.update(schema_version="qcrl.receive_path_smoke_declaration.v1",
+                    declared_at_utc=utc_now().isoformat(), market_start=start,
+                    max_seconds=35, receive_path=POLICY, orders_authorized=False,
+                    evidence_role="partial_lifecycle_connectivity_not_cross_site_comparison")
+        plan["plan_sha256"] = payload_hash(plan)
+        persist(root / "declaration.json", plan)
     spec = check_market(bundle, start, plan)
     spec["max_seconds"] = 35
     log = root / "stream"
@@ -39,8 +54,15 @@ def main():
               and summary["event_counts"].get("heartbeat:PONG", 0) >= 2
               and set(summary["book_snapshot_assets_by_connection"].get("1", [])) == set(spec["asset_ids"])
               and verification["session_end_present"])
-    print(json.dumps({"passed": passed, "path": str(log), "summary": summary,
-                      "verification": verification}, indent=2))
+    if args.receive_path:
+        received = verification["receive_path_verification"]
+        passed = passed and received["available"] == summary["frames"] and received["unavailable"] == 0
+    report = {"passed": passed, "path": str(log), "summary": summary,
+              "verification": verification, "orders_authorized": False, "wire_arrival_measured": False}
+    if args.receive_path:
+        report["report_sha256"] = payload_hash(report)
+        persist(root / "smoke-report.json", report)
+    print(json.dumps(report, indent=2))
     raise SystemExit(0 if passed else 1)
 
 
