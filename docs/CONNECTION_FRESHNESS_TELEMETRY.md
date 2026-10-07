@@ -81,3 +81,9 @@ Local verification on October 7, 2026: all 501 repository tests passed,
 including localhost WebSocket tests. The three archived Ohio cohort windows
 were independently re-analyzed; all three original v1 analysis hashes matched
 exactly. No live endpoint or EC2 instance was contacted for this implementation.
+
+Subsequent authorized capped Linux verification also passed all 501 tests with
+one expected Python-version skip, plus a real-adapter localhost archive check.
+See [the verification record](../infra/stream/VERIFICATION_FRESHNESS_LINUX_2026_10_07.md).
+The idle Ohio checkout is updated; its old plan and failed cohort state remain
+unchanged, and no public freshness capture has been started.
