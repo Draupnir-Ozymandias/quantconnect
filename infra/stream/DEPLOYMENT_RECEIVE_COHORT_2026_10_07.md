@@ -68,3 +68,32 @@ The existing cross-site v1 analyzer does not accept this receive schema.
 Report runtime status from observed service and artifacts, not the schedule.
 No additional cohort is authorized by this declaration. No QuantConnect sync
 is needed for the observer lane.
+
+## Observed launch, not completion
+
+The declaration and review contract were committed and pushed as `561c2a0`
+before service launch. The observer deliberately remains pinned to `20f2196`;
+the later commit contains only documentation and the externally supplied plan.
+
+Linux preflight under the unchanged limits passed all 489 tests in 29.646
+seconds with one expected Python 3.9 standard-library-inventory skip. Whole-unit
+CPU time was 22.424 seconds. An earlier preflight failed only the sync-file-list
+test because Git rejected the root-owned checkout for the `qcrl` user. The
+read-only diagnostic confirmed dubious ownership; the successful rerun used
+process-scoped `GIT_CONFIG_*` trust for `/opt/qcrl-stream`. Global Git settings
+were not changed, and both preflight journals remain retained.
+
+At `2026-10-07T16:08:45Z`, the service started with PID 474708 and unchanged
+512 MiB / 75% CPU / 32-task limits. The persisted `pilot.json` independently
+validated to the locked plan hash. The previous environment was backed up by
+the installer; the new environment's byte SHA-256 is
+`ead5cdfd91e18422dc5ce2af70fe373b6e68d94b214329b1f84f7eaf63b18e3d`.
+Observer checkout remained clean; daily source stayed at
+`da280f59684dd4bc80e314b31e23154d620de721` and its timer remained active.
+Systemd verification emitted an unrelated existing `acpid.socket` legacy
+`/var/run` path warning, not an observer-unit error.
+
+The service was active and waiting for its future locked windows at the last
+launch check. No capture-completion, S3-byte-verification or cohort-health claim
+is made here. Check around 16:40 UTC / 12:40 p.m. Eastern, using actual service
+and artifact progress; allow more time if bounded verification is still running.
