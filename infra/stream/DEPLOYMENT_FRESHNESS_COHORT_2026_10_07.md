@@ -76,3 +76,29 @@ No trade, account endpoint, credential use, QuantConnect sync or additional
 cohort is authorized by this declaration. Public market GETs and public market-
 channel observation only. Launch status is recorded separately below after
 verification; this prospective section does not claim any completed capture.
+
+## Observed launch
+
+The prospective declaration and review contract were committed and pushed as
+`77e24af` before installation/start. Observer source remains the previously
+Linux-verified `575f7ea`; later commits contain documentation/declarations only.
+
+The installer retained the previous environment as
+`/etc/qcrl-stream.env.pilot-c22409af5e079091930da43dcd0e5760bda2101a681052600b1dffd41f1c5306`.
+The new environment byte SHA-256 is
+`33ea1a9a853f94f4c50c8ebb6e11047d7ee6f8dc4de9041cb770826ce4a86cca`.
+Systemd verification reported only the pre-existing unrelated `acpid.socket`
+legacy `/var/run` path warning. The observer unit and caps verified unchanged.
+
+At `2026-10-07T20:28:25Z`, the observer started with PID 496801. Post-start checks
+found it active/running, with 512 MiB memory / 75% of one CPU / 32-task limits.
+The persisted `pilot.json` independently validated to the locked plan hash,
+and `freshness_telemetry.controls_reconnect` remained false. Observer checkout
+was clean at `575f7ea`; the daily collector timer remained active.
+
+This replaces the inactive service's plan for a new future cohort, not a replay
+or reset of old evidence. Old failed/partial artifacts and journals remain
+retained. At the launch check the process was waiting for locked market windows;
+no completed capture, S3-byte-verification or successful health verdict is
+claimed. Review near 21:00 UTC / 5:00 p.m. Eastern using actual service/artifact
+progress, and allow extra time if deferred verification is still running.
