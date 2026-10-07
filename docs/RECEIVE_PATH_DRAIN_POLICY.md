@@ -120,6 +120,7 @@ The next step at the end of local implementation was a separately authorized,
 capped Linux v2 verification and one finite public smoke. That check has now
 completed as documented above: instrumentation evidence verified, connectivity
 acceptance failed after one recovered 1013 close. No larger cohort was launched.
-The current recommendation is the versioned offline receive-phase/gap analyzer
-in the deployment record. AWS settings, existing schedules and QuantConnect
+The versioned offline receive-phase/gap analyzer is now implemented and verified;
+see [usage, evidence bindings and timing limitations](RECEIVE_PHASE_ANALYSIS.md).
+AWS settings, existing schedules and QuantConnect
 remain unchanged; only the idle Ohio observer checkout was updated for that check.

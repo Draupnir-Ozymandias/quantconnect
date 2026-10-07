@@ -135,6 +135,11 @@ Explicit `--receive-policy v2` selects the separately versioned
 (pilot v6 / stream v5). V1 stays the default; local verification is not EC2
 deployment or authorization for a new capture.
 
+For verified per-capture normal/draining/unknown timing populations and reconnect
+recovery, use the [offline receive-phase analyzer](../../docs/RECEIVE_PHASE_ANALYSIS.md).
+It supports both receive policies, preserves failed smoke acceptance and missing
+measurements, and does not replace the cross-site or cohort verdict analyzers.
+
 Local 25-second live smoke passed (market 5291768): 14,979 frames, both token
 books, two PONGs, one connection and a verified 14,986-row hash chain. Raw artifacts
 are retained in ignored `.qcrl/execution_truth/streams/smoke-1791221710/`.
