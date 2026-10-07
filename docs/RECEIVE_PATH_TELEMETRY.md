@@ -227,3 +227,8 @@ copies. A capped localhost small-message burst exhausted the fixed marker budget
 raw data remained unchanged, but timing became unavailable. That constraint must
 be investigated before a larger synchronized cohort; the live successes do not
 override it.
+
+The [deterministic recorder burst follow-up](RECEIVE_PATH_BURST_ANALYSIS.md)
+reproduces the exact 65th-pending-message boundary, validates raw preservation
+and natural reconnect recovery, and proposes a separately versioned experiment
+without modifying the current capture policy.
