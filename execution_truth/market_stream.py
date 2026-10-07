@@ -32,7 +32,8 @@ def transport_reason(exc):
     return reason
 
 
-def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=False, profiling=False, resilient=False):
+def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=False, profiling=False, resilient=False,
+                receive_path=False, source_plan_sha256=None):
     market = normalize_bundle(raw_bundle)["market_contract"]
     if (_time(market["terms"]["end_at_utc"]) - _time(market["terms"]["event_start_at_utc"])).total_seconds() != 300:
         raise ContractError("stream lane requires an explicit five-minute market interval")
@@ -42,6 +43,10 @@ def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=Fal
         raise ContractError("profiling requires explicit segmented mode")
     if type(resilient) is not bool or (resilient and not segmented):
         raise ContractError("resilience requires explicit segmented mode")
+    if type(receive_path) is not bool or (receive_path and not (segmented and profiling)):
+        raise ContractError("receive path requires segmented profiling mode")
+    if not receive_path and source_plan_sha256 is not None:
+        raise ContractError("source plan binding requires receive path mode")
     for value, maximum in ((max_seconds, 600), (max_frames, 1000000 if segmented else 100000)):
         if type(value) is not int or not 1 <= value <= maximum:
             raise ContractError("stream duration/frame limit outside bounded range")
@@ -76,7 +81,45 @@ def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=Fal
         from copy import deepcopy
         from .stream_resilience import POLICY
         plan["resilience"] = deepcopy(POLICY)
+    if receive_path:
+        from copy import deepcopy
+        from .receive_path import POLICY, declare
+        declare(source_plan_sha256, "validation", stream_spec_sha256=payload_hash(plan))
+        plan["schema_version"] = "qcrl.public_market_stream_spec.v4"
+        plan["receive_path"] = deepcopy(POLICY)
+        plan["source_plan_sha256"] = source_plan_sha256
     return plan
+
+
+def observed_connector(tracker, connection, *, clock, monotonic):
+    from .receive_adapter import ObservedSocket
+    from websockets.exceptions import WebSocketException
+    try:
+        socket = ObservedSocket(ENDPOINT, tracker, connection, clock=clock, monotonic=monotonic)
+    except (OSError, WebSocketException) as exc:
+        raise StreamTransportError(transport_reason(exc)) from exc
+
+    class Transport:
+        reset = socket.reset
+
+        def send(self, message):
+            try:
+                return socket.send(message)
+            except (OSError, WebSocketException) as exc:
+                raise StreamTransportError(transport_reason(exc)) from exc
+
+        def recv(self, timeout):
+            try:
+                return socket.recv(timeout)
+            except TimeoutError:
+                raise
+            except (OSError, WebSocketException) as exc:
+                raise StreamTransportError(transport_reason(exc)) from exc
+
+        def close(self):
+            socket.close()
+
+    return Transport()
 
 
 def classify_frame(frame, spec):
@@ -190,17 +233,29 @@ def live_connector():
 
 
 def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_now,
-                          monotonic=time.monotonic, pause=time.sleep):
-    segmented = spec.get("schema_version") == "qcrl.public_market_stream_spec.v3"
+                          monotonic=time.monotonic, pause=time.sleep, clock_domain=None):
+    segmented = spec.get("schema_version") in ("qcrl.public_market_stream_spec.v3", "qcrl.public_market_stream_spec.v4")
     expected = stream_plan(raw_bundle, max_seconds=spec.get("max_seconds"), max_frames=spec.get("max_frames"),
-                           segmented=segmented, profiling="profiling" in spec, resilient="resilience" in spec)
+                           segmented=segmented, profiling="profiling" in spec, resilient="resilience" in spec,
+                           receive_path="receive_path" in spec, source_plan_sha256=spec.get("source_plan_sha256"))
     if expected != spec:
         raise ContractError("stream spec differs from verified public-only plan")
     stop = _time(spec["event_end_at_utc"]) + timedelta(seconds=spec["postclose_seconds"])
     begin = _time(spec["event_start_at_utc"]) - timedelta(seconds=spec["preopen_seconds"])
     if not begin <= clock() < stop:
         raise ContractError("capture must start within declared market lifecycle window")
-    connector = connector or live_connector()
+    tracker = None
+    header = {"spec": spec, "spec_sha256": payload_hash(spec)}
+    if "receive_path" in spec:
+        import uuid
+        from .receive_path import declare, ReceivePathTracker
+        contract = declare(spec["source_plan_sha256"], clock_domain or "capture." + uuid.uuid4().hex,
+                           stream_spec_sha256=payload_hash(spec))
+        tracker = ReceivePathTracker(contract)
+        header["receive_path_contract"] = contract
+        connector = connector or observed_connector
+    else:
+        connector = connector or live_connector()
     started = monotonic()
     profiler = None
     if "profiling" in spec:
@@ -214,7 +269,7 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
     counts, snapshots = {}, {}
     frames, connections, status = 0, 0, "duration_limit"
     try:
-        log.append("session_start", {"spec": spec, "spec_sha256": payload_hash(spec)})
+        log.append("session_start", header)
         if profiler:
             profiler.sample(log, force=True)
         while monotonic() - started < spec["max_seconds"] and frames < spec["max_frames"] and clock() < stop:
@@ -225,7 +280,9 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
             socket = None
             try:
                 log.append("connect_attempt", {"connection": connections})
-                socket = connector()
+                socket = (connector(tracker, connections, clock=clock, monotonic=monotonic) if tracker else connector())
+                if tracker:
+                    log.append("receive_path_reset", socket.reset)
                 socket.send(json.dumps(spec["subscription"]))
                 log.append("subscribed", {"connection": connections})
                 watchdog = None
@@ -249,6 +306,8 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
                     try:
                         read_started = monotonic() if profiler else None
                         frame = socket.recv(timeout=min(1, max(0.001, spec["max_seconds"] - (now - started))))
+                        if tracker:
+                            frame, receive_record = frame
                     except TimeoutError:
                         if profiler:
                             profiler.record("recv_wait", monotonic() - read_started)
@@ -265,6 +324,8 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
                     if watchdog:
                         watchdog.observe(frame, classes, monotonic(), clock().timestamp())
                     frame_payload = {"connection": connections, "raw_text": frame, "classification": classes}
+                    if tracker:
+                        frame_payload["receive_path"] = receive_record
                     if profiler:
                         profiler.record("classify", monotonic() - classify_started)
                         frame_payload.update(socket_received_at_utc=received_utc,

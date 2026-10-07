@@ -6,8 +6,10 @@ Latest opt-in profiling deployment:
 [2026-10-06 deployment record](DEPLOYMENT_PROFILING_2026_10_06.md).
 Latest controlled follow-up:
 [deferred verification deployment](DEPLOYMENT_DEFERRED_2026_10_06.md).
-Active follow-up:
+Prior follow-up:
 [Ohio watchdog activation](DEPLOYMENT_WATCHDOG_2026_10_06.md).
+Current geographically synchronized pilot:
+[Ohio–Ireland deployment record](DEPLOYMENT_TWO_SITE_2026_10_06.md).
 Earlier single-file history and troubleshooting remain below.
 
 Public GETs and public market-channel WebSockets only. No Polymarket credentials,
@@ -115,6 +117,18 @@ book reconstruction and exchange delivery-completeness auditing are still future
 work. No queue, fill or profitability inference follows from the pilot.
 
 ## Foundation verification on 2026-10-05
+
+For synchronized observer comparisons, use the
+[versioned offline cross-site analyzer](../../docs/CROSS_SITE_STREAM_ANALYSIS.md).
+It verifies source/stream/result provenance and preserves duplicates, gaps,
+incomplete lifecycles and unknown clock/resource measurements.
+
+Receive-path instrumentation is separately opt-in: see
+[the versioned contract and integration notes](../../docs/RECEIVE_PATH_TELEMETRY.md).
+Pilot declarations require `--receive-path --profile --defer-verification`.
+This creates pilot v5 / stream v4 without changing legacy defaults. Do not deploy
+or schedule this mode until its bounded EC2 smoke is separately authorized;
+the current cross-site v1 analyzer intentionally rejects the new stream schema.
 
 Local 25-second live smoke passed (market 5291768): 14,979 frames, both token
 books, two PONGs, one connection and a verified 14,986-row hash chain. Raw artifacts

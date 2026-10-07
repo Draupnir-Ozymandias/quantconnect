@@ -147,6 +147,11 @@ def verify_segments(root):
     first_received, last_received, header_spec, terminal = None, None, None, None
     compressed, uncompressed = 0, 0
     frames, baselines, gaps = 0, {}, 0
+    receive_contract, active_connection = None, 0
+    receive_counts = {"available": 0, "unavailable": 0, "timing_eligible": 0}
+    message_sequence, frame_sequence, delivery_after, receiver_after = 0, 0, None, None
+    sideband_disabled = False
+    reset_seen = False
     descriptors = sorted(root.glob("segment-*.json"))
     if not descriptors:
         raise ContractError("no sealed stream segments; preserve partial files")
@@ -186,17 +191,75 @@ def verify_segments(root):
                     first_received, header_spec = row["received_at_utc"], row["payload"]["spec"]
                     if not isinstance(header_spec, dict):
                         raise ContractError("stream spec must be an object")
+                    if header_spec.get("schema_version") == "qcrl.public_market_stream_spec.v4":
+                        from .receive_path import validate_contract, POLICY
+                        receive_contract = validate_contract(row["payload"].get("receive_path_contract"))
+                        if (header_spec.get("receive_path") != POLICY
+                                or receive_contract["stream_spec_sha256"] != payload_hash(header_spec)
+                                or receive_contract["source_plan_sha256"] != header_spec.get("source_plan_sha256")):
+                            raise ContractError("receive contract differs from stream/source policy")
                 elif row["kind"] == "session_start":
                     raise ContractError("duplicate stream session header")
                 last_received = row["received_at_utc"]
+                if receive_contract and row["kind"] == "connect_attempt":
+                    connection = row["payload"].get("connection")
+                    if type(connection) is not int or connection != active_connection + 1:
+                        raise ContractError("receive connection order mismatch")
+                    active_connection, message_sequence, frame_sequence = connection, 0, 0
+                    reset_seen = False
+                    sideband_disabled = False
+                if receive_contract and row["kind"] == "receive_path_reset":
+                    reset = row["payload"]
+                    if (reset_seen or not active_connection or reset.get("new_connection") != active_connection
+                            or reset.get("previous_connection") != active_connection - 1
+                            or set(reset) != {"new_connection", "previous_connection", "discarded_pending_markers",
+                                              "discarded_incomplete_fragment", "previous_disabled_reason"}
+                            or type(reset["discarded_pending_markers"]) is not int
+                            or not 0 <= reset["discarded_pending_markers"] <= 64
+                            or type(reset["discarded_incomplete_fragment"]) is not bool
+                            or (reset["previous_disabled_reason"] is not None and
+                                not isinstance(reset["previous_disabled_reason"], str))):
+                        raise ContractError("receive reset provenance mismatch")
+                    reset_seen = True
                 if row["kind"] == "connection_gap":
                     gaps += 1
-                if row["kind"] == "frame" and header_spec.get("schema_version") == "qcrl.public_market_stream_spec.v3":
+                if row["kind"] == "frame" and header_spec.get("schema_version") in (
+                        "qcrl.public_market_stream_spec.v3", "qcrl.public_market_stream_spec.v4"):
                     from .market_stream import classify_frame
                     payload = row["payload"]
                     classes = classify_frame(payload["raw_text"], header_spec)
                     if payload["classification"] != classes or type(payload["connection"]) is not int:
                         raise ContractError("frame classification/connection differs from raw evidence")
+                    if receive_contract:
+                        from .receive_path import validate_delivery
+                        from .receive_adapter import validate_adapter_failure
+                        record = payload.get("receive_path")
+                        if not isinstance(record, dict) or not reset_seen or payload["connection"] != active_connection:
+                            raise ContractError("missing receive record or connection reset")
+                        if record.get("schema_version") == "qcrl.receive_adapter_failure.v1":
+                            validate_adapter_failure(record, receive_contract, payload["raw_text"])
+                        else:
+                            validate_delivery(record, receive_contract, payload["raw_text"])
+                            stamp = record["application_delivery"]
+                            if delivery_after is not None and stamp["monotonic_before"] < delivery_after:
+                                raise ContractError("receive delivery chronology reversed")
+                            delivery_after = stamp["monotonic_after"]
+                        if record["connection"] != active_connection:
+                            raise ContractError("receive connection binding mismatch")
+                        marker = record.get("receive_marker")
+                        if marker:
+                            if (sideband_disabled or marker["message_sequence"] != message_sequence + 1
+                                    or marker["first_frame_sequence"] <= frame_sequence
+                                    or (receiver_after is not None and
+                                        marker["first_receive_observation"]["monotonic_before"] < receiver_after)):
+                                raise ContractError("receive occurrence order mismatch")
+                            message_sequence, frame_sequence = marker["message_sequence"], marker["last_frame_sequence"]
+                            receiver_after = marker["last_receive_observation"]["monotonic_after"]
+                            receive_counts["available"] += 1
+                            receive_counts["timing_eligible"] += int(record["last_observation_to_delivery"]["timing_eligible"])
+                        else:
+                            sideband_disabled = True
+                            receive_counts["unavailable"] += 1
                     frames += 1
                     for event in classes:
                         if event["scope"] == "selected_market" and event["event_type"] == "book":
@@ -225,7 +288,7 @@ def verify_segments(root):
                     "uncompressed_bytes": uncompressed, "continuous_coverage_proven": False}
         if {k: v for k, v in manifest.items() if k != "manifest_sha256"} != expected or list(root.glob("*.partial")):
             raise ContractError("stream manifest differs from sealed data")
-    return {"records": rows, "final_record_sha256": previous, "session_end_present": final,
+    result = {"records": rows, "final_record_sha256": previous, "session_end_present": final,
             "manifest_present": manifest_path.exists(), "segments": len(descriptors),
             "compressed_bytes": compressed, "uncompressed_bytes": uncompressed,
             "first_received_at_utc": first_received, "last_received_at_utc": last_received,
@@ -233,3 +296,9 @@ def verify_segments(root):
             "frames": frames, "book_snapshot_assets_by_connection": {k: sorted(v) for k, v in baselines.items()},
             "connection_gaps": gaps,
             "continuous_coverage_proven": False}
+    if receive_contract:
+        if final and (terminal.get("frames") != frames or terminal.get("connections") != active_connection):
+            raise ContractError("receive stream footer totals differ from evidence")
+        result["receive_path_verification"] = {"contract_sha256": receive_contract["contract_sha256"], **receive_counts,
+                                               "wire_arrival_measured": False}
+    return result
