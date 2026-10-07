@@ -220,3 +220,10 @@ the real-library tests ran rather than being skipped.
 Next: bounded EC2 smoke covering Linux/Python 3.9 behavior and complete-recorder
 storage/processing overhead, before any prospective shared comparison. No EC2
 configuration or capture schedule was changed by this integration.
+
+The subsequently authorized [EC2 smoke record](../infra/stream/DEPLOYMENT_RECEIVE_PATH_2026_10_07.md)
+documents two successful finite public captures and independently verified S3
+copies. A capped localhost small-message burst exhausted the fixed marker budget:
+raw data remained unchanged, but timing became unavailable. That constraint must
+be investigated before a larger synchronized cohort; the live successes do not
+override it.
