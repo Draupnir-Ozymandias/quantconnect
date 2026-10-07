@@ -1,6 +1,9 @@
 # Receive-path drain-before-unknown policy v2 — October 7, 2026
 
-Implemented locally as an explicit opt-in; not deployed to EC2. V1 policy,
+Implemented as an explicit opt-in. Its subsequently authorized
+[bounded Ohio Linux check and smoke](../infra/stream/DEPLOYMENT_RECEIVE_V2_2026_10_07.md)
+retained verified evidence but failed the unchanged one-connection acceptance
+criterion after a received 1013 close and recovery. No larger cohort followed. V1 policy,
 defaults and historical artifacts remain unchanged. This improves bounded timing
 coverage, not transport completeness, wire measurements, fills or profitability.
 
@@ -113,8 +116,10 @@ The intermediate report is `.qcrl/reviews/receive-drain-v2-loopback-20261007-val
 Neither benchmark measures complete-recorder storage/CPU cost, Linux behavior,
 wire latency, exchange parameters or fills.
 
-Next: an explicitly authorized, capped Linux v2 loopback/burst verification and
-one finite public smoke, with separate evidence and independent S3 checks. Do
-not replace existing capture declarations or launch a larger synchronized cohort
-on the strength of local coverage tests alone. EC2, AWS settings, schedules and
-QuantConnect were untouched during this implementation.
+The next step at the end of local implementation was a separately authorized,
+capped Linux v2 verification and one finite public smoke. That check has now
+completed as documented above: instrumentation evidence verified, connectivity
+acceptance failed after one recovered 1013 close. No larger cohort was launched.
+The current recommendation is the versioned offline receive-phase/gap analyzer
+in the deployment record. AWS settings, existing schedules and QuantConnect
+remain unchanged; only the idle Ohio observer checkout was updated for that check.
