@@ -15,6 +15,7 @@ from tests.receive_burst_fixture import SCENARIOS, run_scenario
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, required=True)
+    parser.add_argument("--receive-policy", choices=("v1", "v2"), default="v1")
     args = parser.parse_args()
     args.root.mkdir(parents=True, exist_ok=False)
     code = Path(__file__).resolve().parents[2]
@@ -24,9 +25,10 @@ def main():
     report = {"schema_version": "qcrl.synthetic_receive_burst_experiment.v1", "python": platform.python_version(),
               "sources": {name: hashlib.sha256((code / name).read_bytes()).hexdigest() for name in files},
               "network_access": False, "orders_authorized": False, "synthetic_not_performance_benchmark": True,
+              "receive_policy": args.receive_policy,
               "scenarios": []}
     for scenario in SCENARIOS:
-        result = run_scenario(scenario, args.root / scenario["name"])
+        result = run_scenario(scenario, args.root / scenario["name"], receive_policy=args.receive_policy)
         report["scenarios"].append({"name": scenario["name"], "report_sha256": result["report_sha256"],
                                     "connections": result["connections"], "observation": result["observation"]})
         print(scenario["name"], {key: (value["available"], value["unavailable"])

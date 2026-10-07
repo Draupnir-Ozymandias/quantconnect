@@ -152,6 +152,7 @@ def verify_segments(root):
     message_sequence, frame_sequence, delivery_after, receiver_after = 0, 0, None, None
     sideband_disabled = False
     reset_seen = False
+    retained_saturation = None
     descriptors = sorted(root.glob("segment-*.json"))
     if not descriptors:
         raise ContractError("no sealed stream segments; preserve partial files")
@@ -191,10 +192,12 @@ def verify_segments(root):
                     first_received, header_spec = row["received_at_utc"], row["payload"]["spec"]
                     if not isinstance(header_spec, dict):
                         raise ContractError("stream spec must be an object")
-                    if header_spec.get("schema_version") == "qcrl.public_market_stream_spec.v4":
-                        from .receive_path import validate_contract, POLICY
+                    if header_spec.get("schema_version") in ("qcrl.public_market_stream_spec.v4", "qcrl.public_market_stream_spec.v5"):
+                        from .receive_path import validate_contract, policy_for
                         receive_contract = validate_contract(row["payload"].get("receive_path_contract"))
-                        if (header_spec.get("receive_path") != POLICY
+                        version = "v2" if header_spec["schema_version"] == "qcrl.public_market_stream_spec.v5" else "v1"
+                        if (header_spec.get("receive_path") != policy_for(version)
+                                or receive_contract["policy"] != policy_for(version)
                                 or receive_contract["stream_spec_sha256"] != payload_hash(header_spec)
                                 or receive_contract["source_plan_sha256"] != header_spec.get("source_plan_sha256")):
                             raise ContractError("receive contract differs from stream/source policy")
@@ -208,6 +211,7 @@ def verify_segments(root):
                     active_connection, message_sequence, frame_sequence = connection, 0, 0
                     reset_seen = False
                     sideband_disabled = False
+                    retained_saturation = None
                 if receive_contract and row["kind"] == "receive_path_reset":
                     reset = row["payload"]
                     if (reset_seen or not active_connection or reset.get("new_connection") != active_connection
@@ -224,7 +228,7 @@ def verify_segments(root):
                 if row["kind"] == "connection_gap":
                     gaps += 1
                 if row["kind"] == "frame" and header_spec.get("schema_version") in (
-                        "qcrl.public_market_stream_spec.v3", "qcrl.public_market_stream_spec.v4"):
+                        "qcrl.public_market_stream_spec.v3", "qcrl.public_market_stream_spec.v4", "qcrl.public_market_stream_spec.v5"):
                     from .market_stream import classify_frame
                     payload = row["payload"]
                     classes = classify_frame(payload["raw_text"], header_spec)
@@ -247,6 +251,17 @@ def verify_segments(root):
                         if record["connection"] != active_connection:
                             raise ContractError("receive connection binding mismatch")
                         marker = record.get("receive_marker")
+                        if record.get("schema_version") == "qcrl.receive_path_delivery.v2":
+                            saturation = record["saturation"]
+                            if retained_saturation is not None and saturation != retained_saturation:
+                                raise ContractError("saturation provenance changed within connection")
+                            if saturation is not None and retained_saturation is None:
+                                if marker and marker["message_sequence"] != saturation["last_retained_message_sequence"] - 63:
+                                    raise ContractError("saturated FIFO prefix starts after a skipped marker")
+                                retained_saturation = saturation
+                            if (saturation is not None and not marker and record["unavailable_reason"] == "pending_marker_budget"
+                                    and message_sequence != saturation["last_retained_message_sequence"]):
+                                raise ContractError("saturated FIFO prefix was not fully drained")
                         if marker:
                             if (sideband_disabled or marker["message_sequence"] != message_sequence + 1
                                     or marker["first_frame_sequence"] <= frame_sequence

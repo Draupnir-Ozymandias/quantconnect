@@ -232,3 +232,9 @@ The [deterministic recorder burst follow-up](RECEIVE_PATH_BURST_ANALYSIS.md)
 reproduces the exact 65th-pending-message boundary, validates raw preservation
 and natural reconnect recovery, and proposes a separately versioned experiment
 without modifying the current capture policy.
+
+The separately opt-in [drain-before-unknown policy v2](RECEIVE_PATH_DRAIN_POLICY.md)
+is now implemented and verified locally. V1 remains the default; v2 uses distinct
+contract, delivery, stream and pilot schemas, retains a bounded known FIFO prefix
+on saturation, and leaves the remaining messages unknown. No EC2 deployment is
+implied by its availability.

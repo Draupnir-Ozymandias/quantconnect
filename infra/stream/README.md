@@ -130,6 +130,11 @@ This creates pilot v5 / stream v4 without changing legacy defaults. Do not deplo
 or schedule this mode until its bounded EC2 smoke is separately authorized;
 the current cross-site v1 analyzer intentionally rejects the new stream schema.
 
+Explicit `--receive-policy v2` selects the separately versioned
+[bounded drain-before-unknown policy](../../docs/RECEIVE_PATH_DRAIN_POLICY.md)
+(pilot v6 / stream v5). V1 stays the default; local verification is not EC2
+deployment or authorization for a new capture.
+
 Local 25-second live smoke passed (market 5291768): 14,979 frames, both token
 books, two PONGs, one connection and a verified 14,986-row hash chain. Raw artifacts
 are retained in ignored `.qcrl/execution_truth/streams/smoke-1791221710/`.

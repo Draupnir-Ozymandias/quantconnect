@@ -33,7 +33,7 @@ def transport_reason(exc):
 
 
 def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=False, profiling=False, resilient=False,
-                receive_path=False, source_plan_sha256=None):
+                receive_path=False, source_plan_sha256=None, receive_policy="v1"):
     market = normalize_bundle(raw_bundle)["market_contract"]
     if (_time(market["terms"]["end_at_utc"]) - _time(market["terms"]["event_start_at_utc"])).total_seconds() != 300:
         raise ContractError("stream lane requires an explicit five-minute market interval")
@@ -47,6 +47,8 @@ def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=Fal
         raise ContractError("receive path requires segmented profiling mode")
     if not receive_path and source_plan_sha256 is not None:
         raise ContractError("source plan binding requires receive path mode")
+    if receive_policy not in ("v1", "v2") or (not receive_path and receive_policy != "v1"):
+        raise ContractError("receive policy requires an explicit supported receive path")
     for value, maximum in ((max_seconds, 600), (max_frames, 1000000 if segmented else 100000)):
         if type(value) is not int or not 1 <= value <= maximum:
             raise ContractError("stream duration/frame limit outside bounded range")
@@ -83,10 +85,10 @@ def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=Fal
         plan["resilience"] = deepcopy(POLICY)
     if receive_path:
         from copy import deepcopy
-        from .receive_path import POLICY, declare
-        declare(source_plan_sha256, "validation", stream_spec_sha256=payload_hash(plan))
-        plan["schema_version"] = "qcrl.public_market_stream_spec.v4"
-        plan["receive_path"] = deepcopy(POLICY)
+        from .receive_path import policy_for, declare
+        declare(source_plan_sha256, "validation", stream_spec_sha256=payload_hash(plan), policy_version=receive_policy)
+        plan["schema_version"] = "qcrl.public_market_stream_spec.v5" if receive_policy == "v2" else "qcrl.public_market_stream_spec.v4"
+        plan["receive_path"] = policy_for(receive_policy)
         plan["source_plan_sha256"] = source_plan_sha256
     return plan
 
@@ -234,10 +236,14 @@ def live_connector():
 
 def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_now,
                           monotonic=time.monotonic, pause=time.sleep, clock_domain=None):
-    segmented = spec.get("schema_version") in ("qcrl.public_market_stream_spec.v3", "qcrl.public_market_stream_spec.v4")
+    segmented = spec.get("schema_version") in ("qcrl.public_market_stream_spec.v3", "qcrl.public_market_stream_spec.v4",
+                                               "qcrl.public_market_stream_spec.v5")
+    from .receive_path import policy_version
+    version = policy_version(spec["receive_path"]) if "receive_path" in spec else "v1"
     expected = stream_plan(raw_bundle, max_seconds=spec.get("max_seconds"), max_frames=spec.get("max_frames"),
                            segmented=segmented, profiling="profiling" in spec, resilient="resilience" in spec,
-                           receive_path="receive_path" in spec, source_plan_sha256=spec.get("source_plan_sha256"))
+                           receive_path="receive_path" in spec, source_plan_sha256=spec.get("source_plan_sha256"),
+                           receive_policy=version)
     if expected != spec:
         raise ContractError("stream spec differs from verified public-only plan")
     stop = _time(spec["event_end_at_utc"]) + timedelta(seconds=spec["postclose_seconds"])
@@ -250,7 +256,7 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
         import uuid
         from .receive_path import declare, ReceivePathTracker
         contract = declare(spec["source_plan_sha256"], clock_domain or "capture." + uuid.uuid4().hex,
-                           stream_spec_sha256=payload_hash(spec))
+                           stream_spec_sha256=payload_hash(spec), policy_version=version)
         tracker = ReceivePathTracker(contract)
         header["receive_path_contract"] = contract
         connector = connector or observed_connector

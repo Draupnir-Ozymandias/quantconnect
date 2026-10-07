@@ -5,7 +5,7 @@ from pathlib import Path
 
 from execution_truth.contracts import payload_hash
 from execution_truth.market_stream import collect_market_stream, stream_plan, verify_stream_log, StreamTransportError
-from execution_truth.receive_path import POLICY, sample_clock
+from execution_truth.receive_path import POLICY, policy_for, sample_clock
 from execution_truth.rolling_stream import persist
 from tests.test_market_stream import Clock
 from tests.test_receive_capture import rows
@@ -29,7 +29,7 @@ SCENARIOS = [
 ]
 
 
-def run_scenario(scenario, root):
+def run_scenario(scenario, root, *, receive_policy="v1"):
     """Run real recorder/verifier with an explicitly synthetic transport fixture.
 
     Prefix callbacks/deliveries alternate; all burst callbacks happen before any
@@ -40,14 +40,15 @@ def run_scenario(scenario, root):
     root = Path(root)
     root.mkdir(parents=True, exist_ok=False)
     declaration = {"schema_version": "qcrl.synthetic_receive_burst_schedule.v1", **scenario,
-                   "policy_sha256": payload_hash(POLICY), "network_access": False,
+                   "policy_sha256": payload_hash(policy_for(receive_policy)), "network_access": False,
                    "wire_arrival_measured": False, "orders_authorized": False}
     declaration["plan_sha256"] = payload_hash(declaration)
     persist(root / "declaration.json", declaration)
     clock, bundle = Clock(), raw_bundle()
     maximum = sum(c.get("prefix", 0) + c.get("deliver_burst", c["burst"]) for c in scenario["connections"])
     plan = stream_plan(bundle, segmented=True, profiling=True, receive_path=True,
-                       source_plan_sha256=declaration["plan_sha256"], max_seconds=20, max_frames=maximum)
+                       source_plan_sha256=declaration["plan_sha256"], max_seconds=20, max_frames=maximum,
+                       receive_policy=receive_policy)
     value = {"event_type": "fixture", "market": plan["condition_id"], "asset_id": plan["asset_ids"][0],
              "tag": "€", "padding": ""}
     encoded = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
@@ -112,7 +113,7 @@ def run_scenario(scenario, root):
 
     summary = collect_market_stream(bundle, plan, root / "stream", connector=connector,
                                     clock=clock.utc, monotonic=clock.mono, pause=clock.pause,
-                                    clock_domain="synthetic.burst." + scenario["name"])
+                                    clock_domain="synthetic.burst." + scenario["name"] + (".v2" if receive_policy == "v2" else ""))
     verified = verify_stream_log(root / "stream")
     archived = rows(root / "stream")
     frames = [row["payload"] for row in archived if row["kind"] == "frame"]

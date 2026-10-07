@@ -31,6 +31,21 @@ POLICY = {
     "matching": "connection_scoped_fifo_occurrence_then_raw_utf8_or_binary_sha256",
     "elapsed_role": "callback_to_delivery_not_pure_queue_wait_or_network_latency",
 }
+POLICY_V2 = {**deepcopy(POLICY), "schema_version": "qcrl.receive_path_policy.v2",
+             "overflow": "drain_identified_fifo_prefix_then_unknown_until_reconnect"}
+
+
+def policy_for(version):
+    if version not in ("v1", "v2"):
+        raise ContractError("unsupported receive policy version")
+    return deepcopy(POLICY if version == "v1" else POLICY_V2)
+
+
+def policy_version(value):
+    for version in ("v1", "v2"):
+        if value == policy_for(version):
+            return version
+    raise ContractError("receive policy differs from a fixed version")
 
 
 def _number(value):
@@ -43,14 +58,15 @@ def _domain(value):
     return value
 
 
-def declare(source_plan_sha256, clock_domain, *, stream_spec_sha256):
+def declare(source_plan_sha256, clock_domain, *, stream_spec_sha256, policy_version="v1"):
     for value in (source_plan_sha256, stream_spec_sha256):
         if not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{64}", value):
             raise ContractError("source plan/spec hashes must be lowercase SHA-256")
-    result = {"schema_version": "qcrl.receive_path_contract.v1",
+    policy = policy_for(policy_version)
+    result = {"schema_version": "qcrl.receive_path_contract." + policy_version,
               "source_plan_sha256": source_plan_sha256, "clock_domain": _domain(clock_domain),
               "stream_spec_sha256": stream_spec_sha256,
-              "policy": deepcopy(POLICY), "policy_sha256": payload_hash(POLICY),
+              "policy": policy, "policy_sha256": payload_hash(policy),
               "orders_authorized": False, "wire_arrival_measured": False,
               "cross_host_clock_accuracy_proven": False}
     result["contract_sha256"] = payload_hash(result)
@@ -61,8 +77,10 @@ def validate_contract(value):
     if not isinstance(value, dict) or not {"source_plan_sha256", "clock_domain", "stream_spec_sha256"} <= set(value):
         raise ContractError("invalid receive-path contract")
     verify_artifact_hash(value, "contract_sha256", "receive-path contract")
-    if value != declare(value["source_plan_sha256"], value["clock_domain"], stream_spec_sha256=value["stream_spec_sha256"]):
-        raise ContractError("receive-path contract differs from fixed v1 policy")
+    version = policy_version(value.get("policy"))
+    if value != declare(value["source_plan_sha256"], value["clock_domain"], stream_spec_sha256=value["stream_spec_sha256"],
+                        policy_version=version):
+        raise ContractError("receive-path contract differs from fixed policy")
     return value
 
 
@@ -115,13 +133,15 @@ def elapsed_bounds(first, last, clock_domain):
 def validate_delivery(record, contract, message):
     """Independently bind an archived delivery to its declared clock and raw message."""
     validate_contract(contract)
+    version = policy_version(contract["policy"])
+    limits = contract["policy"] if version == "v2" else POLICY
     verify_artifact_hash(record, "telemetry_sha256", "receive-path delivery")
-    if (record.get("schema_version") != "qcrl.receive_path_delivery.v1"
+    if (record.get("schema_version") != "qcrl.receive_path_delivery." + version
             or record.get("contract_sha256") != contract["contract_sha256"]
             or record.get("wire_arrival_measured") is not False or record.get("orders_authorized") is not False
             or type(record.get("connection")) is not int or record["connection"] < 1
             or type(record.get("pending_marker_depth")) is not int
-            or not 0 <= record["pending_marker_depth"] <= POLICY["max_pending_message_markers"]):
+            or not 0 <= record["pending_marker_depth"] <= limits["max_pending_message_markers"]):
         raise ContractError("invalid delivery binding or authority")
     domain = contract["clock_domain"]
     validate_stamp(record["application_delivery"], domain)
@@ -132,12 +152,28 @@ def validate_delivery(record, contract, message):
                      "wire_arrival_measured", "orders_authorized", "telemetry_sha256"}
     if marker is not None:
         expected_keys |= {"first_observation_to_delivery", "last_observation_to_delivery"}
+    if version == "v2":
+        expected_keys.add("saturation")
     if set(record) != expected_keys or record["diagnostic_scope"] != "same_connection_external_adapter_observation":
         raise ContractError("unexpected delivery fields or diagnostic scope")
     _validate_diagnostics(record["library_queue_depth"], record["library_backpressure_active"],
                           record["reader_loop_stall_seconds"])
     if type(record.get("telemetry_available")) is not bool or record["telemetry_available"] != (marker is not None):
         raise ContractError("delivery availability differs from marker")
+    saturation = record.get("saturation")
+    if version == "v2" and saturation is not None:
+        if (not isinstance(saturation, dict) or set(saturation) != {
+                "last_retained_message_sequence", "overflow_frame_sequence", "retained_prefix_messages", "observation"}
+                or type(saturation["last_retained_message_sequence"]) is not int
+                or saturation["last_retained_message_sequence"] < 64
+                or type(saturation["overflow_frame_sequence"]) is not int or saturation["overflow_frame_sequence"] < 65
+                or type(saturation["retained_prefix_messages"]) is not int or saturation["retained_prefix_messages"] != 64):
+            raise ContractError("invalid saturation provenance")
+        validate_stamp(saturation["observation"], domain)
+    if version == "v2" and marker is None and record["pending_marker_depth"] != 0:
+        raise ContractError("unknown delivery cannot retain drainable markers")
+    if version == "v2" and record.get("unavailable_reason") == "pending_marker_budget" and saturation is None:
+        raise ContractError("overflow requires saturation provenance")
     if marker is None:
         if (not isinstance(record.get("unavailable_reason"), str) or not record["unavailable_reason"]
                 or "last_observation_to_delivery" in record or "first_observation_to_delivery" in record):
@@ -151,14 +187,14 @@ def validate_delivery(record, contract, message):
         if type(marker[field]) is not int or marker[field] < 1:
             raise ContractError("invalid occurrence/fragment identity")
     if (marker["last_frame_sequence"] < marker["first_frame_sequence"]
-            or marker["fragment_count"] > min(POLICY["max_fragments_per_message"],
+            or marker["fragment_count"] > min(limits["max_fragments_per_message"],
                 marker["last_frame_sequence"] - marker["first_frame_sequence"] + 1)):
         raise ContractError("fragment provenance exceeds declared bounds")
     try:
         raw = message.encode("utf-8") if isinstance(message, str) else message
     except UnicodeEncodeError as exc:
         raise ContractError("invalid delivered UTF-8") from exc
-    if (not isinstance(raw, bytes) or len(raw) > POLICY["max_message_bytes"]
+    if (not isinstance(raw, bytes) or len(raw) > limits["max_message_bytes"]
             or type(marker["message_bytes"]) is not int or marker["message_bytes"] != len(raw)
             or type(marker["opcode"]) is not int or marker["opcode"] not in (1, 2)
             or (marker["opcode"] == 1) != isinstance(message, str)
@@ -167,6 +203,13 @@ def validate_delivery(record, contract, message):
     first, last = marker["first_receive_observation"], marker["last_receive_observation"]
     validate_stamp(first, domain)
     validate_stamp(last, domain)
+    if saturation is not None:
+        end = saturation["last_retained_message_sequence"]
+        if (not end - 64 < marker["message_sequence"] <= end
+                or record["pending_marker_depth"] != end - marker["message_sequence"]
+                or marker["last_frame_sequence"] >= saturation["overflow_frame_sequence"]
+                or last["monotonic_after"] > saturation["observation"]["monotonic_before"]):
+            raise ContractError("delivery outside identified saturated FIFO prefix")
     if marker["fragment_count"] == 1:
         if first != last or marker["first_frame_sequence"] != marker["last_frame_sequence"]:
             raise ContractError("single fragment has inconsistent observations")
@@ -199,6 +242,9 @@ class ReceivePathTracker:
     def __init__(self, contract):
         self.contract = deepcopy(validate_contract(contract))
         self.domain = contract["clock_domain"]
+        self.version = policy_version(contract["policy"])
+        self.policy = self.contract["policy"]
+        self.saturation = None
         self.lock = threading.RLock()
         self.connection = 0
         self.pending = deque()
@@ -220,6 +266,7 @@ class ReceivePathTracker:
             self.pending.clear()
             self.fragment = None
             self.disabled_reason = None
+            self.saturation = None
             self.frame_sequence = self.message_sequence = 0
             return reset
 
@@ -232,9 +279,15 @@ class ReceivePathTracker:
         with self.lock:
             if type(connection) is not int or connection != self.connection or self.connection == 0:
                 raise ContractError("stale or uninitialized receive connection")
-            if self.disabled_reason:
+            draining = self.version == "v2" and self.disabled_reason == "pending_marker_budget"
+            if self.disabled_reason and not draining:
                 return False
-            stamp = deepcopy(validate_stamp(stamp, self.domain))
+            try:
+                stamp = deepcopy(validate_stamp(stamp, self.domain))
+            except ContractError:
+                if self.version == "v2":
+                    self._disable("invalid_receiver_clock")
+                raise
             if (self.last_receiver_after is not None
                     and stamp["monotonic_before"] < self.last_receiver_after):
                 self._disable("receiver_monotonic_regression")
@@ -243,6 +296,10 @@ class ReceivePathTracker:
                 self._disable("invalid_frame_metadata")
                 return False
             self.last_receiver_after = stamp["monotonic_after"]
+            if draining:
+                if opcode not in (0, 1, 2, 8, 9, 10):
+                    self._disable("invalid_frame_metadata")
+                return False  # Clock/header checks only; never add future markers.
             self.frame_sequence += 1
             if opcode in (8, 9, 10):
                 return True  # Protocol close/ping/pong do not consume message IDs.
@@ -256,16 +313,24 @@ class ReceivePathTracker:
                 self._disable("unexpected_continuation_or_opcode")
                 return False
             f = self.fragment
+            limits = self.policy if self.version == "v2" else POLICY
             f["bytes"] += len(data)
             f["fragments"] += 1
-            if (f["bytes"] > POLICY["max_message_bytes"]
-                    or f["fragments"] > POLICY["max_fragments_per_message"]):
+            if (f["bytes"] > limits["max_message_bytes"]
+                    or f["fragments"] > limits["max_fragments_per_message"]):
                 self._disable("message_telemetry_budget")
                 return False
             f["digest"].update(data)
             if not final:
                 return True
-            if len(self.pending) >= POLICY["max_pending_message_markers"]:
+            if len(self.pending) >= limits["max_pending_message_markers"]:
+                if self.version == "v2":
+                    self.saturation = {"last_retained_message_sequence": self.message_sequence,
+                                       "overflow_frame_sequence": self.frame_sequence,
+                                       "retained_prefix_messages": len(self.pending), "observation": stamp}
+                    self.disabled_reason = "pending_marker_budget"
+                    self.fragment = None
+                    return False
                 self._disable("pending_marker_budget")
                 return False
             self.message_sequence += 1
@@ -285,9 +350,12 @@ class ReceivePathTracker:
             _validate_diagnostics(library_queue_depth, library_backpressure_active, reader_loop_stall_seconds)
             delivery = deepcopy(validate_stamp(stamp, self.domain))
             if self.last_delivery_after is not None and delivery["monotonic_before"] < self.last_delivery_after:
+                if self.version == "v2":
+                    self._disable("application_monotonic_regression")
                 raise ContractError("application delivery clock moved backwards")
             marker = None
-            if self.disabled_reason is None:
+            if self.disabled_reason is None or (self.version == "v2" and
+                    self.disabled_reason == "pending_marker_budget" and self.pending):
                 if not self.pending:
                     self._disable("missing_receive_marker")
                 else:
@@ -301,18 +369,26 @@ class ReceivePathTracker:
                             or hashlib.sha256(raw).hexdigest() != candidate["raw_message_sha256"]):
                         self._disable("fifo_message_mismatch")
                     else:
-                        elapsed_bounds(candidate["last_receive_observation"], delivery, self.domain)
+                        try:
+                            elapsed_bounds(candidate["last_receive_observation"], delivery, self.domain)
+                        except ContractError:
+                            if self.version == "v2":
+                                self._disable("delivery_timing_error")
+                            raise
                         marker = self.pending.popleft()
-            record = {"schema_version": "qcrl.receive_path_delivery.v1",
+            record = {"schema_version": "qcrl.receive_path_delivery." + self.version,
                       "contract_sha256": self.contract["contract_sha256"], "connection": connection,
                       "application_delivery": delivery, "receive_marker": marker,
-                      "telemetry_available": marker is not None, "unavailable_reason": self.disabled_reason,
+                      "telemetry_available": marker is not None,
+                      "unavailable_reason": None if marker else self.disabled_reason,
                       "pending_marker_depth": len(self.pending),
                       "library_queue_depth": library_queue_depth,
                       "library_backpressure_active": library_backpressure_active,
                       "reader_loop_stall_seconds": reader_loop_stall_seconds,
                       "diagnostic_scope": "same_connection_external_adapter_observation",
                       "wire_arrival_measured": False, "orders_authorized": False}
+            if self.version == "v2":
+                record["saturation"] = deepcopy(self.saturation)
             if marker:
                 record["last_observation_to_delivery"] = elapsed_bounds(
                     marker["last_receive_observation"], delivery, self.domain)

@@ -17,10 +17,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profile", action="store_true")
     parser.add_argument("--receive-path", action="store_true")
+    parser.add_argument("--receive-policy", choices=("v1", "v2"), default="v1")
     parser.add_argument("--root", type=Path)
     args = parser.parse_args()
     if args.receive_path and not args.profile:
         parser.error("receive-path smoke requires --profile")
+    if not args.receive_path and args.receive_policy != "v1":
+        parser.error("receive policy requires --receive-path")
     start = int(utc_now().timestamp()) // 300 * 300
     # Allow two heartbeat replies on the lower-throughput EC2 runtime too.
     if utc_now().timestamp() > start + 250:
@@ -38,10 +41,10 @@ def main():
         from execution_truth.stream_profiling import POLICY
         plan["profiling"] = POLICY
     if args.receive_path:
-        from execution_truth.receive_path import POLICY
+        from execution_truth.receive_path import policy_for
         plan.update(schema_version="qcrl.receive_path_smoke_declaration.v1",
                     declared_at_utc=utc_now().isoformat(), market_start=start,
-                    max_seconds=35, receive_path=POLICY, orders_authorized=False,
+                    max_seconds=35, receive_path=policy_for(args.receive_policy), orders_authorized=False,
                     evidence_role="partial_lifecycle_connectivity_not_cross_site_comparison")
         plan["plan_sha256"] = payload_hash(plan)
         persist(root / "declaration.json", plan)
