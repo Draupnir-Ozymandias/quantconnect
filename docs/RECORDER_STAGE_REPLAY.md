@@ -39,6 +39,10 @@ published only after all stages and output checks pass. Failures preserve partia
 outputs. Linux diagnostics use a separate frozen checkout and finite protected
 systemd service; public checkouts, timer settings, and configuration remain unchanged.
 
+Version 1's Linux attempts timed out during offline verification, so they do
+not provide a completed Linux cost ranking. See the
+[preserved-output audit and required version-2 phase split](../infra/stream/RECORDER_STAGE_REPLAY_2026_10_08.md).
+
 ```bash
 python infra/stream/recorder_stage_replay.py VERIFIED_SYNTHETIC_STREAM FRESH_OUTPUT_DIRECTORY
 ```
