@@ -1,5 +1,7 @@
 # Order-reversed encoding confirmation, version 2
 
+Completed results: [October 8 confirmation audit](../infra/stream/ENCODING_CONFIRMATION_2026_10_08.md).
+
 This separately declared six-case cohort confirms the
 [first encoding pair](../infra/stream/SINGLE_PASS_ENCODING_2026_10_08.md).
 It changes only cohort policy identity and pair order. The candidate, reference,
