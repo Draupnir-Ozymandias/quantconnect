@@ -223,10 +223,16 @@ def install(connection, observer):
         observer.disable('installation_error')
 
 
-def _connection_class(observer):
+def _connection_class(observer, *, _parent=None):
     from websockets.frames import Frame
     from websockets.sync.client import ClientConnection
-    class InstrumentedConnection(ClientConnection):
+    parent = ClientConnection if _parent is None else _parent
+    if not isinstance(parent,type) or not issubclass(parent,ClientConnection):
+        raise ContractError('diagnostic parent must preserve ClientConnection inheritance')
+    for method in ('__init__','recv_events','close_socket'):
+        if getattr(parent,method) is not getattr(ClientConnection,method):
+            raise ContractError('diagnostic parent must retain native constructor, receive loop and close')
+    class InstrumentedConnection(parent):
         def recv_events(self):
             install(self,observer)
             try: return super().recv_events()
@@ -241,7 +247,7 @@ def _connection_class(observer):
     return InstrumentedConnection
 
 
-def connect_loopback(uri, observer):
+def connect_loopback(uri, observer, *, _parent=None):
     if not isinstance(observer,ObservationBuffer): raise ContractError('explicit observation buffer required')
     try:
         parsed = urlsplit(uri)
@@ -256,5 +262,5 @@ def connect_loopback(uri, observer):
             raise ContractError('prototype buffer permits one connection only')
         observer.claimed = True
     from websockets.sync.client import connect
-    return connect(uri,create_connection=_connection_class(observer),open_timeout=10,close_timeout=5,
+    return connect(uri,create_connection=_connection_class(observer,_parent=_parent),open_timeout=10,close_timeout=5,
                    max_size=262144,max_queue=16,compression=None,ping_interval=None,proxy=None)

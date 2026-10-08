@@ -2,7 +2,8 @@
 
 Status: **frozen v1 declaration, source-verified.** An isolated instance-wrapper
 [prototype is now fault-tested](../infra/stream/RECEIVE_LOOP_PROTOTYPE_2026_10_08.md).
-Recorder integration and an overhead benchmark remain unimplemented. The original
+Private [recorder integration is now unit-tested](../infra/stream/RECEIVE_LOOP_INTEGRATION_2026_10_08.md);
+an overhead benchmark remains unimplemented. The original
 declaration's implementation-status field remains unchanged for reproducibility.
 The prior [delay decomposition](../infra/stream/DELAY_DECOMPOSITION_2026_10_08.md)
 places most fully observed tail time before callback entry. This contract identifies
@@ -63,7 +64,8 @@ The proposed installation boundary is an overridden `recv_events` entry,
 before the base constructor launches that thread. Installing wrappers after
 `connect` or constructor return would miss early activity and cannot be described
 as complete observation. The isolated prototype now tests this entry boundary;
-recorder/occurrence integration and measured overhead acceptance remain pending.
+private recorder/occurrence integration is unit-tested; measured overhead acceptance
+remains pending.
 
 Native methods must execute exactly once and preserve arguments, results,
 exceptions, timeouts, shutdown behavior and lock ordering. Do not copy/rewrite

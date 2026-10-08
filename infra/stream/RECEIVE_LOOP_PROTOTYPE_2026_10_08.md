@@ -1,5 +1,9 @@
 # Isolated receive-loop prototype — October 8, 2026
 
+Subsequent stage: [private recorder integration](RECEIVE_LOOP_INTEGRATION_2026_10_08.md).
+This report's prototype hash and test results describe commit `5235d03` before
+the diagnostic parent-extension; its historical results remain unchanged.
+
 ## Outcome
 
 **The isolated wrappers pass the tested fault and native-equivalence cases.**
