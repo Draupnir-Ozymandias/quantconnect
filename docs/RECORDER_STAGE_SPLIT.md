@@ -53,6 +53,9 @@ Component measurements remain unpaced, source-specific, cache-sensitive offline
 costs. The durable writer stage includes replay-clock parsing and digest checking,
 but excludes socket/receive instrumentation, classification, watchdogs, profiling
 and freshness processing. The synthetic gzip sinks are not collector archives.
+The preserved freshness replay helper also includes row routing, transient
+state-constructor defaults at lookup, and snapshot-equality checks; it is not a
+pure measurement of the production `observe` method.
 Do not add/subtract component medians or interpret them as wire latency, fills,
 profitability, or justification for weakening public recorder safeguards.
 
@@ -60,3 +63,7 @@ Tests cover interrupted measurement checkpoints, missing receipts, changed input
 and outputs, re-signed incorrect summaries, invalid timings, exclusive publication,
 and overlapping phase identities. Production acceptance also requires independent
 originating-byte audit and Linux process/resource verification.
+
+The [completed Linux result and independent audit](../infra/stream/RECORDER_STAGE_SPLIT_2026_10_08.md)
+provide the first valid cost ranking. They do not establish public-stream delay
+causality or authorize a public collector rollout.
