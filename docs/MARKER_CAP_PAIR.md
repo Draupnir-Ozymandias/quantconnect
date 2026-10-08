@@ -1,5 +1,7 @@
 # Prospective marker-cap sensitivity, version 1
 
+Completed results: [October 8 marker-cap audit](../infra/stream/MARKER_CAP_PAIR_2026_10_08.md).
+
 Six finite localhost recorder cases compare **64 versus 128 retained markers**,
 with the single-pass encoder fixed in both lanes. This is a separately versioned
 experiment, not a public receive-policy upgrade or a queue-cap change.
