@@ -1,6 +1,9 @@
 # Receive-loop observation contract, version 1
 
-Status: **declared and source-verified; hooks and captures are not implemented.**
+Status: **frozen v1 declaration, source-verified.** An isolated instance-wrapper
+[prototype is now fault-tested](../infra/stream/RECEIVE_LOOP_PROTOTYPE_2026_10_08.md).
+Recorder integration and an overhead benchmark remain unimplemented. The original
+declaration's implementation-status field remains unchanged for reproducibility.
 The prior [delay decomposition](../infra/stream/DELAY_DECOMPOSITION_2026_10_08.md)
 places most fully observed tail time before callback entry. This contract identifies
 the next observable boundaries without calling that time network latency.
@@ -59,7 +62,8 @@ The proposed installation boundary is an overridden `recv_events` entry,
 **before** delegating to the unchanged parent loop. All observer state must exist
 before the base constructor launches that thread. Installing wrappers after
 `connect` or constructor return would miss early activity and cannot be described
-as complete observation. This design still needs implementation and tests.
+as complete observation. The isolated prototype now tests this entry boundary;
+recorder/occurrence integration and measured overhead acceptance remain pending.
 
 Native methods must execute exactly once and preserve arguments, results,
 exceptions, timeouts, shutdown behavior and lock ordering. Do not copy/rewrite
