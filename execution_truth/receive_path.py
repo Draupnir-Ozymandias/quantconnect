@@ -33,16 +33,21 @@ POLICY = {
 }
 POLICY_V2 = {**deepcopy(POLICY), "schema_version": "qcrl.receive_path_policy.v2",
              "overflow": "drain_identified_fifo_prefix_then_unknown_until_reconnect"}
+POLICY_V3 = {**deepcopy(POLICY), "schema_version": "qcrl.receive_path_policy.v3",
+             "overflow": "drain_prefix_then_unknown_until_equal_occurrence_counters_at_complete_message_fence",
+             "matching": "connection_scoped_complete_message_and_delivery_ordinals_then_raw_sha256",
+             "max_observed_messages": 1000000, "max_observed_frames": 64000000,
+             "recovery": "no_incomplete_fragment_no_pending_markers_equal_observed_and_delivered_counts"}
 
 
 def policy_for(version):
-    if version not in ("v1", "v2"):
+    if version not in ("v1", "v2", "v3"):
         raise ContractError("unsupported receive policy version")
-    return deepcopy(POLICY if version == "v1" else POLICY_V2)
+    return deepcopy({"v1": POLICY, "v2": POLICY_V2, "v3": POLICY_V3}[version])
 
 
 def policy_version(value):
-    for version in ("v1", "v2"):
+    for version in ("v1", "v2", "v3"):
         if value == policy_for(version):
             return version
     raise ContractError("receive policy differs from a fixed version")
@@ -134,6 +139,9 @@ def validate_delivery(record, contract, message):
     """Independently bind an archived delivery to its declared clock and raw message."""
     validate_contract(contract)
     version = policy_version(contract["policy"])
+    if version == "v3":
+        from .receive_recovery import validate_recovery_delivery
+        return validate_recovery_delivery(record, contract, message)
     limits = contract["policy"] if version == "v2" else POLICY
     verify_artifact_hash(record, "telemetry_sha256", "receive-path delivery")
     if (record.get("schema_version") != "qcrl.receive_path_delivery." + version
@@ -243,6 +251,8 @@ class ReceivePathTracker:
         self.contract = deepcopy(validate_contract(contract))
         self.domain = contract["clock_domain"]
         self.version = policy_version(contract["policy"])
+        if self.version == "v3" and type(self) is ReceivePathTracker:
+            raise ContractError("v3 requires explicit ReceiveRecoveryTracker; collector integration is not enabled")
         self.policy = self.contract["policy"]
         self.saturation = None
         self.lock = threading.RLock()
