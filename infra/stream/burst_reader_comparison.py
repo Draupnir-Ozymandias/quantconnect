@@ -21,7 +21,7 @@ from execution_truth.receive_path import ReceivePathTracker, declare, sample_clo
 from execution_truth.rolling_stream import persist
 from execution_truth.stream_freshness import statistics
 
-POLICY = {"schema_version": "qcrl.burst_reader_policy.v1", "cycles": 6,
+POLICY = {"schema_version": "qcrl.burst_reader_policy.v2", "cycles": 6,
           "phases": [{"seconds": 4, "rate": 500}, {"seconds": 1, "rate": 3000}],
           "rounds": 3, "modes": ["bare", "receive", "recorder"],
           "mode_order": "rotating_latin_order_by_round", "pacing": "absolute_deadlines_no_drops",
@@ -29,7 +29,9 @@ POLICY = {"schema_version": "qcrl.burst_reader_policy.v1", "cycles": 6,
           "memory_max_bytes_per_process_group": 536870912, "tasks_max": 32,
           "runtime_max_seconds_per_unit": 120,
           "isolation": "separate_process_and_cgroup_shared_host_no_core_affinity",
-          "synthetic_workload_not_exchange_emission": True, "orders_authorized": False}
+          "synthetic_workload_not_exchange_emission": True,
+          "heartbeat": "replace_last_message_of_each_cycle_with_synthetic_text_PONG_all_modes",
+          "orders_authorized": False}
 
 
 def offsets(cycles=None, phases=None):
@@ -39,12 +41,15 @@ def offsets(cycles=None, phases=None):
         raise ContractError("cycle budget exceeded")
     out, elapsed = [], 0.0
     for _ in range(cycles):
-        for phase in phases:
+        for phase_index, phase in enumerate(phases):
             seconds, rate = phase["seconds"], phase["rate"]
             if not 0 < seconds <= 4 or not 0 < rate <= 3000:
                 raise ContractError("phase budget exceeded")
             for i in range(int(seconds * rate)):
-                out.append({"offset": elapsed + i / rate, "phase_rate": rate})
+                item = {"offset": elapsed + i / rate, "phase_rate": rate}
+                if phase_index == len(phases)-1 and i == int(seconds*rate)-1:
+                    item["synthetic_pong"] = True
+                out.append(item)
             elapsed += seconds
     return out
 
@@ -140,7 +145,8 @@ def produce(root, case, mode):
                 deadline = start + target["offset"]
                 time.sleep(max(0, deadline - time.monotonic()))
                 begin = time.monotonic()
-                raw = prepare_message(corpus, i, begin, base + timedelta(seconds=begin-origin))
+                raw = ("PONG" if target.get("synthetic_pong") else
+                       prepare_message(corpus, i, begin, base + timedelta(seconds=begin-origin)))
                 send_start = time.monotonic()
                 conn.send(raw)
                 end = time.monotonic()
@@ -265,8 +271,12 @@ def verify_case(root, case, mode, *, require_isolation=False):
         raise ContractError("producer/consumer raw identity mismatch")
     groups = {rate: {"ages": [], "lateness": [], "send": []} for rate in (500, 3000)}
     for i, (raw, stamp, obs, target) in enumerate(zip(raws, stamps, observations, offsets())):
-        events = json.loads(raw)
-        events = events if isinstance(events, list) else [events]
+        if target.get("synthetic_pong"):
+            if raw != "PONG": raise ContractError("synthetic heartbeat mismatch")
+            events = []
+        else:
+            events = json.loads(raw)
+            events = events if isinstance(events, list) else [events]
         expected_deadline = observations[0]["deadline"] + target["offset"]
         if (obs["sequence"] != i or obs["phase_rate"] != target["phase_rate"]
                 or abs(obs["deadline"]-expected_deadline) > 1e-8
@@ -311,7 +321,7 @@ def verify_case(root, case, mode, *, require_isolation=False):
                 "first_begin": first["begin"], "last_begin": last["begin"],
                 "first_deadline": first["deadline"], "last_deadline": last["deadline"]})
             position += n
-    result = {"schema_version": "qcrl.burst_reader_case.v1", "mode": mode,
+    result = {"schema_version": "qcrl.burst_reader_case.v2", "mode": mode,
         "plan_sha256": declaration["plan_sha256"], "ready_sha256": ready["ready_sha256"],
         "producer_sha256": producer["producer_sha256"], "delivery_sha256": delivery["delivery_sha256"],
         "messages": len(raws), "raw_identity_verified": True, "separate_cgroups_observed": isolated,
