@@ -59,3 +59,7 @@ This tests a combined single-serialization/compact-format candidate, not a clean
 separation of those two effects. A beneficial outcome still requires further
 validation before public rollout. Do not attribute prior live gaps or multi-second
 tails to encoding solely from this synthetic experiment.
+
+The [completed six-case result and independent audit](../infra/stream/SINGLE_PASS_ENCODING_2026_10_08.md)
+show a modest CPU benefit and non-uniform tail improvement. Public rollout remains
+on hold; the next gate is an order-reversed confirmation under the same limits.
