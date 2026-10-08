@@ -32,6 +32,10 @@ POLICY_V2 = deepcopy(POLICY)
 POLICY_V2["schema_version"] = "qcrl.receive_phase_analysis_policy.v2"
 POLICY_V2["accepted_stream_schemas"].append("qcrl.public_market_stream_spec.v6")
 POLICY_V2["freshness_samples"] = "raw_replayed_bounded_connection_snapshots_not_state_validity"
+POLICY_V3=deepcopy(POLICY_V2)
+POLICY_V3['schema_version']='qcrl.receive_phase_analysis_policy.v3'
+POLICY_V3['accepted_stream_schemas'].append('qcrl.public_market_stream_spec.v7')
+POLICY_V3['recovery']='verified_complete_occurrence_fences_keep_unknown_and_recovered_populations_separate'
 
 
 def _load(path, hash_field):
@@ -158,6 +162,10 @@ def analyze_rows(rows, spec, contract):
     total, phases, connections = _bucket(), {p: _bucket() for p in ("normal", "draining", "unknown")}, {}
     gaps, profiles, resets, saturations = [], [], [], {}
     freshness_samples = []
+    recovery=spec.get('schema_version')=='qcrl.public_market_stream_spec.v7'
+    recovery_generations={}
+    if recovery:
+        phases['recovered']=_bucket()
     previous_mono, previous_wall, initial_offset = None, None, None
     offset_separation, wall_regressions, classification_count = 0.0, 0, 0
     for row in rows:
@@ -214,6 +222,11 @@ def analyze_rows(rows, spec, contract):
                 raise ContractError("receive analysis classification budget exceeded")
             selected = any(c["scope"] == "selected_market" for c in classes)
             phase = "unknown" if record.get("receive_marker") is None else "draining" if record.get("saturation") else "normal"
+            if recovery:
+                a=record['alignment']
+                recovery_generations[str(number)]=a['generation']
+                phase=('unknown' if record.get('receive_marker') is None else
+                       'draining' if a['state']=='draining' else 'recovered' if a['generation'] else 'normal')
             for bucket in (total, phases[phase], connections[number]["bucket"]):
                 _add(bucket, record, selected)
             saturation = record.get("saturation")
@@ -250,22 +263,28 @@ def analyze_rows(rows, spec, contract):
                       "max_application_wall_minus_monotonic_interval_separation_seconds": round(offset_separation, 6),
                       "clock_correction_applied": False, "cross_host_accuracy_proven": False},
             "resources": resource_summary(profiles),
+            **({'verified_recovery_generations_by_connection':recovery_generations} if recovery else {}),
             **({"connection_freshness_samples": freshness_samples} if "freshness_telemetry" in spec else {})}
 
 
-def analyze_capture(root, *, pilot_root=None):
+def analyze_capture(root, *, pilot_root=None, burst_root=None):
     root = Path(root)
     stream = root / "stream"
     verified = verify_stream_log(stream)
     if (not verified["manifest_present"] or not verified["session_end_present"]
-            or verified["header_spec"].get("schema_version") not in POLICY_V2["accepted_stream_schemas"]):
+            or verified["header_spec"].get("schema_version") not in POLICY_V3["accepted_stream_schemas"]):
         raise ContractError("receive analysis requires finalized receive-path stream v4/v5/v6")
     cohort = pilot_root is not None
+    if burst_root is not None:
+        burst_root=Path(burst_root)
+        if cohort or root.parent.resolve()!=burst_root.resolve():
+            raise ContractError('matched burst case must belong directly to explicit declaration root')
     if cohort:
         pilot_root = Path(pilot_root)
         if root.parent.resolve() != pilot_root.resolve():
             raise ContractError("window must belong directly to the explicit pilot root")
-    declaration, declaration_bytes = _load(pilot_root / "pilot.json" if cohort else root / "declaration.json", "plan_sha256")
+    declaration, declaration_bytes = _load(pilot_root / "pilot.json" if cohort else
+        burst_root/'declaration.json' if burst_root is not None else root / "declaration.json", "plan_sha256")
     if cohort:
         validate_plan(declaration)
     spec = verified["header_spec"]
@@ -273,7 +292,12 @@ def analyze_capture(root, *, pilot_root=None):
         raise ContractError("source declaration does not bind the stream")
     public = declaration.get("schema_version") == "qcrl.receive_path_smoke_declaration.v1"
     synthetic = declaration.get("schema_version") == "qcrl.synthetic_receive_burst_schedule.v1"
-    if not (public or synthetic or cohort):
+    burst=declaration.get('schema_version')=='qcrl.burst_reader_declaration.v1'
+    if burst and (burst_root is None or declaration.get('policy',{}).get('schema_version')!='qcrl.burst_reader_policy.v3'
+                  or spec['schema_version'] not in ('qcrl.public_market_stream_spec.v6','qcrl.public_market_stream_spec.v7')
+                  or declaration.get('public_network_capture') is not False):
+        raise ContractError('unsupported recovery burst declaration')
+    if not (public or synthetic or cohort or burst):
         raise ContractError("unsupported source declaration role; do not infer campaign provenance")
     if declaration.get("orders_authorized") is not False:
         raise ContractError("source declaration is not explicitly non-trading")
@@ -287,6 +311,11 @@ def analyze_capture(root, *, pilot_root=None):
     report_path = root / ("result.json" if cohort else "smoke-report.json" if public else "report.json")
     report_field = "result_sha256" if cohort else "report_sha256"
     report, report_bytes = _load(report_path, report_field)
+    if burst:
+        from infra.stream.burst_reader_comparison import context
+        _,corpus,expected_burst=context(burst_root,'recorder',report.get('receive_policy'))
+        if report.get('mode')!='recorder' or expected_burst!=spec:
+            raise ContractError('burst result differs from locked recorder lane')
     capture_sha, capture_bytes = None, None
     if cohort:
         start = report.get("market_start")
@@ -323,7 +352,7 @@ def analyze_capture(root, *, pilot_root=None):
                 raise ContractError("public smoke differs from its exact locked BTC terms")
         if cohort and (check_market(bundle, start, declaration) != spec or report.get("raw_bundle_sha256") != raw_bundle_sha):
             raise ContractError("pilot window differs from locked raw source/terms")
-    elif public or cohort:
+    elif public or cohort or burst:
         raise ContractError("public smoke analysis requires its raw source bundle")
     manifest, manifest_bytes = _load(stream / "manifest.json", "manifest_sha256")
     if any(manifest[key] != verified[key] for key in ("final_record_sha256", "records", "segments",
@@ -334,8 +363,9 @@ def analyze_capture(root, *, pilot_root=None):
     scanned = analyze_rows(_prepend(first, rows), spec, first["payload"]["receive_path_contract"])
     if scanned["total"]["messages"] != verified["frames"]:
         raise ContractError("analysis message counts differ from verified footer")
-    selected_policy = POLICY_V2 if "freshness_telemetry" in spec else POLICY
-    result = {"schema_version": "qcrl.receive_phase_analysis.v2" if "freshness_telemetry" in spec else SCHEMA,
+    recovering=spec['schema_version']=='qcrl.public_market_stream_spec.v7'
+    selected_policy = POLICY_V3 if recovering or burst else POLICY_V2 if "freshness_telemetry" in spec else POLICY
+    result = {"schema_version": "qcrl.receive_phase_analysis.v3" if recovering or burst else "qcrl.receive_phase_analysis.v2" if "freshness_telemetry" in spec else SCHEMA,
               "policy": deepcopy(selected_policy), "policy_sha256": payload_hash(selected_policy),
               "source": {"manifest_sha256": manifest["manifest_sha256"], "manifest_file_sha256": manifest_bytes,
                          "final_record_sha256": verified["final_record_sha256"], "spec_sha256": payload_hash(spec),
@@ -373,8 +403,9 @@ def main():
     parser.add_argument("capture")
     parser.add_argument("--output", required=True)
     parser.add_argument("--pilot-root")
+    parser.add_argument('--burst-root')
     args = parser.parse_args()
-    report = analyze_capture(args.capture, pilot_root=args.pilot_root)
+    report = analyze_capture(args.capture, pilot_root=args.pilot_root,burst_root=args.burst_root)
     persist(args.output, report)
     print(json.dumps({"analysis_sha256": report["analysis_sha256"], "total": report["total"],
                       "transport_gap_free": report["transport_gap_free"]}, indent=2))

@@ -1,4 +1,5 @@
 import json
+from itertools import product
 from pathlib import Path
 import subprocess
 import sys
@@ -43,12 +44,12 @@ class BurstReaderTests(unittest.TestCase):
             source.write_text(json.dumps(corpus()))
             burst.declare_run(source, root)
             with self.assertRaises(FileExistsError): burst.declare_run(source, root)
-            for mode in policy["modes"]:
-                case = root / mode
+            for mode, receive_policy in product(policy["modes"],policy['receive_policies']):
+                case = root / (mode+'-'+receive_policy)
                 command = ("import json; from infra.stream import burst_reader_comparison as b; "
                            "b.POLICY=json.loads(" + repr(json.dumps(policy)) + "); b.")
                 producer = subprocess.Popen([sys.executable, "-c", command +
-                    "produce("+repr(str(root))+","+repr(str(case))+","+repr(mode)+")"], cwd=repo)
+                    "produce("+repr(str(root))+","+repr(str(case))+","+repr(mode)+","+repr(receive_policy)+")"], cwd=repo)
                 try:
                     deadline = time.monotonic()+10
                     while not (case/"ready.json").exists() and time.monotonic()<deadline:
@@ -64,22 +65,27 @@ class BurstReaderTests(unittest.TestCase):
                             if time.monotonic() >= deadline: raise
                             time.sleep(.01)
                     consumer = subprocess.run([sys.executable, "-c", command +
-                        "consume("+repr(str(root))+","+repr(str(case))+","+repr(mode)+")"],
+                        "consume("+repr(str(root))+","+repr(str(case))+","+repr(mode)+","+repr(receive_policy)+")"],
                         cwd=repo, timeout=20, capture_output=True, text=True)
                     self.assertEqual(consumer.returncode, 0, consumer.stderr)
                     self.assertEqual(producer.wait(timeout=15), 0)
-                    result = burst.verify_case(root, case, mode)
+                    result = burst.verify_case(root, case, mode,receive_policy=receive_policy)
                     self.assertEqual(result["messages"], 8)
                     self.assertTrue(result["raw_identity_verified"])
                     self.assertEqual(burst.read(case/"deliveries.json", "delivery_sha256")["raws"][-1], "PONG")
                     self.assertNotEqual(result["producer_identity"]["pid"],result["consumer_identity"]["pid"])
-                    with self.assertRaises(FileExistsError): burst.verify_case(root, case, mode)
+                    if mode=='recorder':
+                        from execution_truth.stream_receive_analysis import analyze_capture
+                        analysis=analyze_capture(case,burst_root=root)
+                        self.assertEqual(analysis['schema_version'],'qcrl.receive_phase_analysis.v3')
+                        self.assertEqual(analysis['total']['messages'],8)
+                    with self.assertRaises(FileExistsError): burst.verify_case(root, case, mode,receive_policy=receive_policy)
                     data = burst.read(case/"deliveries.json", "delivery_sha256")
                     data["raws"][0] = "{}"
                     data.pop("delivery_sha256")
                     data["delivery_sha256"] = payload_hash(data)
                     (case/"deliveries.json").write_text(json.dumps(data))
-                    with self.assertRaises(ContractError): burst.verify_case(root, case, mode)
+                    with self.assertRaises(ContractError): burst.verify_case(root, case, mode,receive_policy=receive_policy)
                 finally:
                     if producer.poll() is None:
                         producer.terminate(); producer.wait(timeout=5)

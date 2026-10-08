@@ -1,6 +1,6 @@
 # Separate-quota synthetic localhost burst comparison
 
-Fixed policy `qcrl.burst_reader_policy.v2`: six five-second cycles per case,
+Historical initial policy `qcrl.burst_reader_policy.v2`: six five-second cycles per case,
 each with four seconds at 500 target messages/second then one second at 3,000.
 Three rotating-order rounds of bare reader, receive-v2 instrumentation and
 unchanged full stream-v6 recorder give nine cases, 30 seconds / 30,000 messages
@@ -50,6 +50,9 @@ systemd properties. Reports explicitly do not assert quota verification alone.
 Artifacts are exclusive writes. Failure stops the launcher, preserves evidence
 and performs no retry, public capture, timer modification or resource change.
 
+The current matched v3 policy and two-argument diagnostic-clone launcher are
+documented in [the integration contract](RECEIVE_RECOVERY_INTEGRATION.md).
+The original v2 source/launcher remain bound to their historical Git revisions.
 The root-only finite Linux launcher is `infra/stream/run_burst_reader_comparison.sh`.
 It requires an inactive observer, clean committed checkout, more than 4 GiB free,
 a fresh explicitly named `/var/lib/qcrl-stream/reader-burst-*` root and the already

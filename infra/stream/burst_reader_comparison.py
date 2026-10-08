@@ -18,12 +18,14 @@ from execution_truth.contracts import ContractError, payload_hash, verify_artifa
 from execution_truth.market_stream import collect_market_stream, stream_plan, verify_stream_log
 from execution_truth.receive_adapter import ObservedSocket, _load_library
 from execution_truth.receive_path import ReceivePathTracker, declare, sample_clock, validate_delivery
+from execution_truth.receive_recovery import ReceiveRecoveryTracker, validate_recovery_connection
 from execution_truth.rolling_stream import persist
 from execution_truth.stream_freshness import statistics
 
-POLICY = {"schema_version": "qcrl.burst_reader_policy.v2", "cycles": 6,
+POLICY = {"schema_version": "qcrl.burst_reader_policy.v3", "cycles": 6,
           "phases": [{"seconds": 4, "rate": 500}, {"seconds": 1, "rate": 3000}],
           "rounds": 3, "modes": ["bare", "receive", "recorder"],
+          "receive_policies": ["v2", "v3"], "policy_order": "alternate_by_round_and_original_mode_index",
           "mode_order": "rotating_latin_order_by_round", "pacing": "absolute_deadlines_no_drops",
           "producer_cpu_quota_percent": 100, "consumer_cpu_quota_percent": 75,
           "memory_max_bytes_per_process_group": 536870912, "tasks_max": 32,
@@ -73,7 +75,8 @@ def declare_run(corpus_path, root):
     names = ("infra/stream/burst_reader_comparison.py", "infra/stream/reader_comparison.py",
              "execution_truth/receive_adapter.py", "execution_truth/receive_path.py",
              "execution_truth/market_stream.py", "execution_truth/connection_freshness.py",
-             "execution_truth/stream_segments.py")
+             "execution_truth/stream_segments.py", "execution_truth/receive_recovery.py",
+             "execution_truth/stream_receive_analysis.py")
     signed(root / "declaration.json", {"schema_version": "qcrl.burst_reader_declaration.v1",
            "policy": POLICY, "corpus_sha256": corpus["corpus_sha256"],
            "sources": {name: hashlib.sha256((source_root/name).read_bytes()).hexdigest() for name in names},
@@ -81,10 +84,10 @@ def declare_run(corpus_path, root):
     persist(root / "corpus.json", corpus)
 
 
-def context(root, mode):
+def context(root, mode, receive_policy='v3'):
     root = Path(root)
     declaration = read(root / "declaration.json", "plan_sha256")
-    if declaration.get("policy") != POLICY or mode not in POLICY["modes"]:
+    if declaration.get("policy") != POLICY or mode not in POLICY["modes"] or receive_policy not in POLICY['receive_policies']:
         raise ContractError("unsupported fixed burst declaration or mode")
     source_root = Path(__file__).resolve().parents[2]
     for name, digest in declaration["sources"].items():
@@ -94,7 +97,7 @@ def context(root, mode):
     if corpus["corpus_sha256"] != declaration["corpus_sha256"]:
         raise ContractError("declaration corpus mismatch")
     spec = stream_plan(corpus["bundle"], segmented=True, profiling=True, resilient=True,
-                       receive_path=True, freshness_telemetry=True, receive_policy="v2",
+                       receive_path=True, freshness_telemetry=True, receive_policy=receive_policy,
                        source_plan_sha256=declaration["plan_sha256"], max_seconds=90,
                        max_frames=len(offsets()))
     return declaration, corpus, spec
@@ -120,16 +123,16 @@ def identity():
             if Path("/proc/sys/kernel/random/boot_id").exists() else None}
 
 
-def produce(root, case, mode):
+def produce(root, case, mode, receive_policy='v3'):
     from websockets.sync.server import serve
     from websockets.exceptions import ConnectionClosed
     _load_library()
-    declaration, corpus, spec = context(root, mode)
+    declaration, corpus, spec = context(root, mode, receive_policy)
     case = Path(case)
     schedule = offsets()
     origin = time.monotonic()
     base = _time(spec["event_start_at_utc"])
-    ready = {"plan_sha256": declaration["plan_sha256"], "mode": mode,
+    ready = {"plan_sha256": declaration["plan_sha256"], "mode": mode, "receive_policy":receive_policy,
              "origin_monotonic": origin, "fixture_base_utc": base.isoformat(),
              "producer_identity": identity()}
     finished = threading.Event()
@@ -182,14 +185,14 @@ def produce(root, case, mode):
         raise ContractError("producer failed: " + repr(errors))
 
 
-def consume(root, case, mode):
+def consume(root, case, mode, receive_policy='v3'):
     from websockets.sync.client import connect
     _load_library()
-    declaration, corpus, spec = context(root, mode)
+    declaration, corpus, spec = context(root, mode, receive_policy)
     case = Path(case)
     ready = read(case / "ready.json", "ready_sha256")
     localhost_uri(ready["uri"])
-    if ready["plan_sha256"] != declaration["plan_sha256"] or ready["mode"] != mode:
+    if ready["plan_sha256"] != declaration["plan_sha256"] or ready["mode"] != mode or ready['receive_policy']!=receive_policy:
         raise ContractError("producer readiness binding mismatch")
     consumer_identity = identity()
     if consumer_identity["pid"] == ready["producer_identity"]["pid"]:
@@ -199,8 +202,11 @@ def consume(root, case, mode):
     base = _time(ready["fixture_base_utc"])
     def clock():
         return base + timedelta(seconds=time.monotonic()-ready["origin_monotonic"])
-    tracker = ReceivePathTracker(declare(declaration["plan_sha256"], "localhost.burst",
-                                        stream_spec_sha256=payload_hash(spec), policy_version="v2"))
+    tracker_class=ReceiveRecoveryTracker if receive_policy=='v3' else ReceivePathTracker
+    tracker = tracker_class(declare(declaration["plan_sha256"], "localhost.burst",
+                                        stream_spec_sha256=payload_hash(spec), policy_version=receive_policy))
+    if mode=='recorder':
+        persist(case/('market-'+str(spec['market_id'])+'.json'),corpus['bundle'])
     raws, records, stamps, queues = [], [], [], []
     client = None
     summary = None
@@ -250,13 +256,13 @@ def consume(root, case, mode):
            "timed_cpu_seconds": cpu_seconds, "recorder_summary": summary}, "delivery_sha256")
 
 
-def verify_case(root, case, mode, *, require_isolation=False):
-    declaration, _, _ = context(root, mode)
+def verify_case(root, case, mode, *, require_isolation=False, receive_policy='v3'):
+    declaration, _, _ = context(root, mode, receive_policy)
     case = Path(case)
     ready = read(case / "ready.json", "ready_sha256")
     producer = read(case / "producer.json", "producer_sha256")
     delivery = read(case / "deliveries.json", "delivery_sha256")
-    if (ready["plan_sha256"] != declaration["plan_sha256"] or ready["mode"] != mode
+    if (ready["plan_sha256"] != declaration["plan_sha256"] or ready["mode"] != mode or ready['receive_policy']!=receive_policy
             or producer["mode"] != mode or producer["ready_sha256"] != ready["ready_sha256"]
             or producer["producer_identity"] != ready["producer_identity"]):
         raise ContractError("case source binding mismatch")
@@ -291,11 +297,13 @@ def verify_case(root, case, mode, *, require_isolation=False):
     if mode != "bare" and len(records) != len(raws):
         raise ContractError("incomplete receive telemetry")
     if mode == "receive":
-        _, _, spec = context(root, mode)
+        _, _, spec = context(root, mode, receive_policy)
         contract = declare(declaration["plan_sha256"], "localhost.burst",
-                           stream_spec_sha256=payload_hash(spec), policy_version="v2")
+                           stream_spec_sha256=payload_hash(spec), policy_version=receive_policy)
         for raw, record in zip(raws, records):
             validate_delivery(record, contract, raw)
+        if receive_policy=='v3':
+            validate_recovery_connection(records,contract,raws)
     verification = None
     if mode == "recorder":
         verification = verify_stream_log(case / "stream")
@@ -321,7 +329,7 @@ def verify_case(root, case, mode, *, require_isolation=False):
                 "first_begin": first["begin"], "last_begin": last["begin"],
                 "first_deadline": first["deadline"], "last_deadline": last["deadline"]})
             position += n
-    result = {"schema_version": "qcrl.burst_reader_case.v2", "mode": mode,
+    result = {"schema_version": "qcrl.burst_reader_case.v3", "mode": mode, "receive_policy":receive_policy,
         "plan_sha256": declaration["plan_sha256"], "ready_sha256": ready["ready_sha256"],
         "producer_sha256": producer["producer_sha256"], "delivery_sha256": delivery["delivery_sha256"],
         "messages": len(raws), "raw_identity_verified": True, "separate_cgroups_observed": isolated,
@@ -336,6 +344,7 @@ def verify_case(root, case, mode, *, require_isolation=False):
         "producer_timed_cpu_seconds": producer["timed_cpu_seconds"],
         "missing_delivery_stamps": sum(s is None for s in stamps),
         "unknown_receive_records": sum(not r.get("receive_marker") for r in records),
+        "recovery_generations": records[-1]['alignment']['generation'] if records and receive_policy=='v3' else None,
         "max_sampled_queue_depth": max((r["library_queue_depth"] for r in q if r.get("library_queue_depth") is not None), default=None),
         "paused_delivered_samples": sum(r.get("library_backpressure_active") is True for r in q),
         "verification": verification, "orders_authorized": False, "public_network_capture": False}
@@ -350,16 +359,17 @@ def main():
     parser.add_argument("--case", type=Path)
     parser.add_argument("--mode", choices=POLICY["modes"])
     parser.add_argument("--require-isolation", action="store_true")
+    parser.add_argument('--receive-policy',choices=POLICY['receive_policies'],default='v3')
     args = parser.parse_args()
     if args.role == "declare":
         if args.corpus is None: parser.error("declaration requires corpus")
         declare_run(args.corpus, args.root)
     else:
         if args.case is None or args.mode is None: parser.error("case and mode required")
-        if args.role == "produce": produce(args.root, args.case, args.mode)
-        elif args.role == "consume": consume(args.root, args.case, args.mode)
+        if args.role == "produce": produce(args.root, args.case, args.mode,args.receive_policy)
+        elif args.role == "consume": consume(args.root, args.case, args.mode,args.receive_policy)
         else:
-            result = verify_case(args.root, args.case, args.mode, require_isolation=args.require_isolation)
+            result = verify_case(args.root, args.case, args.mode, require_isolation=args.require_isolation,receive_policy=args.receive_policy)
             print(json.dumps(result), flush=True)
 
 

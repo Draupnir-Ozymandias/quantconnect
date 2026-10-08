@@ -2,16 +2,19 @@
 # One finite declared localhost cohort. No public collectors are changed.
 set -euo pipefail
 test "$(id -u)" = 0
-test "$#" = 1
+test "$#" = 2
 run_root=$1
+source_root=$2
+case "$source_root" in /var/lib/qcrl-stream/receive-recovery-*/source) ;; *) exit 2 ;; esac
+test ! -L "$source_root"
 case "$run_root" in /var/lib/qcrl-stream/reader-burst-*) ;; *) exit 2 ;; esac
 test ! -e "$run_root"
 test "$(systemctl is-active qcrl-stream-pilot.service || true)" = inactive
 test "$(df --output=avail -B1 /var/lib/qcrl-stream | tail -1)" -gt 4294967296
-source_root=/opt/qcrl-stream
 python=/opt/qcrl-stream/venv/bin/python
 test -x "$python"
 test -z "$(git -c safe.directory="$source_root" -C "$source_root" status --porcelain)"
+cd "$source_root"
 install -d -o qcrl -g qcrl -m 750 "$run_root"
 corpus=/var/lib/qcrl-stream/reader-comparison-linux-20261007-vDV2YH/input-corpus.json
 sudo -u qcrl "$python" "$source_root/infra/stream/burst_reader_comparison.py" declare --root "$run_root" --corpus "$corpus"
@@ -25,11 +28,14 @@ common=(--property=User=qcrl --property=Group=qcrl --property=MemoryMax=512M --p
 for round in 0 1 2; do
   case "$round" in 0) modes=(bare receive recorder);; 1) modes=(receive recorder bare);; 2) modes=(recorder bare receive);; esac
   for mode in "${modes[@]}"; do
-    case_root="$run_root/$round-$mode"
+    case "$mode" in bare) mode_index=0;; receive) mode_index=1;; recorder) mode_index=2;; esac
+    if (( (round+mode_index)%2 == 0 )); then policies=(v2 v3); else policies=(v3 v2); fi
+    for receive_policy in "${policies[@]}"; do
+    case_root="$run_root/$round-$mode-$receive_policy"
     install -d -o qcrl -g qcrl -m 750 "$case_root"
-    unit_tag="qcrl-burst-$(basename "$run_root")-$round-$mode"
+    unit_tag="qcrl-burst-$(basename "$run_root")-$round-$mode-$receive_policy"
     systemd-run --unit="$unit_tag-producer" "${common[@]}" --property=CPUQuota=100% \
-      "$python" "$source_root/infra/stream/burst_reader_comparison.py" produce --root "$run_root" --case "$case_root" --mode "$mode"
+      "$python" "$source_root/infra/stream/burst_reader_comparison.py" produce --root "$run_root" --case "$case_root" --mode "$mode" --receive-policy "$receive_policy"
     "$python" - "$case_root/ready.json" <<'PY'
 import json, pathlib, sys, time
 p=pathlib.Path(sys.argv[1]); deadline=time.monotonic()+15
@@ -40,7 +46,7 @@ while time.monotonic()<deadline:
 else: raise SystemExit('producer did not become ready')
 PY
     systemd-run --unit="$unit_tag-consumer" "${common[@]}" --property=CPUQuota=75% \
-      "$python" "$source_root/infra/stream/burst_reader_comparison.py" consume --root "$run_root" --case "$case_root" --mode "$mode"
+      "$python" "$source_root/infra/stream/burst_reader_comparison.py" consume --root "$run_root" --case "$case_root" --mode "$mode" --receive-policy "$receive_policy"
     for attempt in $(seq 1 240); do
       state=$(systemctl show "$unit_tag-consumer.service" -p SubState --value)
       test "$state" = exited && break
@@ -62,8 +68,13 @@ PY
       systemctl stop "$unit_tag-$role.service"
     done
     sudo -u qcrl "$python" "$source_root/infra/stream/burst_reader_comparison.py" verify \
-      --root "$run_root" --case "$case_root" --mode "$mode" --require-isolation > "$case_root/verification-output.json"
+      --root "$run_root" --case "$case_root" --mode "$mode" --receive-policy "$receive_policy" --require-isolation > "$case_root/verification-output.json"
+    if test "$mode" = recorder; then
+      sudo -u qcrl "$python" -m execution_truth.stream_receive_analysis "$case_root" \
+        --burst-root "$run_root" --output "$case_root/receive-analysis.json" > "$case_root/analysis-output.json"
+    fi
     printf 'VERIFIED %s\n' "$case_root"
+    done
   done
 done
 sha256sum /etc/qcrl-stream.env > "$run_root/collector-environment-after.sha256"

@@ -1,9 +1,11 @@
 # Opt-in bounded receive recovery — v3 foundation
 
 `ReceiveRecoveryTracker` implements explicit `qcrl.receive_path_policy.v3`.
-V1/v2 policy payloads, contracts and behavior remain unchanged. V3 is NOT enabled
-in public collectors, service plans, cloud CLI, campaign execution or the burst
-comparison runner. The base tracker rejects a v3 contract: callers must select
+V1/v2 policy payloads, contracts and behavior remain unchanged. V3 is available
+only through explicit low-level recorder v7 and the versioned matched synthetic
+runner; it is NOT enabled in public deployments, rolling service plans, cloud
+CLI or campaign execution. See [the integration contract](RECEIVE_RECOVERY_INTEGRATION.md).
+The base tracker rejects a v3 contract: callers must select
 the recovery tracker explicitly. The unchanged pinned WebSocket adapter accepts
 the subclass; its queue/flow-control/reader behavior is not replaced.
 

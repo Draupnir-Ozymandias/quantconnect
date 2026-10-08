@@ -271,7 +271,7 @@ def validate_recovery_delivery(record, contract, message):
     return record
 
 
-def validate_recovery_connection(records, contract, messages, *, connection=1):
+def _validate_recovery_connection(records, contract, messages, *, connection=1, _state=None):
     """Audit an entire connection's delivery trajectory, not an arbitrary slice.
 
     Checks occurrence progression and fence transitions across archived records.
@@ -282,8 +282,10 @@ def validate_recovery_connection(records, contract, messages, *, connection=1):
     if policy_version(contract["policy"])!="v3" or type(connection) is not int or connection<1:
         raise ContractError("complete-connection audit requires explicit v3 identity")
     sentinel=object()
-    previous=None
-    count=known=recovered=0
+    previous=None if _state is None else _state.get('previous')
+    count=0 if _state is None else _state.get('count',0)
+    known=0 if _state is None else _state.get('known',0)
+    recovered=0 if _state is None else _state.get('recovered',0)
     for record, message in zip_longest(records,messages,fillvalue=sentinel):
         if record is sentinel or message is sentinel:
             raise ContractError("raw/delivery trajectory lengths differ")
@@ -321,6 +323,28 @@ def validate_recovery_connection(records, contract, messages, *, connection=1):
                 raise ContractError("draining cannot rearm without a new fence generation")
         known+=record["receive_marker"] is not None
         previous=a
+    if _state is not None:
+        _state.update(previous=deepcopy(previous),count=count,known=known,recovered=recovered)
     return {"connection":connection,"deliveries":count,"known":known,"unknown":count-known,
             "recovery_generations":recovered,"last_alignment":deepcopy(previous),
             "wire_arrival_measured":False,"orders_authorized":False}
+
+
+def validate_recovery_connection(records, contract, messages, *, connection=1):
+    return _validate_recovery_connection(records,contract,messages,connection=connection)
+
+
+class RecoveryConnectionAudit:
+    """Incremental sealed-stream audit: bounded previous-record state only."""
+    def __init__(self, contract, connection):
+        self.contract=deepcopy(contract)
+        self.connection=connection
+        self.state={}
+        self.result=_validate_recovery_connection([],contract,[],connection=connection)
+
+    def consume(self, record, message):
+        self.result=_validate_recovery_connection([record],self.contract,[message],
+            connection=self.connection,_state=self.state)
+
+    def summary(self):
+        return deepcopy(self.result)

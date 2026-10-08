@@ -154,6 +154,8 @@ def verify_segments(root):
     sideband_disabled = False
     reset_seen = False
     retained_saturation = None
+    recovery_audit = None
+    recovery_summaries = {}
     freshness_started = freshness_finished = freshness_samples = 0
     descriptors = sorted(root.glob("segment-*.json"))
     if not descriptors:
@@ -194,20 +196,23 @@ def verify_segments(root):
                     first_received, header_spec = row["received_at_utc"], row["payload"]["spec"]
                     if not isinstance(header_spec, dict):
                         raise ContractError("stream spec must be an object")
-                    if header_spec.get("schema_version") in ("qcrl.public_market_stream_spec.v4", "qcrl.public_market_stream_spec.v5", "qcrl.public_market_stream_spec.v6"):
+                    if header_spec.get("schema_version") in ("qcrl.public_market_stream_spec.v4", "qcrl.public_market_stream_spec.v5", "qcrl.public_market_stream_spec.v6", "qcrl.public_market_stream_spec.v7"):
                         from .receive_path import validate_contract, policy_for
                         receive_contract = validate_contract(row["payload"].get("receive_path_contract"))
                         from .receive_path import policy_version
                         version = policy_version(header_spec["receive_path"])
-                        if header_spec["schema_version"] != "qcrl.public_market_stream_spec.v6" and version != (
-                                "v2" if header_spec["schema_version"] == "qcrl.public_market_stream_spec.v5" else "v1"):
+                        allowed={"qcrl.public_market_stream_spec.v4":("v1",),
+                                 "qcrl.public_market_stream_spec.v5":("v2",),
+                                 "qcrl.public_market_stream_spec.v6":("v1","v2"),
+                                 "qcrl.public_market_stream_spec.v7":("v3",)}
+                        if version not in allowed[header_spec["schema_version"]]:
                             raise ContractError("receive schema/policy version mismatch")
                         if (header_spec.get("receive_path") != policy_for(version)
                                 or receive_contract["policy"] != policy_for(version)
                                 or receive_contract["stream_spec_sha256"] != payload_hash(header_spec)
                                 or receive_contract["source_plan_sha256"] != header_spec.get("source_plan_sha256")):
                             raise ContractError("receive contract differs from stream/source policy")
-                    if header_spec.get("schema_version") == "qcrl.public_market_stream_spec.v6":
+                    if header_spec.get("schema_version") in ("qcrl.public_market_stream_spec.v6", "qcrl.public_market_stream_spec.v7"):
                         from .connection_freshness import POLICY as FRESHNESS_POLICY
                         from .stream_resilience import POLICY as RESILIENCE_POLICY
                         if header_spec.get("freshness_telemetry") != FRESHNESS_POLICY or header_spec.get("resilience") != RESILIENCE_POLICY:
@@ -222,15 +227,29 @@ def verify_segments(root):
                     if type(connection) is not int or connection != active_connection + 1:
                         raise ContractError("receive connection order mismatch")
                     active_connection, message_sequence, frame_sequence = connection, 0, 0
+                    if header_spec.get('schema_version')=='qcrl.public_market_stream_spec.v7':
+                        from .receive_recovery import RecoveryConnectionAudit
+                        if recovery_audit is not None:
+                            recovery_summaries[str(connection-1)]=recovery_audit.summary()
+                        recovery_audit=RecoveryConnectionAudit(receive_contract,connection)
                     reset_seen = False
                     sideband_disabled = False
                     retained_saturation = None
                 if receive_contract and row["kind"] == "receive_path_reset":
                     reset = row["payload"]
+                    reset_keys={"new_connection", "previous_connection", "discarded_pending_markers",
+                                "discarded_incomplete_fragment", "previous_disabled_reason"}
+                    if recovery_audit is not None:
+                        reset_keys|={'discarded_unknown_backlog','previous_generation'}
+                        if any(type(reset.get(k)) is not int or reset[k]<0 or reset[k]>1000000
+                               for k in ('discarded_unknown_backlog','previous_generation')):
+                            raise ContractError('invalid recovery reset counters')
+                        prior=recovery_summaries.get(str(active_connection-1),{}).get('last_alignment')
+                        if reset['previous_generation']!=(prior['generation'] if prior else 0):
+                            raise ContractError('recovery reset generation differs from prior trajectory')
                     if (reset_seen or not active_connection or reset.get("new_connection") != active_connection
                             or reset.get("previous_connection") != active_connection - 1
-                            or set(reset) != {"new_connection", "previous_connection", "discarded_pending_markers",
-                                              "discarded_incomplete_fragment", "previous_disabled_reason"}
+                            or set(reset) != reset_keys
                             or type(reset["discarded_pending_markers"]) is not int
                             or not 0 <= reset["discarded_pending_markers"] <= 64
                             or type(reset["discarded_incomplete_fragment"]) is not bool
@@ -240,7 +259,7 @@ def verify_segments(root):
                     reset_seen = True
                 if row["kind"] == "connection_gap":
                     gaps += 1
-                    if header_spec.get("schema_version") == "qcrl.public_market_stream_spec.v6":
+                    if header_spec.get("schema_version") in ("qcrl.public_market_stream_spec.v6", "qcrl.public_market_stream_spec.v7"):
                         diagnostic = row["payload"].get("close_diagnostics")
                         keys = {"schema_version", "origin", "error_type", "received_code", "sent_code",
                                 "received_before_sent", "remote_cause_proven"}
@@ -259,7 +278,7 @@ def verify_segments(root):
                                 or (watchdog_reason and any(diagnostic[k] is not None for k in
                                     ("received_code", "sent_code", "received_before_sent")))):
                             raise ContractError("watchdog close diagnostics claim transport codes")
-                if header_spec.get("schema_version") == "qcrl.public_market_stream_spec.v6":
+                if header_spec.get("schema_version") in ("qcrl.public_market_stream_spec.v6", "qcrl.public_market_stream_spec.v7"):
                     from .connection_freshness import ConnectionFreshness
                     if row["kind"] == "subscribed":
                         if not freshness_ended or row["payload"].get("connection") != active_connection:
@@ -287,7 +306,7 @@ def verify_segments(root):
                     if row["kind"] == "session_end" and not freshness_ended and row["payload"].get("status") != "storage_limit":
                         raise ContractError("missing final connection freshness sample")
                 if row["kind"] == "frame" and header_spec.get("schema_version") in (
-                        "qcrl.public_market_stream_spec.v3", "qcrl.public_market_stream_spec.v4", "qcrl.public_market_stream_spec.v5", "qcrl.public_market_stream_spec.v6"):
+                        "qcrl.public_market_stream_spec.v3", "qcrl.public_market_stream_spec.v4", "qcrl.public_market_stream_spec.v5", "qcrl.public_market_stream_spec.v6", "qcrl.public_market_stream_spec.v7"):
                     from .market_stream import classify_frame
                     payload = row["payload"]
                     classes = classify_frame(payload["raw_text"], header_spec)
@@ -300,9 +319,13 @@ def verify_segments(root):
                         if not isinstance(record, dict) or not reset_seen or payload["connection"] != active_connection:
                             raise ContractError("missing receive record or connection reset")
                         if record.get("schema_version") == "qcrl.receive_adapter_failure.v1":
+                            if recovery_audit is not None:
+                                raise ContractError('v3 recovery trajectory unavailable after adapter failure; preserve raw archive')
                             validate_adapter_failure(record, receive_contract, payload["raw_text"])
                         else:
                             validate_delivery(record, receive_contract, payload["raw_text"])
+                            if recovery_audit is not None:
+                                recovery_audit.consume(record,payload['raw_text'])
                             stamp = record["application_delivery"]
                             if delivery_after is not None and stamp["monotonic_before"] < delivery_after:
                                 raise ContractError("receive delivery chronology reversed")
@@ -322,7 +345,7 @@ def verify_segments(root):
                                     and message_sequence != saturation["last_retained_message_sequence"]):
                                 raise ContractError("saturated FIFO prefix was not fully drained")
                         if marker:
-                            if (sideband_disabled or marker["message_sequence"] != message_sequence + 1
+                            if ((recovery_audit is None and (sideband_disabled or marker["message_sequence"] != message_sequence + 1))
                                     or marker["first_frame_sequence"] <= frame_sequence
                                     or (receiver_after is not None and
                                         marker["first_receive_observation"]["monotonic_before"] < receiver_after)):
@@ -332,9 +355,10 @@ def verify_segments(root):
                             receive_counts["available"] += 1
                             receive_counts["timing_eligible"] += int(record["last_observation_to_delivery"]["timing_eligible"])
                         else:
-                            sideband_disabled = True
+                            if recovery_audit is None:
+                                sideband_disabled = True
                             receive_counts["unavailable"] += 1
-                    if header_spec.get("schema_version") == "qcrl.public_market_stream_spec.v6":
+                    if header_spec.get("schema_version") in ("qcrl.public_market_stream_spec.v6", "qcrl.public_market_stream_spec.v7"):
                         if freshness_replay is None or freshness_ended:
                             raise ContractError("frame outside declared freshness connection")
                         freshness_replay.observe(payload["raw_text"], classes, record)
@@ -379,7 +403,12 @@ def verify_segments(root):
             raise ContractError("receive stream footer totals differ from evidence")
         result["receive_path_verification"] = {"contract_sha256": receive_contract["contract_sha256"], **receive_counts,
                                                "wire_arrival_measured": False}
-    if header_spec and header_spec.get("schema_version") == "qcrl.public_market_stream_spec.v6":
+    if recovery_audit is not None:
+        recovery_summaries[str(active_connection)]=recovery_audit.summary()
+        result['receive_recovery_verification']={'schema_version':'qcrl.receive_recovery_verification.v1',
+            'connections':recovery_summaries,'retained_delivery_trajectories_verified':True,
+            'finalized_session':final}
+    if header_spec and header_spec.get("schema_version") in ("qcrl.public_market_stream_spec.v6", "qcrl.public_market_stream_spec.v7"):
         result["freshness_verification"] = {"schema_version": "qcrl.connection_freshness_verification.v1",
             "raw_replayed_samples": freshness_samples, "subscribed_connections": freshness_started,
             "final_snapshots": freshness_finished, "all_final_snapshots_present": freshness_started == freshness_finished,

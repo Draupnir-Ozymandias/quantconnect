@@ -47,8 +47,10 @@ def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=Fal
         raise ContractError("receive path requires segmented profiling mode")
     if not receive_path and source_plan_sha256 is not None:
         raise ContractError("source plan binding requires receive path mode")
-    if receive_policy not in ("v1", "v2") or (not receive_path and receive_policy != "v1"):
+    if receive_policy not in ("v1", "v2", "v3") or (not receive_path and receive_policy != "v1"):
         raise ContractError("receive policy requires an explicit supported receive path")
+    if receive_policy == "v3" and not freshness_telemetry:
+        raise ContractError("receive v3 requires explicit freshness/resilience archive v7")
     if type(freshness_telemetry) is not bool or (freshness_telemetry and not (receive_path and resilient)):
         raise ContractError("freshness diagnostics require receive path and resilience")
     for value, maximum in ((max_seconds, 600), (max_frames, 1000000 if segmented else 100000)):
@@ -97,6 +99,8 @@ def stream_plan(raw_bundle, *, max_seconds=360, max_frames=100000, segmented=Fal
         from .connection_freshness import POLICY
         plan["freshness_telemetry"] = deepcopy(POLICY)
         plan["schema_version"] = "qcrl.public_market_stream_spec.v6"
+    if receive_policy == "v3":
+        plan["schema_version"] = "qcrl.public_market_stream_spec.v7"
     return plan
 
 
@@ -244,7 +248,7 @@ def live_connector():
 def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_now,
                           monotonic=time.monotonic, pause=time.sleep, clock_domain=None):
     segmented = spec.get("schema_version") in ("qcrl.public_market_stream_spec.v3", "qcrl.public_market_stream_spec.v4",
-                                               "qcrl.public_market_stream_spec.v5", "qcrl.public_market_stream_spec.v6")
+                                               "qcrl.public_market_stream_spec.v5", "qcrl.public_market_stream_spec.v6", "qcrl.public_market_stream_spec.v7")
     from .receive_path import policy_version
     version = policy_version(spec["receive_path"]) if "receive_path" in spec else "v1"
     expected = stream_plan(raw_bundle, max_seconds=spec.get("max_seconds"), max_frames=spec.get("max_frames"),
@@ -264,7 +268,11 @@ def collect_market_stream(raw_bundle, spec, path, *, connector=None, clock=utc_n
         from .receive_path import declare, ReceivePathTracker
         contract = declare(spec["source_plan_sha256"], clock_domain or "capture." + uuid.uuid4().hex,
                            stream_spec_sha256=payload_hash(spec), policy_version=version)
-        tracker = ReceivePathTracker(contract)
+        if version == "v3":
+            from .receive_recovery import ReceiveRecoveryTracker
+            tracker = ReceiveRecoveryTracker(contract)
+        else:
+            tracker = ReceivePathTracker(contract)
         header["receive_path_contract"] = contract
         connector = connector or observed_connector
     else:
