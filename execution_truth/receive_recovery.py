@@ -255,8 +255,9 @@ def validate_recovery_delivery(record, contract, message):
         if alignment["state"]=="aligned" and (overflow["generation_before"]!=gen-1
                 or fence["observed_messages"]<overflow["first_unretained_message_sequence"]):
             raise ContractError("recovery fence does not cover overflow")
-        if marker is not None and alignment["state"]=="aligned" and marker["message_sequence"]<=fence["delivered_messages"]:
-            raise ContractError("recovered marker cannot precede recovery fence")
+        if marker is not None and (marker["message_sequence"]<=fence["delivered_messages"]
+                                  or marker['first_frame_sequence']<=fence['observed_frames']):
+            raise ContractError("recovered marker cannot reuse occurrences or frames at/before recovery fence")
     elif fence is not None:
         raise ContractError("initial generation cannot claim recovery")
     if marker is not None and alignment["state"]=="draining":

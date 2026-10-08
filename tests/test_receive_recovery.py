@@ -207,6 +207,17 @@ class ReceiveRecoveryTests(unittest.TestCase):
         r['telemetry_sha256']=payload_hash(r)
         with self.assertRaises(ContractError): validate_delivery(r,t.contract,'same')
 
+    def test_recovered_marker_cannot_reuse_fence_frame_identity(self):
+        t=tracker(); fill(t)
+        for i in range(65): deliver(t,at=100+i)
+        t.observe_frame(1,1,True,b'same',stamp(165))
+        r=deliver(t,at=166)
+        fence_frame=r['alignment']['recovery_fence']['observed_frames']
+        r['receive_marker']['first_frame_sequence']=fence_frame
+        r['receive_marker']['last_frame_sequence']=fence_frame
+        r.pop('telemetry_sha256'); r['telemetry_sha256']=payload_hash(r)
+        with self.assertRaises(ContractError): validate_delivery(r,t.contract,'same')
+
     def test_delivery_ahead_and_adapter_failure_are_terminal(self):
         t=tracker(); r=deliver(t,at=1)
         self.assertEqual(r['unavailable_reason'],'delivery_occurrence_ahead_of_observation')
