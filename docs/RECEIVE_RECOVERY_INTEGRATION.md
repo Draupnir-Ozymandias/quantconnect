@@ -10,11 +10,10 @@ V7 instantiates `ReceiveRecoveryTracker`. Sealed-stream verification uses the
 bounded incremental `RecoveryConnectionAudit` to check every retained delivery's
 occurrence and generation/fence trajectory against raw frames. Known messages
 after an unknown interval are accepted only under that verified trajectory,
-never by weakening v1/v2's irreversible-disable checks. Reconnect resets retain
+never by weakening v1/v2's irreversible-disable checks.
 Restored markers must also use frame ordinals beyond their complete-frame fence;
 the validator rejects rehashed reuse of a fence frame, including later draining.
-Reconnect resets retain
-unknown-backlog and previous-generation fields; previous generation is checked
+Reconnect resets retain unknown-backlog and previous-generation fields; previous generation is checked
 against the archived prior connection. Freshness replay and structured closes
 are verified for v7 as for v6. Old valid v4/v5/v6 report shapes stay unchanged.
 
