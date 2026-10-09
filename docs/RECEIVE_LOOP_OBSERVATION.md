@@ -3,7 +3,8 @@
 Status: **frozen v1 declaration, source-verified.** An isolated instance-wrapper
 [prototype is now fault-tested](../infra/stream/RECEIVE_LOOP_PROTOTYPE_2026_10_08.md).
 Private [recorder integration is now unit-tested](../infra/stream/RECEIVE_LOOP_INTEGRATION_2026_10_08.md);
-an overhead benchmark remains unimplemented. The original
+An [overhead protocol is now preregistered](RECEIVE_LOOP_OVERHEAD.md), but its
+runner and performance evaluator remain unimplemented. The original
 declaration's implementation-status field remains unchanged for reproducibility.
 The prior [delay decomposition](../infra/stream/DELAY_DECOMPOSITION_2026_10_08.md)
 places most fully observed tail time before callback entry. This contract identifies
