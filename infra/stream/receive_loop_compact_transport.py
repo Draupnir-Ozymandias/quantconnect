@@ -76,11 +76,18 @@ def scan_transport(sideband, contract):
                 recorder_integration_verified=False)
 
 
-def _connection_class(observer):
+def _connection_class(observer, *, _parent=None):
     from websockets.frames import Frame
     from websockets.sync.client import ClientConnection
 
-    class CompactConnection(ClientConnection):
+    parent = ClientConnection if _parent is None else _parent
+    if not isinstance(parent, type) or not issubclass(parent, ClientConnection):
+        raise ContractError('compact diagnostic parent must preserve ClientConnection inheritance')
+    for method in ('__init__', 'recv_events', 'close_socket'):
+        if getattr(parent, method) is not getattr(ClientConnection, method):
+            raise ContractError('compact diagnostic parent must retain native constructor, receive loop and close')
+
+    class CompactConnection(parent):
         def recv_events(self):
             with observer.lock:
                 observer.receiver_thread = threading.current_thread()
@@ -105,7 +112,7 @@ def _connection_class(observer):
     return CompactConnection
 
 
-def connect_loopback(uri, observer):
+def connect_loopback(uri, observer, *, _parent=None):
     if type(observer) is not TransportBuffer:
         raise ContractError('explicit isolated compact transport buffer required')
     try:
@@ -121,13 +128,14 @@ def connect_loopback(uri, observer):
     # Fail closed on changed library/source/methods before claim or network.
     if bindings() != observer.contract['runtime_receipt']['methods']:
         raise ContractError('compact transport method bindings differ from declaration')
+    connection_class = _connection_class(observer, _parent=_parent)
     with observer.lock:
         if observer.claimed or observer.finished or observer.installed:
             raise ContractError('compact transport buffer permits one connection only')
         observer.claimed = True
     from websockets.sync.client import connect
     try:
-        connection = connect(uri, create_connection=_connection_class(observer), open_timeout=10,
+        connection = connect(uri, create_connection=connection_class, open_timeout=10,
                              close_timeout=5, max_size=262144, max_queue=16, compression=None,
                              ping_interval=None, proxy=None)
     except BaseException as exc:
