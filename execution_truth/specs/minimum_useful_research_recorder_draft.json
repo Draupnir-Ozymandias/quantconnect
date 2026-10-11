@@ -1,0 +1,39 @@
+{
+  "schema_version": "qcrl.minimum_useful_research_recorder.draft.v1",
+  "status": "prospective_design_draft_not_executable",
+  "purpose": "one_second_binned_descriptive_research",
+  "scope": {"asset": "BTC", "market_interval_seconds": 300, "markets": 1, "outcome_tokens": 2},
+  "budgets": {
+    "return_to_append_completion_upper_seconds": {"nearest_rank_p99": 0.1, "worst": 1},
+    "return_to_successful_durable_watermark_upper_seconds": {"worst": 2},
+    "local_utc_bracket_width_max_seconds": 0.001,
+    "cpu_fraction_effective_quota_max": 0.7,
+    "cpu_complete_nonoverlapping_window_seconds": 60,
+    "current_rss_sample_fraction_unit_limit_max": 0.8,
+    "current_rss_sampling_interval_seconds": 1,
+    "supported_localhost_occurrence_loss_allowed": 0,
+    "performance_witness_missing_allowed_for_pass": 0
+  },
+  "evidence_required": [
+    "raw_library_returned_message_and_fifo_occurrence",
+    "source_market_terms_dependency_runtime_and_boot_bindings",
+    "immediate_application_return_clock_bracket",
+    "linked_append_completion_receipt",
+    "successful_fsync_ordinal_watermark_and_brackets",
+    "explicit_gaps_unsupported_partial_and_unknown_states",
+    "immutable_segments_manifest_and_independent_verification",
+    "actual_unit_quota_actor_identity_and_resource_witnesses"
+  ],
+  "statistics": "per_lifecycle_and_declared_low_burst_phase_no_pooled_rescue",
+  "missing_required_evidence": "unknown_retain_known_failures_never_pass",
+  "resource_samples_are_continuous_peak_proof": false,
+  "prior_five_percent_probe_rejection_superseded": false,
+  "acceptance_evaluator_implemented": false,
+  "acceptance_demonstrated": false,
+  "execution_authorized": false,
+  "deployment_authorized": false,
+  "public_rollout_authorized": false,
+  "orders_authorized": false,
+  "continuous_coverage_proven": false,
+  "physical_latency_proven": false
+}
