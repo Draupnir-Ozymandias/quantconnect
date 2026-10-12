@@ -1,8 +1,9 @@
 """Bounded current Linux cgroup/RSS observations, never self-attested acceptance."""
 import math
 import os
+import re
 import stat
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import time
 
 from execution_truth.contracts import ContractError
@@ -33,6 +34,8 @@ def counters(value):
 
 
 def cpus(value):
+    if not isinstance(value, str):
+        raise ContractError('observed CPU set required')
     result = set()
     for piece in value.strip().split(','):
         pair = piece.split('-')
@@ -47,6 +50,55 @@ def cpus(value):
     return result
 
 
+def controllers(value):
+    if not isinstance(value, str):
+        raise ContractError('controller declaration required')
+    names = value.split()
+    if len(names) != len(set(names)) or any(not re.fullmatch('[a-z][a-z0-9_]*', n) for n in names):
+        raise ContractError('invalid controller declaration')
+    return set(names)
+
+
+def cpu_sets(ancestors):
+    """Absent child files are valid only with complete disabled-controller proof."""
+    if not isinstance(ancestors, list) or not 1 <= len(ancestors) <= 32:
+        raise ContractError('bounded CPU ancestry required')
+    fields = {'controllers', 'subtree_control'}
+    witnessed = any(fields & set(row) for row in ancestors)
+    if witnessed:
+        for i, row in enumerate(ancestors):
+            if not fields <= set(row):
+                raise ContractError('incomplete controller ancestry')
+            available, enabled = controllers(row['controllers']), controllers(row['subtree_control'])
+            if not enabled <= available:
+                raise ContractError('enabled controller unavailable')
+            path = PurePosixPath(row['path'])
+            if path.is_absolute() or '..' in path.parts or str(path) != row['path']:
+                raise ContractError('noncanonical resource ancestry')
+            if i == len(ancestors)-1:
+                if row['path'] != '.' or row['cpuset_effective'] is None or 'cpuset' not in available:
+                    raise ContractError('observed root CPU set required')
+            else:
+                parent = ancestors[i+1]
+                if row['path'] == '.' or str(path.parent) != parent['path'] or not fields <= set(parent):
+                    raise ContractError('incomplete parent controller binding')
+                parent_enabled = controllers(parent['subtree_control'])
+                if not available <= parent_enabled or ('cpuset' in available) != ('cpuset' in parent_enabled):
+                    raise ContractError('controller hierarchy differs')
+                if (row['cpuset_effective'] is not None) != ('cpuset' in parent_enabled):
+                    raise ContractError('CPU-set file/controller state differs')
+    selected = []
+    for row in ancestors:
+        if row['cpuset_effective'] is None:
+            if not witnessed:
+                raise ContractError('missing CPU set without controller proof')
+            continue
+        selected.append(cpus(row['cpuset_effective']))
+    if not selected or any(not child <= parent for child, parent in zip(selected, selected[1:])):
+        raise ContractError('missing/inconsistent effective CPU ancestry')
+    return selected
+
+
 def quota(ancestors):
     limits = []
     intersection = None
@@ -55,6 +107,8 @@ def quota(ancestors):
             if row['path'] != '.':
                 raise ContractError('invalid CPU quota')
         else:
+            if not isinstance(row['cpu_max'], str):
+                raise ContractError('observed CPU quota required')
             pieces = row['cpu_max'].split()
             if len(pieces) != 2 or not pieces[1].isdecimal() or int(pieces[1]) <= 0:
                 raise ContractError('invalid CPU quota')
@@ -62,7 +116,7 @@ def quota(ancestors):
                 if not pieces[0].isdecimal() or int(pieces[0]) <= 0:
                     raise ContractError('invalid CPU quota')
                 limits.append(int(pieces[0]) / int(pieces[1]))
-        selected = cpus(row['cpuset_effective'])
+    for selected in cpu_sets(ancestors):
         intersection = selected if intersection is None else intersection & selected
     if not ancestors or not intersection:
         raise ContractError('missing effective CPU ancestry')
@@ -123,12 +177,27 @@ class LinuxReader:
         if self.identity(self.pid) != self.expected:
             raise ContractError('resource owner identity changed')
         def limit(path, name):
-            if path == self.mount and not (path / name).exists():
+            try:
+                return text(path / name).strip()
+            except FileNotFoundError:
+                if path != self.mount:
+                    raise
                 return None  # Root absence is retained, not a fabricated quota.
-            return text(path / name).strip()
-        ancestry = [dict(path=str(p.relative_to(self.mount)), cpu_max=limit(p, 'cpu.max'),
-                         cpuset_effective=text(p / 'cpuset.cpus.effective').strip(),
-                         memory_max=limit(p, 'memory.max')) for p in self.ancestors]
+        def ancestry_snapshot():
+            rows = []
+            for path in self.ancestors:
+                try:
+                    effective = text(path / 'cpuset.cpus.effective').strip()
+                except FileNotFoundError:
+                    effective = None  # Validated against actual parent controls below.
+                rows.append(dict(path=str(path.relative_to(self.mount)),
+                    cpu_max=limit(path, 'cpu.max'), cpuset_effective=effective,
+                    memory_max=limit(path, 'memory.max'),
+                    controllers=text(path / 'cgroup.controllers').strip(),
+                    subtree_control=text(path / 'cgroup.subtree_control').strip()))
+            quota(rows)
+            return rows
+        ancestry = ancestry_snapshot()
         first = self.members()
         actors = []
         for pid in first:
@@ -152,6 +221,8 @@ class LinuxReader:
         current = int(text(self.group / 'memory.current').strip())
         if self.members() != first or self.identity(self.pid) != self.expected:
             raise ContractError('actor membership raced')
+        if ancestry_snapshot() != ancestry:
+            raise ContractError('resource controller/limit ancestry raced')
         self.check_paths()
         end = self.clock()
         if not math.isfinite(begin) or not math.isfinite(end) or not 0 <= begin <= end:

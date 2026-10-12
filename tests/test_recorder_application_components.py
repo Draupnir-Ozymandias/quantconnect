@@ -158,12 +158,162 @@ class ResourceTests(unittest.TestCase):
         (proc/'10/cgroup').write_text('0::/unit\n')
         (proc/'10/status').write_text('VmRSS:\t100 kB\n')
         for name, value in {'cpu.max':'75000 100000', 'memory.max':'536870912',
+                            'cgroup.controllers':'cpuset cpu memory', 'cgroup.subtree_control':'',
                             'cpuset.cpus.effective':'0-3', 'cgroup.procs':'10',
                             'cpu.stat':'usage_usec 100\nnr_periods 1\nnr_throttled 0\nthrottled_usec 0',
                             'memory.events':'oom 0\noom_kill 0\nmax 0', 'memory.current':'1000'}.items():
             (mount/'unit'/name).write_text(value)
         (mount/'cpuset.cpus.effective').write_text('0-3')
+        (mount/'cgroup.controllers').write_text('cpuset cpu memory io')
+        (mount/'cgroup.subtree_control').write_text('cpuset cpu memory')
         return LinuxReader(execute=True, proc=proc, mount=mount, pid=10)
+
+    def ohio_fixture(self, root):
+        self.fixture(root)
+        mount = root/'cgroup'
+        (mount/'system.slice').mkdir()
+        (mount/'unit').rename(mount/'system.slice/unit')
+        (root/'proc/10/cgroup').write_text('0::/system.slice/unit\n')
+        (mount/'system.slice/unit/cpuset.cpus.effective').unlink()
+        (mount/'system.slice/unit/cgroup.controllers').write_text('cpu memory')
+        (mount/'cgroup.subtree_control').write_text('cpu memory')
+        for name, value in {'cgroup.controllers':'cpu memory', 'cgroup.subtree_control':'cpu memory',
+                            'cpu.max':'max 100000', 'memory.max':'max'}.items():
+            (mount/'system.slice'/name).write_text(value)
+        (mount/'cpuset.cpus.effective').write_text('0-1')
+        return LinuxReader(execute=True, proc=root/'proc', mount=mount, pid=10)
+
+    def test_ohio_disabled_cpuset_retained_null_with_ancestor_proof(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            reader = self.ohio_fixture(root)
+            result = reader.read(rss=True)
+            rows = result['ancestry']
+            self.assertEqual([r['path'] for r in rows], ['system.slice/unit','system.slice','.'])
+            self.assertEqual([r['cpuset_effective'] for r in rows], [None,None,'0-1'])
+            self.assertEqual(result['effective_quota'], .75)
+            self.assertEqual(quota(rows), .75)
+            (root/'cgroup/system.slice/cpu.max').write_text('25000 100000')
+            self.assertEqual(reader.read()['effective_quota'], .25)
+            (root/'cgroup/system.slice/unit/cpu.max').write_text('max 100000')
+            (root/'cgroup/system.slice/cpu.max').write_text('max 100000')
+            self.assertEqual(reader.read()['effective_quota'], 2)
+
+    def test_absent_enabled_root_or_unproven_cpuset_refused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            reader = self.fixture(root)
+            (root/'cgroup/unit/cpuset.cpus.effective').unlink()
+            with self.assertRaisesRegex(ContractError,'file/controller state differs'): reader.read()
+        for mutation in ('enabled','root','unproven','empty','contradictory','parent','partial'):
+            with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory).resolve()
+                reader = self.ohio_fixture(root)
+                if mutation == 'enabled':
+                    (root/'cgroup/system.slice/cgroup.subtree_control').write_text('cpuset cpu memory')
+                if mutation == 'root': (root/'cgroup/cpuset.cpus.effective').unlink()
+                if mutation == 'unproven': (root/'cgroup/system.slice/cgroup.subtree_control').unlink()
+                if mutation == 'empty': (root/'cgroup/cpuset.cpus.effective').write_text('')
+                if mutation == 'contradictory':
+                    (root/'cgroup/system.slice/unit/cpuset.cpus.effective').write_text('0-1')
+                if mutation == 'parent':
+                    (root/'cgroup/system.slice/unit/cgroup.controllers').write_text('cpu memory cpuset')
+                if mutation == 'partial': (root/'cgroup/system.slice/cgroup.controllers').write_text('cpu')
+                with self.assertRaises((ContractError,FileNotFoundError)): reader.read()
+
+    def test_controller_quota_metadata_tampering_refused_offline(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            rows = self.ohio_fixture(root).read()['ancestry']
+            for mutation in ('stripped','partial','skip','duplicate','invalid','enable','present','cpu','root','type','repeat_root'):
+                value = copy.deepcopy(rows)
+                if mutation == 'stripped':
+                    for row in value:
+                        del row['controllers']; del row['subtree_control']
+                if mutation == 'partial': del value[0]['controllers']
+                if mutation == 'skip': value.pop(1)
+                if mutation == 'duplicate': value[-1]['controllers'] += ' cpu'
+                if mutation == 'invalid': value[-1]['controllers'] += ' +cpuset'
+                if mutation == 'enable': value[1]['subtree_control'] += ' cpuset'
+                if mutation == 'present': value[0]['cpuset_effective'] = '0-1'
+                if mutation == 'cpu': value[0]['cpu_max'] = None
+                if mutation == 'root': value[-1]['path'] = 'other'
+                if mutation == 'type': value[-1]['cpuset_effective'] = 2
+                if mutation == 'repeat_root': value.insert(-1,copy.deepcopy(value[-1]))
+                with self.subTest(mutation=mutation), self.assertRaises(ContractError): quota(value)
+
+    def test_controller_leaf_symlink_and_permission_failure_not_absence(self):
+        for mutation in ('cpuset_link','controller_link','permission'):
+            with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory).resolve()
+                reader = self.ohio_fixture(root)
+                if mutation == 'cpuset_link':
+                    (root/'cgroup/system.slice/unit/cpuset.cpus.effective').symlink_to(root/'missing')
+                if mutation == 'controller_link':
+                    leaf = root/'cgroup/system.slice/unit/cgroup.controllers'
+                    leaf.unlink(); leaf.symlink_to(root/'cgroup/cgroup.controllers')
+                if mutation == 'permission':
+                    def denied(path):
+                        if path.name == 'cpuset.cpus.effective': raise PermissionError('injected')
+                        return text(path)
+                    with patch('infra.stream.recorder_application_resources.text',side_effect=denied):
+                        with self.assertRaises(PermissionError): reader.read()
+                else:
+                    with self.assertRaises(OSError): reader.read()
+
+    def test_controller_change_inside_sample_refused(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            reader = self.fixture(root)
+            calls = 0
+            def changing(path):
+                nonlocal calls
+                result = text(path)
+                if path == root/'cgroup/cgroup.subtree_control':
+                    calls += 1
+                    if calls == 2: result += ' io'
+                return result
+            with patch('infra.stream.recorder_application_resources.text',side_effect=changing):
+                with self.assertRaisesRegex(ContractError,'ancestry raced'): reader.read()
+
+    def test_enabled_nested_cpuset_uses_observed_restrictions(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            reader = self.ohio_fixture(root)
+            mount = root/'cgroup'
+            (mount/'cgroup.subtree_control').write_text('cpuset cpu memory')
+            (mount/'system.slice/cgroup.controllers').write_text('cpuset cpu memory')
+            (mount/'system.slice/cgroup.subtree_control').write_text('cpuset cpu memory')
+            (mount/'system.slice/cpuset.cpus.effective').write_text('1')
+            (mount/'system.slice/unit/cgroup.controllers').write_text('cpuset cpu memory')
+            (mount/'system.slice/unit/cpuset.cpus.effective').write_text('1')
+            (mount/'system.slice/unit/cpu.max').write_text('max 100000')
+            self.assertEqual(reader.read()['effective_quota'], 1)
+            # An enabled ancestor may stop distributing cpuset to its children.
+            (mount/'system.slice/cgroup.subtree_control').write_text('cpu memory')
+            (mount/'system.slice/unit/cgroup.controllers').write_text('cpu memory')
+            (mount/'system.slice/unit/cpuset.cpus.effective').unlink()
+            inherited = reader.read()
+            self.assertIsNone(inherited['ancestry'][0]['cpuset_effective'])
+            self.assertEqual(inherited['effective_quota'],1)
+            (mount/'system.slice/cgroup.subtree_control').write_text('cpuset cpu memory')
+            (mount/'system.slice/unit/cgroup.controllers').write_text('cpuset cpu memory')
+            (mount/'system.slice/unit/cpuset.cpus.effective').write_text('0')
+            with self.assertRaises(ContractError): reader.read()
+
+    def test_ohio_resource_gate_recomputes_proof_and_retains_unknown(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            ancestry = self.ohio_fixture(root).read()['ancestry']
+            value = resources()
+            for row in value['rows']:
+                for witness in (row['sample'],row['cpu_before']):
+                    if witness is not None: witness['ancestry'] = copy.deepcopy(ancestry)
+            result = resource_gate(value,1000,120,1120,declare()['budgets'],OWNER)
+            self.assertEqual(result['verdict'],'pass',result)
+            del value['rows'][10]['sample']['ancestry'][0]['controllers']
+            result = resource_gate(value,1000,120,1120,declare()['budgets'],OWNER)
+            self.assertEqual(result['verdict'],'unknown',result)
 
     def test_actual_read_fixture_current_rss_identity_and_root_absence(self):
         with tempfile.TemporaryDirectory() as directory:
