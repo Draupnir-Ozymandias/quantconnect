@@ -4,7 +4,8 @@ Status: offline-tested prototype; **not deployed or run natively**. This documen
 declares the measurement design, not permission to change public collectors,
 infrastructure, trading credentials, unit limits or previous verdicts. Native
 execution requires a frozen source inventory and a separately verified private
-launcher. No launcher or CLI is introduced in this revision.
+launcher. The later isolated launcher is documented separately in
+`WAKE_PROBE_LINUX_LAUNCHER.md`; the measurement plan below is unchanged.
 
 Plan SHA-256:
 `a1a96146eb5b518a5717f3ed44f90c4f895ecfad41955966fdfc89fb115a951e`.
@@ -57,7 +58,7 @@ Artifact bound: 16 baseline pairs, 12 target rows, bounded error strings and one
 result object capped at 256 KiB before publication. Publication should be outside
 the timing series, exclusive and byte-hashed. Retain partial evidence and unit
 journals on timeout/failure. These publication/context requirements belong to the
-future native launcher, not the offline injected-clock prototype.
+separate native launcher, not the offline injected-clock prototype.
 
 ## Analysis and stopping rule
 
