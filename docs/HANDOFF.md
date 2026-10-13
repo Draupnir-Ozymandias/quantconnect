@@ -44,9 +44,10 @@ Linux ABI compatibility, native scheduling behavior or actual improvement.
 
 ## Unfinished work and continuation constraints
 
-Next implement a separately declared finite compatibility gate, offline source/
-runtime inventory and bounded native launcher with readiness, identity/context
-verification and process-timeout/partial-journal retention. Independently verify
+A finite compatibility declaration, source/runtime freeze validation and injected
+launcher lifecycle rehearsal now exist; see `WAIT_EXECUTION_PREPARATION.md`.
+Next implement the compatibility worker and bounded production adapters offline,
+including identity/context/journal reads and timeout/partial-evidence handling. Independently verify
 the Linux ABI, timespec field offsets and native symbol envelope; freeze execution
 sources and runtime before any separately authorized native measurement. Confirm
 the installed select retry behavior and signal context against v2's disclosure.
@@ -95,3 +96,22 @@ Primary development may continue offline implementation, tests, documentation
 and reviewed development-branch commits/pushes without consulting another chat.
 Surface material design decisions, blockers and actions outside this scope.
 Native execution, main merges and QC sync remain unauthorized.
+
+## October 13 compatibility-envelope preparation
+
+Added compatibility plan hash
+`aec6f48ff1558e544cf68665c062126ce5b44366bf8c7e9e0d18ac82268fd864`, pinned in tests.
+It declares one select then one absolute wait on a 50-ms cumulative grid, without
+signal injection or performance acceptance. Broad tracked-source hashing excludes
+evidence/dot paths/credential scripts and refuses symlinks/oversize files. The
+freeze validates LP64 timespec offsets, exact interface metadata, installed-binary
+and source-review receipt hashes, positive clock resolution and read-only signal
+context. No actual Linux runtime receipt or execution freeze was generated.
+
+Injected lifecycle tests cover fresh claims, serial tests/compatibility, bounded
+readiness/unit/result/journal interfaces, active binding before release, private
+cleanup and public/source drift. Unit specifications have no worker entrypoint;
+no production launcher or native worker is available. Thirty-eight focused local
+tests and all 1,063 offline regression tests passed (85.739 seconds, localhost
+fixtures permitted); Python 3.9 syntax checks passed for the new files.
+Native verification and process-kill/host-loss evidence retention remain pending.

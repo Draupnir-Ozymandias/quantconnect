@@ -257,3 +257,14 @@ absolute-adapter fault tests. V1 comparison inputs are rejected by the v2 audit.
 Select's internal retry count is null/unknown, separate from zero application
 retries; absolute returned EINTR is retained unknown. All native/acceptance/order
 authority flags remain false. Frozen earlier contracts/evidence remain unchanged.
+
+## October 13 — Wait compatibility and execution envelope
+
+`recorder_wait_execution.py` declares compatibility-plan v1 and constructs
+execution-freeze v1 from supplied source/runtime observations. The injected
+`recorder_wait_lifecycle.py` validates compatibility-result v1 and emits
+lifecycle-rehearsal v1; all authority flags remain false. Protocol, producers,
+consumers, bounds and remaining native gaps are described in
+[WAIT_EXECUTION_PREPARATION.md](WAIT_EXECUTION_PREPARATION.md). Tests:
+`tests/test_recorder_wait_execution.py`. Plan/hash/ABI validation is structural;
+it is not an independent installed-runtime/native-origin attestation.

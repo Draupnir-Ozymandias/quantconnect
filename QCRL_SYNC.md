@@ -2527,3 +2527,20 @@ Native process-timeout/journal retention requires the future bounded launcher.
 Next target: finite compatibility declaration, source/runtime envelope and offline
 launcher lifecycle tests. No native integration/run, captures, credentials,
 infrastructure, main merge or QuantConnect sync performed.
+
+## 2026-10-13 — Finite compatibility declaration and offline envelope rehearsal
+
+Added a separate pinned two-wait compatibility protocol, broad bounded tracked
+source hashing and pure runtime/ABI/review-hash freeze validation. Added injected
+private lifecycle rehearsal and unit specifications without a worker entrypoint
+or command executor. Tests cover source selection/symlink/size/metadata refusals,
+serial readiness/binding/release/completion and scoped cleanup on faults/drift.
+Updated handoff, project status and schema documentation. No engine interfaces,
+live fields or Workstream A requests. Thirty-eight focused local tests passed;
+full regression and Python 3.9 syntax checks are recorded in the preparation doc.
+
+Declared metadata does not prove installed Linux behavior or native origin. No
+actual runtime receipt/freeze was generated. Production workers, bounded context/
+journal/control adapters and timeout/host-loss retention remain next offline
+work. No native binding/sleep/unit execution, infrastructure, credentials,
+capture, main merge, QC sync or frozen-evidence mutation performed.

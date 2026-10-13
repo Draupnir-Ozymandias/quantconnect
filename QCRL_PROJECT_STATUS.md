@@ -45,9 +45,12 @@ prospective successor `docs/ABSOLUTE_SELECT_COMPARISON_V2.md` resolves select's
 runtime-retry mismatch with one application call and unknown internal retry count;
 v1's declaration/hash remain retained. V2 now has injected collection, pair
 lifecycle, independent structural/arithmetic evaluation and bounded exclusive
-publication, with both plan hashes pinned literally. Outstanding: separately
-finite compatibility gate, installed select/signal and native ABI/symbol checks,
-bounded launcher/context/partial-journal retention and source/runtime freeze.
+publication, with both plan hashes pinned literally. The separate finite
+compatibility declaration, tracked source/runtime envelope validation and injected
+bounded-lifecycle rehearsal are now offline-tested (`docs/WAIT_EXECUTION_PREPARATION.md`).
+Outstanding: compatibility worker/production adapters, installed select/signal and
+native ABI/symbol checks, bounded context/partial-journal retention and actual
+source/runtime freeze.
 Local tests and Python 3.9 syntax checks do not satisfy native validation.
 Recorder application compatibility and its six-case budget cohort remain blocked;
 no prior verdict is repaired.
