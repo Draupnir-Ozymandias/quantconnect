@@ -124,3 +124,50 @@ rerun with localhost permission passed. All 12 focused comparison/absolute-wait
 tests passed, and the two new Python files passed Python 3.9 syntax parsing.
 These results establish local offline behavior only; Linux/native validation
 and actual scheduling improvement remain unverified. No frozen evidence changed.
+
+## October 13 pre-integration review — error bounds and select retries
+
+The declared v1 plan/hash above remains unchanged and is now pinned as a literal
+in `test_preregistered_protocol_hash_is_pinned`. Recomputing a self-consistent
+hash alone would not detect accidental protocol edits; the literal assertion
+requires any change to be reviewed against this frozen declaration.
+
+The current absolute adapter now truncates the complete exception text
+`ExceptionName:message` to 160 characters, on both the syscall and return-clock
+fault paths. The original prototype truncated only the message before prepending
+the name and could exceed the declared bound. This is an implementation repair,
+not a change to the bound. Tests include oversized names/messages, both fault
+paths, original-error precedence, retained unknown status, one call, zero adapter
+retries and result hashes. Historical adapter bytes and evidence remain unchanged;
+freeze the repaired source separately before integration. The earlier instruction
+to use the adapter unchanged refers to its wait/request semantics; this disclosed
+error-format repair must be included in the future source inventory.
+
+Upstream Python 3.9 documents that `select.select` retries after a signal
+interruption with a recomputed timeout when the signal handler does not raise.
+If the handler raises, the exception propagates. This has been documented since
+Python 3.5. See the
+[Python 3.9 select documentation](https://docs.python.org/3.9/library/select.html#select.select).
+This source disclosure is not verification of the distribution-patched Linux
+runtime. Verify and retain its exact implementation and signal-handler context
+before execution; do not run signal experiments under this offline preparation.
+
+Consequently, one application call is not necessarily one kernel select request.
+A collector-level zero retry count cannot establish that no runtime EINTR retry
+occurred; internal retry counts are unknown without separate evidence. Successful
+return also does not prove absence of interruption. The absolute adapter instead
+retains a returned EINTR without resubmission. These arms have potentially different
+interrupt semantics, which must remain visible in any comparison interpretation.
+
+The v1 single-request/no-concealed-EINTR contract therefore remains an unresolved
+execution gate for the proposed Python select reference. Do not silently relabel
+zero retries as zero syscalls or claim EINTR is always exposed. Before native
+execution, issue a separately identified prospective successor permitting the
+explicitly disclosed runtime behavior and unknown internal count, or separately
+declare a compatible reference implementation. Retain v1 and its hash. No such
+successor, reference substitution or native execution is authorized here.
+
+Verification: all 14 focused comparison/absolute-adapter tests passed locally on
+Intel macOS / Python 3.14.6. This count supersedes the earlier focused count only;
+the recorded 1,037-test full-suite run preceded this repair. Python 3.9 syntax
+checks passed for the three changed Python files; no Linux runtime validation.

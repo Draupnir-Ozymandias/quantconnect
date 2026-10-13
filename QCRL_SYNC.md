@@ -2492,3 +2492,18 @@ unknown/stop handling, bounded exclusive publication and independent evaluation,
 then separately verify native compatibility and freeze the execution envelope
 before requesting any Linux run. This declaration does not unlock the recorder
 application cohort or reopen Q4 signal research.
+
+## 2026-10-13 — Wait-comparison pre-integration contract review
+
+Pinned the literal v1 declaration hash in a regression test and repaired both
+absolute-adapter exception paths to bound the complete name/message to 160
+characters. Added long-name/message, two-fault and hash/no-retry fixtures. No
+engine interfaces or frozen evidence changed. Fourteen focused offline tests
+passed on Intel macOS / Python 3.14.6; Python 3.9 syntax checks passed. The prior
+full-suite result predates this repair. No new Workstream A requests.
+
+Disclosed upstream Python 3.9 select's automatic EINTR retry behavior in the
+preregistration and handoff. Installed Linux behavior remains unverified; v1's
+single-request/no-concealed-EINTR gate is unresolved and requires prospective
+resolution before native execution. No changed protocol hash, successor, native
+integration, capture, infrastructure, credentials or cloud sync in this review.

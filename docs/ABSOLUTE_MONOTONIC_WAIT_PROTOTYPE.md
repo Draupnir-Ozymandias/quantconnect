@@ -84,3 +84,10 @@ October 12 continuation: the finite design is now separately declared in
 Only its offline declaration/target expander exists; native compatibility,
 collector/evaluator/launcher implementation and execution-source freeze remain
 outstanding. This does not integrate or run the adapter.
+
+October 13 error-bound repair: both exception paths now truncate the complete
+`ExceptionName:message` to 160 characters, including the prefix. Earlier source
+bytes could retain longer text. Injected tests cover oversized exception names
+and messages and preserve the first fault if the return clock also fails. No
+request/retry semantics or historical evidence changed. Freeze these new source
+bytes separately before any integration.

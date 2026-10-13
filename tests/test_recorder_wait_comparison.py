@@ -5,6 +5,12 @@ from infra.stream.recorder_absolute_wait import MAX_NS
 
 
 class WaitComparisonTests(unittest.TestCase):
+    def test_preregistered_protocol_hash_is_pinned(self):
+        self.assertEqual(
+            comparison.declaration()['plan_sha256'],
+            'a5d43bd01b36c616edd4bd594f673126f392e327bdf1f2d9d98929ae3d7bd3ee',
+        )
+
     def test_locked_integer_population_balanced_order_and_duration(self):
         for index, order in enumerate((['select', 'absolute'], ['absolute', 'select'])):
             rows = comparison.targets(17, index)

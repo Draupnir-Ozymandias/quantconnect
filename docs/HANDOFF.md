@@ -58,3 +58,19 @@ Keep signal feature optimization on hold, martingale closed, and the prospective
 launch captures/native experiments, provision infrastructure, import credentials,
 merge into main or sync QuantConnect under this handoff. The current authorized
 publication is the reviewed development branch only.
+
+## October 13 pre-integration review
+
+The v1 protocol hash is explicitly pinned in a regression test. The adapter now
+caps complete exception text, including its name prefix, at 160 characters;
+both exception paths and first-error preservation have injected regression
+coverage. All 14 focused tests pass locally; the full-suite count above is from
+before this repair. Python 3.9 syntax checks pass, not native runtime validation.
+
+Upstream Python 3.9 select automatically retries signal-interrupted calls with
+a recomputed timeout unless the signal handler raises. One Python call and zero
+collector retries do not imply one syscall or zero internal retries. The proposed
+reference therefore has an unresolved v1 execution gate: verify the exact Linux
+runtime and prospectively declare a successor allowing disclosed runtime retries/
+unknown counts, or separately declare a compatible reference. Preserve v1's hash;
+do not silently alter its semantics. See the preregistration's October 13 review.

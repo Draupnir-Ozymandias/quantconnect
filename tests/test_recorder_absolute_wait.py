@@ -94,6 +94,32 @@ class AbsoluteWaitTests(unittest.TestCase):
             adapter = wait.AbsoluteWait(clock_ns=lambda: bad, syscall=fail)
             with self.assertRaises(ContractError): adapter.wait(200, execute=True)
 
+    def test_complete_exception_text_is_bounded_on_both_fault_paths(self):
+        for name in ('InjectedError', 'E'*200):
+            error_type = type(name, (Exception,), {})
+            for path in ('syscall', 'return_clock', 'both'):
+                with self.subTest(name=name, path=path):
+                    calls = []
+                    def clock():
+                        calls.append('clock')
+                        if len(calls) > 1 and path in ('return_clock', 'both'):
+                            raise error_type('clock-'+'x'*200)
+                        return 100
+                    def syscall(*args):
+                        calls.append('syscall')
+                        if path in ('syscall', 'both'):
+                            raise error_type('syscall-'+'x'*200)
+                        return 0
+                    adapter = wait.AbsoluteWait(clock_ns=clock, syscall=syscall)
+                    row = adapter.wait(200, execute=True)
+                    message = ('syscall-' if path in ('syscall', 'both') else 'clock-')+'x'*200
+                    self.assertEqual(row['error'], (name+':'+message)[:160])
+                    self.assertEqual(len(row['error']), 160)
+                    self.assertEqual(row['status'], 'unknown')
+                    self.assertEqual(row['retries'], 0)
+                    self.assertEqual(calls.count('syscall'), 1)
+                    verify_artifact_hash(row, 'wait_sha256', 'wait')
+
     def test_clock_regression_between_calls_refused(self):
         row,calls,adapter,clock = self.fixture()
         clock.value = 50

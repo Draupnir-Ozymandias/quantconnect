@@ -71,7 +71,7 @@ class AbsoluteWait:
                 if code:
                     row['error'] = 'clock_nanosleep_error_'+str(code)+'_no_retry'
             except Exception as exc:
-                row['error'] = type(exc).__name__+':'+str(exc)[:160]
+                row['error'] = (type(exc).__name__+':'+str(exc))[:160]
             try:
                 after = timestamp(self.clock_ns())
                 row['after_ns'] = after
@@ -85,7 +85,7 @@ class AbsoluteWait:
                     else:
                         row['status'] = 'observed'
             except Exception as exc:
-                row['error'] = row['error'] or type(exc).__name__+':'+str(exc)[:160]
+                row['error'] = row['error'] or (type(exc).__name__+':'+str(exc))[:160]
         self.last = max(before, self.last or 0)
         row['wait_sha256'] = payload_hash(row)
         return row
