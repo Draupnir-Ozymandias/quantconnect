@@ -2507,3 +2507,23 @@ preregistration and handoff. Installed Linux behavior remains unverified; v1's
 single-request/no-concealed-EINTR gate is unresolved and requires prospective
 resolution before native execution. No changed protocol hash, successor, native
 integration, capture, infrastructure, credentials or cloud sync in this review.
+
+## 2026-10-13 — Prospective v2 retry disclosure and offline comparison
+
+Declared `absolute-select-finite-v2` with predecessor linkage and literal hash
+pin. Preserved v1's hash, geometry/budgets and historical evidence. One application
+select call can include unknown runtime retries; exposed exceptions/errno stop
+attempts without application resubmission. Added injected select wait/finite
+collector and serial publication-before-next-run lifecycle, independent
+population/arithmetic/authority validation, exact rational descriptive pairs/
+medians and bounded exclusive run/summary publication. Updated handoff, current
+status and schema documentation. No engine interface or live input fields added;
+new Workstream A requests: none. Thirty focused tests passed; full offline suite
+and Python 3.9 syntax checks are recorded in the v2 document.
+
+Limitations: installed Linux select retry/signal semantics and native ABI/symbol
+compatibility remain unverified; exclusive publication is not atomic/fsync proof.
+Native process-timeout/journal retention requires the future bounded launcher.
+Next target: finite compatibility declaration, source/runtime envelope and offline
+launcher lifecycle tests. No native integration/run, captures, credentials,
+infrastructure, main merge or QuantConnect sync performed.

@@ -15,14 +15,18 @@ performance acceptance remain false. The earlier counter smoke's final endpoint
 missed the fixed deadline before any counter read. Preserve both failures and
 the original 50-ms budget.
 
-The absolute-monotonic adapter remains isolated and offline-tested. The next
-finite implementation comparison is declared in
-[ABSOLUTE_SELECT_COMPARISON_PREREGISTRATION.md](ABSOLUTE_SELECT_COMPARISON_PREREGISTRATION.md):
-two serial 133.3-second runs, select/absolute then absolute/select, with integer
-cumulative targets, retained unknowns, fixed fault/stopping rules and no replay.
-Its plan hash is
-`a5d43bd01b36c616edd4bd594f673126f392e327bdf1f2d9d98929ae3d7bd3ee`.
-Only the declaration and offline target expander exist; no native runner exists.
+The absolute-monotonic adapter remains isolated and offline-tested. The active
+prospective comparison is now
+[ABSOLUTE_SELECT_COMPARISON_V2.md](ABSOLUTE_SELECT_COMPARISON_V2.md), with plan hash
+`c501255908329a12c93cab58d6e7ffc0f44711175141749db8953c95c6a2982d`.
+V2 preserves two serial 133.3-second AB/BA runs and integer targets while allowing
+one Python select call with disclosed runtime retries and unknown internal count.
+The predecessor
+[ABSOLUTE_SELECT_COMPARISON_PREREGISTRATION.md](ABSOLUTE_SELECT_COMPARISON_PREREGISTRATION.md)
+and its hash `a5d43bd01b36c616edd4bd594f673126f392e327bdf1f2d9d98929ae3d7bd3ee`
+remain retained; v1 has no native result. Both hashes have literal regression pins.
+Injected select/absolute collection, pair lifecycle, validation, exact descriptive
+evaluation and bounded exclusive publication now exist. No native runner exists.
 
 ## Verification and migration
 
@@ -40,12 +44,12 @@ Linux ABI compatibility, native scheduling behavior or actual improvement.
 
 ## Unfinished work and continuation constraints
 
-Implement the select wrapper and injected collector, fault/unknown/stop handling,
-partial evidence retention, bounded exclusive publication, independent validator/
-evaluator and a bounded launcher. Independently verify the Linux ABI, timespec
-field offsets and native symbol envelope; freeze execution sources and runtime
-before any separately authorized native measurement. Disclose the reference
-runtime's interrupt/retry semantics before execution.
+Next implement a separately declared finite compatibility gate, offline source/
+runtime inventory and bounded native launcher with readiness, identity/context
+verification and process-timeout/partial-journal retention. Independently verify
+the Linux ABI, timespec field offsets and native symbol envelope; freeze execution
+sources and runtime before any separately authorized native measurement. Confirm
+the installed select retry behavior and signal context against v2's disclosure.
 
 Recorder application native compatibility and the six-case budget cohort remain
 blocked. New comparison results cannot retroactively repair previous verdicts.
@@ -74,3 +78,20 @@ reference therefore has an unresolved v1 execution gate: verify the exact Linux
 runtime and prospectively declare a successor allowing disclosed runtime retries/
 unknown counts, or separately declare a compatible reference. Preserve v1's hash;
 do not silently alter its semantics. See the preregistration's October 13 review.
+
+## October 13 v2 offline implementation milestone
+
+Prospectively resolved the retry contract with a new v2 identity; neither v1 nor
+its evidence was replaced. Zero application retries and unknown select-internal
+retry counts are separate fields. Exposed faults cancel remaining attempts;
+missed targets stay unknown and later original slots continue. The evaluator
+preserves unknown pairs and reports rational medians without changing acceptance.
+Publication is exclusive and byte-bounded; it does not claim atomicity/fsync or
+native process-kill recovery. Thirty focused tests and all 1,055 local offline regression tests passed
+(91.860 seconds for the full suite, with localhost fixtures). New v2 files pass
+Python 3.9 syntax parsing. No Linux validation, native binding or scheduling run.
+
+Primary development may continue offline implementation, tests, documentation
+and reviewed development-branch commits/pushes without consulting another chat.
+Surface material design decisions, blockers and actions outside this scope.
+Native execution, main merges and QC sync remain unauthorized.

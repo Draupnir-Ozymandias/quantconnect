@@ -245,3 +245,15 @@ book may omit or return an empty/null `last_trade_price` before it has traded.
 The normalized book records `null` (unknown), never zero or a synthetic trade.
 Supplied nonempty prices still require numeric validation. Existing complete
 books retain their previous normalized hashes. This is not a fill/price signal.
+
+## October 13 — Offline finite wait comparison v2
+
+The prospective plan/run/summary v2 and select-wait v2 contracts are documented in
+[ABSOLUTE_SELECT_COMPARISON_V2.md](ABSOLUTE_SELECT_COMPARISON_V2.md). Producer:
+`infra/stream/recorder_wait_comparison_v2.py` with the existing absolute-wait v1
+adapter; consumer: `infra/stream/recorder_wait_comparison_audit.py`. Tests:
+`tests/test_recorder_wait_comparison_v2.py`, predecessor hash regression and
+absolute-adapter fault tests. V1 comparison inputs are rejected by the v2 audit.
+Select's internal retry count is null/unknown, separate from zero application
+retries; absolute returned EINTR is retained unknown. All native/acceptance/order
+authority flags remain false. Frozen earlier contracts/evidence remain unchanged.

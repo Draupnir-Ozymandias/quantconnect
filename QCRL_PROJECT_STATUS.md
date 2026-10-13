@@ -1,6 +1,6 @@
 # QCRL Project Status
 
-**As of:** 2026-10-12 (engineering update; historical inventory below is September 23)
+**As of:** 2026-10-13 (engineering update; historical inventory below is September 23)
 **Repository:** `Draupnir-Ozymandias/quantconnect` / `polymarket-martingale`  
 **QuantConnect project:** 33239307  
 **Current research decision:** Hold feature optimization; preserve the locked
@@ -40,14 +40,17 @@ counter smoke missed its final deadline before a counter read; its failure and
 original 50-ms budget remain unchanged. See `docs/COUNTER_WAKE_DIAGNOSTICS.md`
 and `docs/WAKE_PROBE_NATIVE_AUDIT_2026_10_12.md` for frozen evidence identities.
 
-The absolute-monotonic adapter is isolated and offline-tested only. The new
-`docs/ABSOLUTE_SELECT_COMPARISON_PREREGISTRATION.md` declares a finite AB/BA
-comparison with exact integer targets and no execution authorization. Outstanding:
-select wrapper/collector, fault and partial-publication tests, evaluator,
-bounded launcher, independent native ABI/symbol compatibility, source/runtime
-freeze and separately authorized Linux measurement. Local tests and Python 3.9
-syntax checks do not satisfy native validation. Recorder application compatibility
-and its six-case budget cohort remain blocked; no prior verdict is repaired.
+The absolute-monotonic adapter is isolated and offline-tested only. The active
+prospective successor `docs/ABSOLUTE_SELECT_COMPARISON_V2.md` resolves select's
+runtime-retry mismatch with one application call and unknown internal retry count;
+v1's declaration/hash remain retained. V2 now has injected collection, pair
+lifecycle, independent structural/arithmetic evaluation and bounded exclusive
+publication, with both plan hashes pinned literally. Outstanding: separately
+finite compatibility gate, installed select/signal and native ABI/symbol checks,
+bounded launcher/context/partial-journal retention and source/runtime freeze.
+Local tests and Python 3.9 syntax checks do not satisfy native validation.
+Recorder application compatibility and its six-case budget cohort remain blocked;
+no prior verdict is repaired.
 
 Signal research and the locked Q4 lane retain their existing guardrails. No
 capture, infrastructure provisioning, credential import or QuantConnect sync is
