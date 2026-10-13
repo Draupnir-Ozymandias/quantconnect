@@ -78,3 +78,9 @@ established Python 3.14.6 / websockets 15.0.1 environment. All 53 focused
 counter/scheduler/wake/launcher/absolute-wait tests passed. Python 3.9 syntax
 parsing passed for the new module and tests; there was no real native syscall,
 EC2 execution, public change or modification to previous measurement plans.
+
+October 12 continuation: the finite design is now separately declared in
+[ABSOLUTE_SELECT_COMPARISON_PREREGISTRATION.md](ABSOLUTE_SELECT_COMPARISON_PREREGISTRATION.md).
+Only its offline declaration/target expander exists; native compatibility,
+collector/evaluator/launcher implementation and execution-source freeze remain
+outstanding. This does not integrate or run the adapter.

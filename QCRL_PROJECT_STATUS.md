@@ -1,6 +1,6 @@
 # QCRL Project Status
 
-**As of:** 2026-09-23
+**As of:** 2026-10-12 (engineering update; historical inventory below is September 23)
 **Repository:** `Draupnir-Ozymandias/quantconnect` / `polymarket-martingale`  
 **QuantConnect project:** 33239307  
 **Current research decision:** Hold feature optimization; preserve the locked
@@ -24,6 +24,35 @@ currently authorized.
 The next engineering phase should define executable Polymarket timing and
 market mechanics without changing the signal or opening the prospective Q4
 evidence.
+
+## October 12 engineering continuation
+
+Intel macOS migration receipt pins source `f05d5dd73b4f146f5698f58aa4c94dd6ccc480a4`:
+598 retained evidence files; no jobs, secrets or cloud-sync authorization imported.
+The operator reports all 1,034 bootstrap tests passed on Python 3.14.6. The
+migration is curated, not a complete historical evidence copy.
+
+Latest independently audited Linux wake diagnostic retained 11 observed targets
+and one missed target; 60-second wakes were approximately 59–60 ms late.
+Measurement completeness and acceptance remain false. Select-related slack is a
+post-hoc mechanism hypothesis, not installed-runtime causal proof. The earlier
+counter smoke missed its final deadline before a counter read; its failure and
+original 50-ms budget remain unchanged. See `docs/COUNTER_WAKE_DIAGNOSTICS.md`
+and `docs/WAKE_PROBE_NATIVE_AUDIT_2026_10_12.md` for frozen evidence identities.
+
+The absolute-monotonic adapter is isolated and offline-tested only. The new
+`docs/ABSOLUTE_SELECT_COMPARISON_PREREGISTRATION.md` declares a finite AB/BA
+comparison with exact integer targets and no execution authorization. Outstanding:
+select wrapper/collector, fault and partial-publication tests, evaluator,
+bounded launcher, independent native ABI/symbol compatibility, source/runtime
+freeze and separately authorized Linux measurement. Local tests and Python 3.9
+syntax checks do not satisfy native validation. Recorder application compatibility
+and its six-case budget cohort remain blocked; no prior verdict is repaired.
+
+Signal research and the locked Q4 lane retain their existing guardrails. No
+capture, infrastructure provisioning, credential import or QuantConnect sync is
+part of this continuation. The dated September inventory/test count below is
+historical and must not be read as the current engineering inventory.
 
 ## Version and Contract State
 

@@ -2471,3 +2471,24 @@ next coding target
 > evidence degraded it, feature optimization is on hold, and the next independent
 > lane is read-only Polymarket execution-truth infrastructure while 2026Q4 remains
 > locked.
+
+## 2026-10-12 — Intel migration continuation and finite wait comparison
+
+Read repository workflow, migration receipt and frozen native diagnostic/prototype
+records on clean branch `codex/lupus-development` at `f05d5dd`. Added the v1
+absolute/select finite comparison declaration, an offline integer target expander
+and focused tests; updated current engineering status and prototype navigation.
+No engine interface or prior evidence/measurement plan changed. No record fields
+consumed from live data. The comparison measures inclusive lateness and assumes
+no exclusive causal explanation; AB/BA ordering leaves host/time confounding.
+All historical evidence stays frozen and requires its originating source checkout.
+New requests for Workstream A: none. Twelve focused local tests passed; Python 3.9
+syntax checks passed. Full local regression verification is recorded in the new
+preregistration document. No native binding/sleep, captures, infrastructure,
+credentials, remote sync, commit or push performed.
+
+Next coding target: implement offline-injected select/absolute collection,
+unknown/stop handling, bounded exclusive publication and independent evaluation,
+then separately verify native compatibility and freeze the execution envelope
+before requesting any Linux run. This declaration does not unlock the recorder
+application cohort or reopen Q4 signal research.
