@@ -2706,3 +2706,25 @@ Corrected local regression: all 1,093 tests passed in 97.249 seconds on Intel
 macOS/Python 3.14.6 with existing numeric-localhost fixtures permitted. Fifteen
 focused fault tests pass; Python 3.8.2 compilation reproduces the original nested
 block failure and accepts the corrected files. No corrected Linux unit ran.
+
+## Corrected offline execution candidate sealed — October 14
+
+Exact candidate `cb23c4c2b6b2d7de76435bd6397415f4550e4727` contains only the
+fault-test context-manager refactor and status updates relative to failed b7db.
+All production Python and scientific plan hashes remain unchanged. Its 491-file
+inventory matches exact Git blobs and retains the reviewed runtime and original
+compatibility prerequisite. Full freeze:
+`7c0ddaf5f697493302fd6791a64aacc68618d391a2a80c3bfd3a8dca198c3f55`.
+Private controls: `.qcrl/reviews/wait-comparison-source-cb23c4c2b6b2/`.
+Verification: `a445c94f0eb50f88821954d4ce3fb9ec07a447879ee8fb3b54708f3fe10c6db8`.
+Later receipt-documentation HEAD does not replace this execution source.
+
+Ready offline for a new operator-approved, fresh-stage Linux readiness attempt,
+conditional on the unchanged source/runtime/public gates. Expected Linux population
+remains 1,093 discovered, one existing skip. Only after a successful gate may the
+unchanged two AB/BA runs execute once. No corrected source was staged or run on
+Linux; no resumption, retry, replay, extra measurement or recorder cohort is
+currently authorized. Original failed stage/receipts remain untouched. All freeze
+and producer authority flags remain false; the failed gate demonstrates no
+scientific comparison or acceptance. Obtain approval before any further native
+unit, rather than reusing the failed attempt's permission.
