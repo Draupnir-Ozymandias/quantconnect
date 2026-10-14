@@ -1,6 +1,6 @@
 # Development handoff
 
-Updated October 13, 2026. Continue in
+Updated October 14, 2026. Continue in
 `/Users/eric/Projects/quantconnect/polymarket-martingale` on
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
@@ -157,3 +157,28 @@ focused tests and Python 3.9 syntax checks passed. The implementation is ready
 for source-candidate sealing and authorized read-only Linux runtime inspection;
 full source/runtime freeze and native-smoke execution readiness are still gated
 on that installed-runtime review. No smoke authorization is implied.
+
+## October 14 — SSH authorized; connection method still needed
+
+The operator explicitly authorized read-only SSH inspection of the existing Ohio
+host. This does not authorize native smoke/comparison units, infrastructure or
+credential import. Local access checks found no documented QCRL identity file,
+no SSH configuration, no identities in the existing agent, and no saved host pin
+for the recorded historical Ohio address. Only an older default AWS profile is
+present; it was not used to substitute for the documented scoped access. No EC2
+connection, remote command, AWS API request or access-rule change was attempted.
+
+The blocker is now the available approved connection method, not SSH permission.
+Requested an existing host alias/key path or confirmation that access remains on
+the original Mac. Do not copy credentials from the migration package, use unknown
+legacy AWS credentials, bypass host verification or change ingress implicitly.
+After a method is supplied, verify the current destination and pinned identity
+before read-only installed-runtime/source review. Native execution still requires
+separate authorization after the full freeze is complete.
+
+The existing source-only receipt has been rechecked and remains bound to
+`2cb688039f1b0c0bf4bae4f783902759aa263aef` (488 selected files; source seal
+`9a9a36efb5fc986de8a3cffeb96712235acb66d6ad90616bad89cabf4e6c4f34`).
+Its path is `.qcrl/reviews/wait-compatibility-source-2cb688039f1b/source-freeze.json`.
+This documentation continuation does not replace that candidate or its evidence;
+use its exact frozen checkout for runtime binding. Runtime remains unfrozen.

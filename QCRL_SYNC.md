@@ -2564,3 +2564,14 @@ observations are mocked. Source-only sealing uses the clean committed implementa
 Installed Linux review/runtime freeze requires read-only remote authorization;
 compatibility execution needs separate approval. No native smoke, comparison,
 credentials, infrastructure, main merge or QC sync.
+
+## 2026-10-14 — Read-only SSH authorization and access prerequisite
+
+Operator authorized read-only EC2 SSH inspection. Local metadata checks found the
+documented key absent, no SSH-agent identities/configuration and no existing pin
+for the historical host address. No remote/AWS call or infrastructure/access-rule
+change occurred; the older default AWS profile was not used. Requested the
+approved connection method. Rechecked the existing 2cb6880 source-only receipt;
+source and evidence remain frozen, Linux runtime review is still pending.
+Updated handoff only; no code changes or new tests needed. Native compatibility
+and comparison execution remain separately gated. No new diagnostic layer.
