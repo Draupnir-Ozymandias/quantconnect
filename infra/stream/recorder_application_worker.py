@@ -263,7 +263,7 @@ class LoopbackSocket:
         self.conn.close()
 
 
-def consume(root, declaration, *, execute=False):
+def consume(root, declaration, *, execute=False, resource_observer=None):
     root = Path(root)
     case = context(root, declaration, execute)
     ready = control(root / 'server-ready.json')
@@ -284,7 +284,7 @@ def consume(root, declaration, *, execute=False):
             initial = reader.read(rss=True)
             publish(root / 'observer-ready.json', dict(case_sha256=case['artifact_sha256'],
                     at=time.monotonic(), identity=reader.expected, initial=initial))
-            resources.update(observe(reader, case['epoch'], stop))
+            resources.update((observe if resource_observer is None else resource_observer)(reader, case['epoch'], stop))
         except Exception as exc:
             resources.update(rows=[], overflow=False, error=type(exc).__name__ + ':' + str(exc)[:160])
     thread = threading.Thread(target=monitor, daemon=True)

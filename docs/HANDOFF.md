@@ -5,6 +5,54 @@ Updated October 14, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 14 — Offline absolute observer integration and successor preregistration
+
+Absolute waiting is integrated into the isolated recorder's in-unit CPU/RSS
+observer through explicit prepare/consume wrappers. The receive path, producer
+pacing, segmented writer, completion witnesses, public collectors and original
+recorder declaration remain unchanged. Legacy consume defaults to its old observer.
+The original recorder plan is still c9207f596ac734e558ca44d7397df0e6abb580ddd75fcc84f6dda44f70873ade.
+
+New observer policy hash:
+`bdd41717abfb6b5d02e21fb11cf8059fab27723b80497a893a66c28adc50e52f`.
+Source-bound declaration:
+`41187030fbf5825311b03c0558bd137b104b7d692078a11777b7bf4242931e15`.
+Private offline receipt: `.qcrl/reviews/recorder-absolute-offline-20261014/`.
+It uses the shared epoch's ceiling integer nanoseconds, fixed integer-second RSS
+slots and 50-ms pre-boundary CPU lead (an explicit successor to the old 2-ms
+lead). Budgets stay unchanged; the enclosing CPU delta is not normalized or
+subtracted to remove the larger lead. Every endpoint gets at most one absolute
+wait. Past/equal targets and >50-ms late wakes cause no read/catch-up, retain
+unknowns and continue original slots. Wait/clock faults and KeyboardInterrupt
+stop the observer with its prefix; ordinary read faults retain their unknown slot
+without retry. Capacity/overflow remains 184 slots. Wait receipts and case/source
+bindings are checked before the unchanged resource gates; known failures survive
+missing evidence. No native-origin or acceptance flag is promoted.
+
+Prospective test: one 68-occurrence, 1-Hz real-loopback compatibility run spanning
+one complete 60-second CPU window, then stop for independent review. This is not
+a shortened acceptance case. Only after a separate approval may the original
+six serial 60,000-occurrence cases / 360,000 total run with unchanged workload,
+corpus, resource limits and application budgets. No tuning or replacement.
+See [recorder absolute preregistration](RECORDER_ABSOLUTE_BUDGET_PREREGISTRATION.md) for the full declaration,
+missed-slot rules, bounds, stopping conditions and remaining implementation gates.
+
+Offline verification uses injected clocks/syscalls/readers and recorder wiring;
+no new native wait, Linux unit, capture, infrastructure, credential operation or
+QC sync. The 68-at-1-Hz transport, native launcher routing, fresh committed
+source/runtime/dependency envelope and independent launch/origin audit still need
+implementation and review before requesting native authorization. Old launchers
+must not be reused to claim this path ran. Earlier frozen evidence and verdicts
+remain unchanged; audit each against its originating revision.
+
+
+Verification: all 1,114 offline tests passed in 78.738 seconds on Intel macOS /
+Python 3.14.6 with numeric-localhost fixtures permitted. All 21 new integration
+and fault tests pass, including real WebSocket/recorder completion wiring with
+injected syscalls/resources/Linux context. Four changed/new Python files compile
+with local Python 3.8.2. This is not installed Python 3.9/Linux or native recorder
+validation. No new native experiment or acceptance result exists.
+
 ## October 14 — Frozen two-run comparison completed, one unknown
 
 Renewed direct approval covered corrected cb23c4c / execution freeze
@@ -39,7 +87,8 @@ At 60 seconds, select lateness was 58.771055 / 60.099649 ms and absolute was
 0.136841 / 0.131331 ms; paired median absolute-minus-select = -59.301266 ms.
 These are descriptive serial samples with host/time confounding, no tail,
 significance, exclusive-causality, recorder-acceptance or trading conclusion.
-Recorder application compatibility and its budget cohort remain unfinished.
+Recorder application compatibility and its budget cohort remain unfinished; the
+new absolute-observer path is implemented offline and preregistered above.
 The finite comparison authorization is consumed; further native execution needs
 separate approval. No new diagnostic layer, main merge or QC sync.
 

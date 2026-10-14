@@ -306,3 +306,25 @@ elsewhere after collection begins cannot create a fictitious null-epoch receipt.
 Publication is after collection, with partial/journal retention and no replay.
 Tests: test_recorder_wait_comparison_native.py plus unchanged v2/envelope/production
 contracts. See WAIT_COMPARISON_NATIVE_PREPARATION.md; no native comparison is implied.
+
+
+## October 14 — Isolated recorder absolute observer
+
+`infra/stream/recorder_absolute_budget.py` produces recorder-absolute-budget
+plan/declaration v1. Policy payload hash is pinned literally; the separate
+`declaration_sha256` binds original recorder identity, unchanged budgets/corpus/
+workloads/limits and the new implementation/test/preregistration source bytes.
+Its original parent is c9207f596ac734e558ca44d7397df0e6abb580ddd75fcc84f6dda44f70873ade.
+
+`infra/stream/recorder_absolute_observer.py` produces recorder-absolute-resources
+v1 inside the existing hashed consumer artifact, with original float/integer
+slot targets, capacity, exact absolute-wait v1 receipts, CPU pre-read/RSS samples,
+separate pre-read errors and retained prefixes. An exclusive hashed
+absolute-wait-plan control binds the new declaration to case_sha256. The consumer
+is `audit_resources`, which checks policy/epoch/grid/wait/sample binding before
+using the unchanged recorder resource evaluator. A legacy resource audit alone
+cannot establish this integration's acceptance or independent native origin.
+Tests: `tests/test_recorder_absolute_observer.py`. Protocol, bounds and unimplemented
+native gates: [recorder absolute preregistration](RECORDER_ABSOLUTE_BUDGET_PREREGISTRATION.md).
+All origin/compatibility/acceptance/execution/order flags remain false; prior
+schemas, source-frozen evidence and recorder budgets remain unchanged.
