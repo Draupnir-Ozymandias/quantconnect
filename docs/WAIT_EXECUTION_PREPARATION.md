@@ -232,3 +232,27 @@ compatibility or enforcement verification. Source sealing occurs after a clean
 implementation commit; its local receipt is kept outside Git. Runtime sealing
 requires the pending read-only remote review, then smoke execution needs a
 separate authorization. No compatibility unit or scheduling comparison was run.
+
+## October 14 installed-runtime review — execution still gated
+
+Read-only Session Manager inspection and independent local distribution-source
+review are complete; see `HANDOFF.md` for provenance, limits and private receipts.
+Full freeze `8fd4a9557b16bc46fad770b5a9cd1279ce63390e5ab92624addee248c4c690c1`
+binds the original 488-file implementation candidate 2cb6880 to observed aarch64
+Linux/glibc/Python 3.9.25 metadata and binary/source/review hashes. The source-only
+receipt remains untouched. Later documentation commits do not replace the candidate.
+
+Installed select equals the official release package payload. The matching SRPM's
+43 declared patches do not change selectmodule.c; reviewed source implements the
+v2 disclosed signal check and recomputed-timeout EINTR retry. Official TLS repository
+checksums and exact payload/RPM-manifest matches establish the review's provenance
+basis; neither a reproducible build nor independent RPM signature verification
+was performed. This is not a scheduling experiment or causal result.
+
+The next gate is explicit authorization for fresh private staging, live preflight,
+one bounded Linux regression unit and, only on success, the single declared
+compatibility unit. No staging, native tests, waits or units ran during this review.
+Readiness is conditional on clean exact candidate/runtime match and the existing
+resource, public-state, readiness/release and isolation checks. Retain partial
+results and stop on failure without retry/replay. Independent native audit remains
+required; no comparison execution or performance/recorder acceptance is unlocked.

@@ -5,6 +5,16 @@ Updated October 14, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## Current execution gate — October 14
+
+Authorized read-only Session Manager inspection is complete. Source/runtime freeze
+`8fd4a9557b16bc46fad770b5a9cd1279ce63390e5ab92624addee248c4c690c1`
+binds implementation commit `2cb688039f1b0c0bf4bae4f783902759aa263aef`
+and its original 488-file inventory. It is ready for authorization of one bounded
+Linux compatibility attempt, subject to fresh staging and the existing live
+preflight gates. No native tests, compatibility waits or units have run.
+The source candidate stays fixed across subsequent documentation commits.
+
 ## Current scientific status
 
 The independently audited October 12 Linux clock-only diagnostic retained 11
@@ -47,10 +57,10 @@ Linux ABI compatibility, native scheduling behavior or actual improvement.
 A finite compatibility declaration, source/runtime freeze validation and injected
 launcher lifecycle rehearsal now exist; see `WAIT_EXECUTION_PREPARATION.md`.
 The compatibility worker and production adapters are now implemented and tested
-offline; see the production continuation below. Independently verify
-the Linux ABI, timespec field offsets and native symbol envelope; freeze execution
-sources and runtime before any separately authorized native measurement. Confirm
-the installed select retry behavior and signal context against v2's disclosure.
+offline; see the production continuation below. The authorized read-only Linux
+ABI/symbol, installed select-source and signal context review is complete; see the October 14 receipt below. Fresh native
+preflight must match the frozen source/runtime before a separately authorized
+compatibility attempt.
 
 Recorder application native compatibility and the six-case budget cohort remain
 blocked. New comparison results cannot retroactively repair previous verdicts.
@@ -201,3 +211,67 @@ the new public key and returning the trusted server public host key. Public-key
 installation is authorized; changing ingress/infrastructure or running native
 smoke/comparison units is not. Source candidate and prior evidence are unchanged;
 runtime review remains pending authenticated access.
+
+## October 14 — Read-only Linux review and full freeze complete
+
+Used the operator-approved AdministratorAccess console session for Session Manager
+on the existing Ohio collector. Automatic approval review initially blocked that
+broad role; the operator explicitly approved its use solely for this inspection.
+No IAM, ingress, infrastructure, services, packages or remote files were changed.
+No credentials were imported. The dedicated SSH key remains local and uninstalled;
+Session Manager supplied the needed access without changing SSH authentication.
+
+Observed aarch64 Linux kernel `6.18.51-120.163.amzn2023.aarch64`, glibc 2.34,
+GIL-enabled Python 3.9.25, 64-bit pointers/long, 16-byte timespec with offsets 0/8,
+CLOCK_MONOTONIC 1 and resolution 1e-09. Bound the declared clock_nanosleep
+signature without calling it. Existing handlers were observed without changes.
+Python/libc/select file hashes matched their installed RPM SHA-256 manifests;
+repeat hashes, boot identity and public service states were unchanged. The public
+collector timer remained active/waiting and pilot/observer inactive/dead.
+
+Fetched the exact release's official Amazon Linux source and python3-libs RPMs
+locally over verified TLS, checked repository metadata/package hashes, and matched
+the extracted official select extension byte for byte to the installed extension.
+Reviewed the matching SRPM spec and all 43 declared patches: none changes
+selectmodule.c. The retained C source confirms select's EINTR retry after checking
+Python signals, with remaining timeout recomputed from a monotonic deadline;
+a raising handler propagates. Runtime retries remain disclosed and uncounted.
+This establishes package/source provenance, not a reproducible build or independent
+RPM signature verification, and does not establish a cause of historical lateness.
+
+Private evidence is retained under
+`.qcrl/reviews/wait-runtime-20261014-jlwy2fu9/`: linux-observation.json (transcribed
+from visible console output), runtime-review.json, select-review-source.c,
+execution-freeze.json, official repository/RPM inputs and review-inventory.json.
+Runtime-review hash:
+`359b2b60db756b43ea21340b8434163abbeba13c2c15bbaf24ccd94d96ec7a9d`.
+Execution-freeze hash:
+`8fd4a9557b16bc46fad770b5a9cd1279ce63390e5ab92624addee248c4c690c1`.
+Review inventory hash:
+`4215b012370a33fa49e0ea7e1242bf040906be06e221574f2e742a0d92264843`.
+The original source-only receipt and migration/frozen scientific evidence remain
+unchanged; every one of the 488 source hashes was checked against exact commit
+2cb6880. Current Python implementation bytes also match that candidate.
+
+Readiness is for one separately authorized compatibility attempt: stage a fresh
+private copy of exact 2cb6880 plus these controls; verify source/runtime, qcrl
+ownership, disk reserve, absent private units and unchanged public prerequisites;
+run the bounded Linux regression unit, then only if it passes run the declared
+select/absolute compatibility unit. Limits remain CPU 75%, memory 512 MiB,
+32 tasks and 240 seconds per unit. Retain readiness, release, effective properties,
+journals, failures and origin inventory; no retry/replay. Audit independently
+before claiming native compatibility. Staging and execution have not begun.
+The AB/BA scheduling comparison and recorder budget cohort remain unauthorized.
+No new diagnostic layer or protocol revision was introduced.
+
+Local verification remains 1,078 passing offline tests on Intel macOS/Python
+3.14.6, including 53 focused tests and Python 3.9 syntax checks. Linux runtime
+metadata/source inspection is now real evidence; Linux tests, unit enforcement,
+compatibility behavior, scheduling improvement and performance acceptance remain
+unverified. All freeze execution/native/compatibility/acceptance/order flags stay
+false. Request native authorization before staging or starting the finite attempt.
+
+This review continuation reran all 53 focused offline tests successfully in 0.403
+seconds and verified freeze/review hashes plus all 67 inventoried evidence files.
+The full 1,078-test result above is the preceding implementation milestone, not
+a new Linux or full-suite run. Documentation diff and append-only sync checks pass.

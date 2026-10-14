@@ -2585,3 +2585,31 @@ remote command ran and no pin was bypassed. Public-key installation/trusted pin
 handoff requires an existing authenticated path from the original Mac. No AWS
 legacy credential use, infrastructure change, native experiment or source/evidence
 modification. Documentation-only continuation; no regression rerun needed.
+
+
+## 2026-10-14 — Read-only Linux provenance and source/runtime freeze
+
+Operator approved the existing AdministratorAccess console session solely for
+Session Manager runtime/source inspection after the automatic review gate.
+Observed Linux aarch64/glibc 2.34/Python 3.9.25, LP64 timespec offsets 0/8,
+monotonic clock metadata, existing handlers and clock_nanosleep symbol/signature
+without calling a wait. Installed binary hashes matched RPM manifests and final
+rechecks; public services/boot identity stayed unchanged. No remote writes,
+package installation, key installation, infrastructure or service changes.
+
+Locally verified official release repository checksums, exact source/binary RPMs
+and official select payload equality to installed bytes. Matching SRPM spec and
+43 declared patches leave selectmodule.c unchanged; source confirms disclosed
+EINTR signal check and recomputed-timeout retry. No independent RPM signature
+verification or reproducible build claim; no causal scheduling conclusion.
+
+Private review `.qcrl/reviews/wait-runtime-20261014-jlwy2fu9/` retains inputs,
+observation/review and execution freeze. Full freeze
+`8fd4a9557b16bc46fad770b5a9cd1279ce63390e5ab92624addee248c4c690c1`
+binds unchanged 488-file source candidate 2cb688039f1b0c0bf4bae4f783902759aa263aef.
+Original source-only receipt, declarations and scientific evidence are preserved.
+Local 1,078 tests/53 focused checks remain Mac offline evidence. No native unit,
+Linux regression or compatibility wait ran. Ready for separate authorization of
+fresh private staging/preflight, one bounded Linux regression unit and conditional
+single two-wait compatibility unit; no retry/replay or comparison advancement.
+All native/compatibility/acceptance/order authority flags remain false.

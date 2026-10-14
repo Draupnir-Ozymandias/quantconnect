@@ -1,6 +1,6 @@
 # QCRL Project Status
 
-**As of:** 2026-10-13 (engineering update; historical inventory below is September 23)
+**As of:** 2026-10-14 (engineering update; historical inventory below is September 23)
 **Repository:** `Draupnir-Ozymandias/quantconnect` / `polymarket-martingale`  
 **QuantConnect project:** 33239307  
 **Current research decision:** Hold feature optimization; preserve the locked
@@ -50,10 +50,18 @@ compatibility declaration, tracked source/runtime envelope validation and inject
 bounded-lifecycle rehearsal are now offline-tested (`docs/WAIT_EXECUTION_PREPARATION.md`).
 The compatibility worker and production adapters now have offline fault coverage,
 including bounded helper/control/journal handling and scoped lifecycle failure
-retention. Outstanding: authorized read-only installed select/signal and native
-ABI/symbol review, the actual Linux runtime freeze, and separately authorized
-compatibility execution. The source candidate is sealed locally from a clean
-implementation revision; this is not native validation.
+retention. Authorized read-only Session Manager runtime/ABI/signal inspection
+and official distribution select binary/source review are complete. Full execution
+freeze `8fd4a9557b16bc46fad770b5a9cd1279ce63390e5ab92624addee248c4c690c1`
+binds the original 488-file 2cb6880 candidate. Official package payload, installed
+RPM-manifest hashes and source/spec/43-patch review support provenance; no independent
+RPM signature verification or reproducible build was performed. Select's runtime
+EINTR retries match v2's disclosure; their internal count remains unknown.
+Ready to request one bounded Linux compatibility attempt after fresh private
+staging/preflight and its required Linux regression unit, with separate execution
+authorization. No staging, Linux tests, wait calls or units ran during inspection;
+unit enforcement and compatibility remain unverified. See `docs/HANDOFF.md` for
+private receipt identities and continuation bounds.
 Local tests and Python 3.9 syntax checks do not satisfy native validation.
 Recorder application compatibility and its six-case budget cohort remain blocked;
 no prior verdict is repaired.
