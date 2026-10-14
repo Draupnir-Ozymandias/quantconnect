@@ -1,10 +1,10 @@
-# Wait compatibility and execution preparation — offline only
+# Wait compatibility preparation and bounded native smoke
 
 Declared October 13, 2026. This adds a separate finite compatibility plan and
 an execution-envelope/lifecycle rehearsal. The later implementation section below
-adds a worker and production adapters, tested offline only. No compatibility smoke
-or systemd unit has run during development. The
-comparison remains prospective v2; v1/v2 plan identities and evidence are unchanged.
+adds a worker and production adapters initially tested offline only. The authorized
+October 14 native smoke is recorded at the end of this document. The comparison
+remains prospective v2; v1/v2 plan identities and prior evidence are unchanged.
 
 ## Finite compatibility declaration
 
@@ -256,3 +256,27 @@ Readiness is conditional on clean exact candidate/runtime match and the existing
 resource, public-state, readiness/release and isolation checks. Retain partial
 results and stop on failure without retry/replay. Independent native audit remains
 required; no comparison execution or performance/recorder acceptance is unlocked.
+
+## October 14 authorized native smoke — interface compatibility verified
+
+The operator subsequently authorized one finite attempt. Exact source candidate
+2cb6880 and the existing full freeze were staged privately on the unchanged Ohio
+host. Live preflight passed. The Linux regression unit completed 1,078 discovered
+tests in 105.240 seconds, with 1,077 passing and one existing Python 3.10+ guard
+skipped on Python 3.9.25. Only then did the declared compatibility unit run once.
+Both select/absolute targets returned code 0 with valid brackets and no errors;
+application retries were zero, while select internal retries remain unknown.
+
+Native journals, effective properties, live binding/resource context and twelve
+retained file hashes were separately checked offline. Audit identity:
+`c5f7e48f1dc97f38966a0d5c7dcd51761cf2f1f5644c09b446c018bb85f3a0cb`.
+Evidence identities and limits are in `HANDOFF.md`. Both private units are stopped;
+public/source/runtime state is unchanged. No replay, signal injection, package
+installation, public collector mutation or scheduling comparison occurred.
+
+This verifies the finite interface smoke and captured effective envelope only.
+It does not establish repeated timing performance, exclusive select-slack causality,
+recorder budget acceptance or trading authority. The v2 comparison is still
+prospective and requires separate native authorization. Original source-only/full
+freeze controls and producer flags remain unchanged; the separate audit carries
+only its narrowly stated native-origin/interface verdict. No new diagnostic layer.

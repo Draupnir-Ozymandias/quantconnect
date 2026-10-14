@@ -7,13 +7,16 @@ for subsequent development revisions. Keep this branch separate from main.
 
 ## Current execution gate — October 14
 
-Authorized read-only Session Manager inspection is complete. Source/runtime freeze
+One operator-authorized bounded Linux compatibility attempt is complete.
+Source/runtime freeze
 `8fd4a9557b16bc46fad770b5a9cd1279ce63390e5ab92624addee248c4c690c1`
 binds implementation commit `2cb688039f1b0c0bf4bae4f783902759aa263aef`
-and its original 488-file inventory. It is ready for authorization of one bounded
-Linux compatibility attempt, subject to fresh staging and the existing live
-preflight gates. No native tests, compatibility waits or units have run.
-The source candidate stays fixed across subsequent documentation commits.
+and its original 488-file inventory. The Linux regression gate and both declared
+compatibility waits succeeded; separate offline receipt/origin checks passed.
+Both private units are stopped; public/source/runtime state is unchanged.
+The one-attempt authorization is consumed. No scheduling comparison, recorder
+cohort, replay or additional native run is authorized. The source candidate and
+all historical evidence remain fixed across subsequent documentation commits.
 
 ## Current scientific status
 
@@ -25,7 +28,8 @@ performance acceptance remain false. The earlier counter smoke's final endpoint
 missed the fixed deadline before any counter read. Preserve both failures and
 the original 50-ms budget.
 
-The absolute-monotonic adapter remains isolated and offline-tested. The active
+The absolute-monotonic adapter has now passed the single native interface smoke;
+recorder integration and scheduling performance remain unverified. The active
 prospective comparison is now
 [ABSOLUTE_SELECT_COMPARISON_V2.md](ABSOLUTE_SELECT_COMPARISON_V2.md), with plan hash
 `c501255908329a12c93cab58d6e7ffc0f44711175141749db8953c95c6a2982d`.
@@ -59,8 +63,8 @@ launcher lifecycle rehearsal now exist; see `WAIT_EXECUTION_PREPARATION.md`.
 The compatibility worker and production adapters are now implemented and tested
 offline; see the production continuation below. The authorized read-only Linux
 ABI/symbol, installed select-source and signal context review is complete; see the October 14 receipt below. Fresh native
-preflight must match the frozen source/runtime before a separately authorized
-compatibility attempt.
+preflight must match the frozen source/runtime before any further separately
+authorized native execution. The single compatibility attempt below is complete.
 
 Recorder application native compatibility and the six-case budget cohort remain
 blocked. New comparison results cannot retroactively repair previous verdicts.
@@ -275,3 +279,69 @@ This review continuation reran all 53 focused offline tests successfully in 0.40
 seconds and verified freeze/review hashes plus all 67 inventoried evidence files.
 The full 1,078-test result above is the preceding implementation milestone, not
 a new Linux or full-suite run. Documentation diff and append-only sync checks pass.
+
+## October 14 — Authorized single native compatibility smoke passed
+
+The operator approved fresh staging and the bounded Linux regression unit followed
+only on success by the single select/absolute compatibility unit. Used the existing
+Ohio host through Session Manager. No infrastructure, IAM, SSH, package or public
+collector changes. Created only the fresh private stage
+`/var/lib/qcrl-stream/recorder-wait-20261014Lupus01`. Anonymous partial Git clone and
+sparse checkout bound exact 2cb6880 while excluding poly.py/poly2.py; no credentials
+were imported. Reviewed source/control bytes and live source/runtime reproduced the
+exact existing execution-freeze hash. Fresh staging/live preflight checks passed.
+
+The declared production launcher ran once. The qcrl Linux regression unit discovered
+1,078 tests in 105.240 seconds: 1,077 passed and one was skipped. The skipped test
+is SyncContractTests.test_tracked_python_files_do_not_shadow_standard_library_modules,
+whose frozen guard requires sys.stdlib_module_names (Python 3.10+). This reason
+was identified from the frozen guard, not a verbose rerun. All pinned WebSocket
+fixture gates were available. This is real Linux regression evidence, distinct
+from the preceding 1,078 passing local Mac tests.
+
+After success, the compatibility unit produced independent readiness/live binding
+and hash-linked release, then observed exactly select at epoch+50 ms and absolute
+at epoch+100 ms. Both returned code 0 with no errors and zero application retries.
+Select's internal retry count remains unknown. Retained signed lateness was
+185,322 ns (select) and 128,759 ns (absolute). These single short waits establish
+interface compatibility only; their difference is not scheduling improvement or
+an explanation of the historical 60-second lateness. No signal injection/handler
+change or retry/replay occurred, and no AB/BA comparison was launched.
+
+Captured effective properties match CPU 75%, memory 512 MiB, 32 tasks and runtime
+240 seconds; the live resource sample also showed cpu.max 75000/100000 and
+memory.max 536870912. Compatibility allowed AF_UNIX only, with denied IP access;
+tests allowed numeric localhost. Both units exited successfully and were stopped.
+Retained journals/properties/readiness/release/result and origin inventory report
+no capture or preservation fault. Public collector states, environment-file hash,
+public source HEAD and exact private source/runtime remained unchanged, including
+a separate final read-only recheck. No public service was restored or restarted.
+
+Remote evidence remains in the private stage. The local copy is
+`.qcrl/reviews/wait-compatibility-native-20261014Lupus01/`. All twelve native evidence
+files match the producer's origin inventory; identical reviewed control bytes were
+copied from the existing local review and checked against those remote hashes.
+The retained transfer archive contains the remaining exact native bytes, origin
+inventory, staging preflight and launcher log/PID record. It is not in Git.
+
+Compatibility result:
+`a8927bd009b4218869a1fa91dd3b357017f963c5d97f1df427e9beefa03dcc0a`.
+Launch receipt:
+`b0816cfe7f0af3bac0ef5561eb3de6d3823ab2f777dfa32edffafa5410069171`.
+Origin inventory:
+`2770fc0c1313cb65f70770212f5d0076014961d8c673788c3b30ea70593e8da7`.
+Separate offline native audit:
+`c5f7e48f1dc97f38966a0d5c7dcd51761cf2f1f5644c09b446c018bb85f3a0cb`.
+The audit checks source/runtime freeze, all byte hashes, valid integer brackets,
+readiness/release/live PID/start/boot/cgroup identity, raw effective properties,
+actual quota/memory context, unit completions, journals and unchanged final state.
+It verifies native origin and this finite interface compatibility only. Producer
+and frozen control authority flags stay unchanged; the separate audit does not
+establish performance, recorder acceptance, trading or comparison execution authority.
+
+No failing requirement demands another diagnostic layer or a protocol correction.
+Next native action would require separate authorization for the preregistered v2
+comparison after review of these receipts. Do not replay this stage or consume new
+results under the single-smoke approval. Preserve all original declarations,
+scientific failures and budgets. Continue authorized offline work on the development
+branch; no main merge or QuantConnect sync.

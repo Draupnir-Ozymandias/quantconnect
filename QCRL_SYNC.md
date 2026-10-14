@@ -2613,3 +2613,29 @@ Linux regression or compatibility wait ran. Ready for separate authorization of
 fresh private staging/preflight, one bounded Linux regression unit and conditional
 single two-wait compatibility unit; no retry/replay or comparison advancement.
 All native/compatibility/acceptance/order authority flags remain false.
+
+
+## 2026-10-14 — Single authorized Linux compatibility attempt completed
+
+Operator authorized private staging, bounded Linux regression and the conditional
+single two-wait compatibility smoke. Fresh private stage recorder-wait-20261014Lupus01
+bound exact candidate 2cb6880 and full freeze 8fd4a9557b16; no credentials imported,
+packages installed, infrastructure or public collectors changed. Live preflight passed.
+
+Linux regression: 1,078 discovered in 105.240 seconds; 1,077 passed and one existing
+Python 3.10+ stdlib-module-inventory test skipped on Python 3.9.25. Then select and
+absolute returned code 0 at the declared epoch+50/100 ms targets with valid brackets,
+no errors and zero application retries. Select internal retry count stays unknown.
+Both private units stopped; public/environment/source/runtime state unchanged.
+No retry, replay, signals or AB/BA comparison. No performance or causal conclusion.
+
+Retained local evidence: .qcrl/reviews/wait-compatibility-native-20261014Lupus01/.
+All twelve native files match origin inventory 2770fc0c1313cb65f70770212f5d0076014961d8c673788c3b30ea70593e8da7.
+Result a8927bd009b4218869a1fa91dd3b357017f963c5d97f1df427e9beefa03dcc0a;
+separate offline native audit c5f7e48f1dc97f38966a0d5c7dcd51761cf2f1f5644c09b446c018bb85f3a0cb
+checks origin, byte hashes, live process/unit envelope, readiness/release and bracket
+arithmetic. Verdict: native origin and finite interface compatibility verified;
+performance, recorder acceptance, comparison execution and orders remain false.
+Existing producer/freeze flags, plans and historical evidence were not rewritten.
+The one-smoke authorization is consumed; further native execution needs a separate
+approval. No concrete failure requires a new diagnostic layer or protocol change.

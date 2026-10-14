@@ -40,7 +40,8 @@ counter smoke missed its final deadline before a counter read; its failure and
 original 50-ms budget remain unchanged. See `docs/COUNTER_WAKE_DIAGNOSTICS.md`
 and `docs/WAKE_PROBE_NATIVE_AUDIT_2026_10_12.md` for frozen evidence identities.
 
-The absolute-monotonic adapter is isolated and offline-tested only. The active
+The absolute-monotonic adapter has passed one bounded native interface smoke;
+recorder integration and scheduling performance remain unverified. The active
 prospective successor `docs/ABSOLUTE_SELECT_COMPARISON_V2.md` resolves select's
 runtime-retry mismatch with one application call and unknown internal retry count;
 v1's declaration/hash remain retained. V2 now has injected collection, pair
@@ -57,12 +58,19 @@ binds the original 488-file 2cb6880 candidate. Official package payload, install
 RPM-manifest hashes and source/spec/43-patch review support provenance; no independent
 RPM signature verification or reproducible build was performed. Select's runtime
 EINTR retries match v2's disclosure; their internal count remains unknown.
-Ready to request one bounded Linux compatibility attempt after fresh private
-staging/preflight and its required Linux regression unit, with separate execution
-authorization. No staging, Linux tests, wait calls or units ran during inspection;
-unit enforcement and compatibility remain unverified. See `docs/HANDOFF.md` for
-private receipt identities and continuation bounds.
-Local tests and Python 3.9 syntax checks do not satisfy native validation.
+The operator subsequently authorized one finite attempt. Exact-source/live-runtime
+preflight passed; Linux regression discovered 1,078 tests in 105.240 seconds,
+with 1,077 passing and one existing Python 3.10+ guard skipped. The conditional
+select/absolute compatibility unit observed both declared waits successfully.
+A separate offline audit verified origin, byte hashes, readiness/release identity,
+actual properties/resource context, valid brackets and successful completion.
+Both private units are stopped and public/source/runtime state remains unchanged.
+Native audit `c5f7e48f1dc97f38966a0d5c7dcd51761cf2f1f5644c09b446c018bb85f3a0cb`
+verifies this finite interface compatibility only. No performance improvement,
+causal scheduling conclusion, replay, comparison advancement or recorder acceptance.
+See `docs/HANDOFF.md` for private receipts and limits. The single-attempt permission
+is consumed; further native execution requires separate authorization.
+Mac offline tests and Python 3.9 syntax checks remain distinct from these Linux results.
 Recorder application compatibility and its six-case budget cohort remain blocked;
 no prior verdict is repaired.
 
