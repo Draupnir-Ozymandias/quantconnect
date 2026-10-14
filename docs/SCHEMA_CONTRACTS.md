@@ -268,3 +268,15 @@ consumers, bounds and remaining native gaps are described in
 [WAIT_EXECUTION_PREPARATION.md](WAIT_EXECUTION_PREPARATION.md). Tests:
 `tests/test_recorder_wait_execution.py`. Plan/hash/ABI validation is structural;
 it is not an independent installed-runtime/native-origin attestation.
+
+## Compatibility worker/production continuation
+
+`recorder_wait_compatibility_worker.py` produces complete or incomplete compatibility
+result v1 artifacts, including `fatal_error` and per-arm collector `error`.
+`recorder_wait_lifecycle.py::validate_compatibility` refuses non-null collector or
+fatal errors for success. `recorder_wait_production.py` consumes exact committed
+source/runtime freeze v1 and installed-select review v1, including reviewed
+`select_binary_kind` (builtin or extension), then drives only the existing private
+compatibility lifecycle. Byte-hashed origin inventory v1 is not native-origin
+proof. Tests: `tests/test_recorder_wait_production.py` plus existing envelope,
+lifecycle and protocol regression tests. No scientific plan identity changed.

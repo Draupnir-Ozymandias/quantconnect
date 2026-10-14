@@ -48,9 +48,12 @@ lifecycle, independent structural/arithmetic evaluation and bounded exclusive
 publication, with both plan hashes pinned literally. The separate finite
 compatibility declaration, tracked source/runtime envelope validation and injected
 bounded-lifecycle rehearsal are now offline-tested (`docs/WAIT_EXECUTION_PREPARATION.md`).
-Outstanding: compatibility worker/production adapters, installed select/signal and
-native ABI/symbol checks, bounded context/partial-journal retention and actual
-source/runtime freeze.
+The compatibility worker and production adapters now have offline fault coverage,
+including bounded helper/control/journal handling and scoped lifecycle failure
+retention. Outstanding: authorized read-only installed select/signal and native
+ABI/symbol review, the actual Linux runtime freeze, and separately authorized
+compatibility execution. The source candidate is sealed locally from a clean
+implementation revision; this is not native validation.
 Local tests and Python 3.9 syntax checks do not satisfy native validation.
 Recorder application compatibility and its six-case budget cohort remain blocked;
 no prior verdict is repaired.

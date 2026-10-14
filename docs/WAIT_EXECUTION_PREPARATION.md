@@ -1,8 +1,9 @@
 # Wait compatibility and execution preparation — offline only
 
 Declared October 13, 2026. This adds a separate finite compatibility plan and
-an execution-envelope/lifecycle rehearsal. It does not run compatibility sleeps,
-load native libc, supply a production worker or launch a systemd unit. The
+an execution-envelope/lifecycle rehearsal. The later implementation section below
+adds a worker and production adapters, tested offline only. No compatibility smoke
+or systemd unit has run during development. The
 comparison remains prospective v2; v1/v2 plan identities and evidence are unchanged.
 
 ## Finite compatibility declaration
@@ -29,8 +30,8 @@ Exactly two observed, valid brackets establish a complete interface-smoke receip
 only. They cannot establish native origin, installed runtime provenance, repeated
 scheduling improvement or recorder acceptance. The validation implemented here
 accepts complete smoke receipts only; incomplete native artifacts must still be
-retained by the future driver, alongside readiness and journals. No such worker
-exists yet. This declaration is preparation, not authority to execute it.
+retained by the future driver, alongside readiness and journals. The worker now retains those failed artifacts; the success validator still
+requires a complete receipt. This declaration is preparation, not authority to execute it.
 
 Use CPU 75%, memory 512 MiB, 32 tasks and runtime 240 seconds. Errors include the
 name prefix within 160 characters; result/control objects are capped at 256 KiB.
@@ -67,9 +68,9 @@ contract; this does not authorize moving or resizing the existing Linux host.
 
 The envelope also requires SHA-256 identities for Python/libc/select binaries,
 reviewed select source and the independent runtime-review receipt. The expected
-select retry policy is copied from v2. Runtime observation and review generation
-are not implemented: callers must not fabricate those hashes from upstream source
-or Mac fixtures. The exact installed patched binary, relevant source provenance,
+select retry policy is copied from v2. Runtime observation is now implemented behind an explicit Linux gate. Review
+generation still requires independent installed-source provenance inspection;
+callers must not fabricate review hashes from upstream source or Mac fixtures. The exact installed patched binary, relevant source provenance,
 review and signal context need independent Linux evidence before staging. A valid
 metadata object or hash only proves structure/content consistency, not truth.
 Execution/native/compatibility/acceptance/order authority stays false in the freeze.
@@ -83,7 +84,8 @@ limits, read-only source, private evidence write path, protected home/system,
 no-new-privileges, inaccessible collector environment files and denied IP access.
 Only the test role allows numeric localhost fixtures; compatibility allows AF_UNIX
 only. Every specification has `worker_entrypoint=null` and native authority false.
-No command executor, subprocess or systemd adapter exists in this module.
+No command executor exists in the lifecycle module itself; the explicit Linux
+production adapter maps these specifications to fixed private commands.
 
 The rehearsal requires preflight receipts for a fresh canonical stage, clean
 source/runtime match, qcrl ownership, fixed interpreter, disk reserve above four
@@ -122,10 +124,9 @@ All observations are fixtures; no native wait, real unit or installed Linux runt
 verification was performed. The three new Python files pass Python 3.9 syntax
 parsing, which is not runtime validation.
 
-Next implement the bounded compatibility worker and production adapters offline,
-with fault fixtures for unknown rows, timeout/SIGKILL partial evidence, bounded
-context/journal/identity reads and exclusive controls. Then freeze committed
-sources and independently verify installed runtime/ABI and the private envelope.
+Worker and production-adapter implementation is described below. Next complete
+the installed Linux runtime/source review and execution freeze, then independently
+verify the private envelope before requesting smoke execution.
 Do not stage/run the compatibility unit or comparison under offline authorization.
 Do not import credentials, provision infrastructure, change public collectors,
 merge main, sync QuantConnect or revise prior recorder failures/budgets.
@@ -133,3 +134,101 @@ merge main, sync QuantConnect or revise prior recorder failures/budgets.
 Complete local regression: all 1,063 offline tests passed in 85.739 seconds on
 Intel macOS / Python 3.14.6 with localhost fixture permission. This remains local
 verification only; Linux/native behavior and actual enforcement are unverified.
+
+## Compatibility worker and production adapters — offline implementation
+
+`recorder_wait_compatibility_worker.py` implements the declared two-arm collector
+and a private Linux worker entrypoint. Injected collection retains both slots on
+epoch, checkpoint, early-return, exposed-interrupt, missed-target and setup faults.
+Complete exception text is bounded to 160 characters. It never retries or changes
+signal handlers. The native entrypoint requires the fixed interpreter, qcrl UID,
+canonical fresh private source/evidence path and matching committed source/runtime
+freeze before publishing readiness. It chooses the epoch only after hash-linked
+independent release, and binds the absolute adapter only after that release.
+
+Exclusive control/result writes enforce the 256-KiB cap before creation and fsync
+both the file and directory. A write failure retains partial bytes and prevents
+adoption/retry. Compatibility results contain a `fatal_error` and per-arm
+collector `error`; neither can be non-null in a passing compatibility receipt,
+even if a retained adapter observation says observed. This fixes a concrete
+success-validation gap; the declared scientific plan remains unchanged.
+
+`recorder_wait_production.py` supplies the Linux-root launcher and bounded adapters
+for the existing lifecycle. It maps only the tests and compatibility roles to
+fixed commands. There is no scheduling-comparison entrypoint or automatic cohort
+advancement. Construction and launch refuse other platforms, stage paths or
+interpreters; fresh controls, clean source ownership/readability, disk reserve,
+public prerequisites and absent private unit prefix are required before claim.
+
+Helpers use argument arrays without a shell, incrementally drain output, enforce
+10-second/256-KiB default limits and kill only their own helper process group on
+cap/timeout. Unit lifetimes remain governed by the declared 240-second systemd
+limit. Readiness, live PID/start/boot/cgroup/resource binding and actual effective
+unit properties precede release. Raw effective properties/resource samples are
+retained alongside their validated normalized properties. Context reads reuse the
+existing bounded LinuxReader; no new resource diagnostic was introduced.
+
+Journal capture is limited to 64 KiB and occurs before scoped stop. Truncated or
+failed output is saved with an explicit incomplete-capture marker; partial unit
+properties are retained too. Timeout, failed/SIGKILL unit or missing result yields
+an incomplete launch receipt and retained readiness/journals, never a fabricated
+smoke result. The launcher inventories retained regular evidence files and their
+exact byte hashes after final publication; all origin/compatibility/acceptance/
+order flags remain false pending independent audit. It never restores or mutates
+public units, imports credentials, or runs the v2 scheduling comparison.
+
+Runtime observation checks real ABI layout/clock metadata and symbol availability,
+records Python/libc/select binary identities and existing signal context, and
+requires a hash-checked independent installed-select source review. A concrete
+local portability test exposed that select can be built into Python rather than
+have `__file__`. The adapter therefore records `select_binary_kind` as builtin or
+extension, verifies that kind against the review, and hashes the actual backing
+Python binary for a verified built-in module. It refuses an unknown module origin;
+it does not invent a module filename or substitute an upstream-source digest for
+installed bytes. The runtime-freeze schema now requires this metadata. No previous
+native execution freeze existed or was rewritten.
+
+Required staged files outside the clean source tree are `execution-freeze.json`,
+`runtime-review.json`, and `select-review-source.c`. The review schema is
+`qcrl.installed_select_review.v1`, with `review_sha256`, `installed_binary_verified`
+and `distribution_source_verified` true, exact v2 `retry_policy`, `binary_kind`,
+`select_binary_sha256` and `source_sha256`. Those assertions require independently
+verified distribution/package/source provenance; merely supplying self-consistent
+JSON is insufficient. The worker rechecks the installed binary and reviewed source
+bytes. A read-only Linux inspection is required before producing this receipt and
+the runtime half of the freeze. No native runtime values were inferred from Mac
+fixtures, and no full execution freeze has been generated locally.
+
+After source and installed-runtime freezes are verified and native execution is
+separately authorized, the production entrypoint is:
+
+```bash
+/opt/qcrl-stream/venv/bin/python -m infra.stream.recorder_wait_production --root /var/lib/qcrl-stream/recorder-wait-UNIQUE --execute
+```
+
+This runs one bounded Linux regression-test unit, then one bounded compatibility
+unit with the two declared 50-ms cumulative waits. It does not run the finite v2
+comparison. Failed evidence/claims/units are retained and must never be replayed.
+
+Offline fault coverage includes full worker readiness/release success, release
+timeout, source/runtime drift, setup failure, unknown arms and actual subprocess
+cap/exit/deadline fixtures. Property normalization refuses relaxed isolation or
+budgets; partial journal publication and final inventory are tested. Runtime ABI/
+symbol observations in these tests are mocked and do not bind real native libc.
+Source-only candidate sealing is local; installed Linux metadata/review and native
+smoke remain separate authorization gates.
+
+The final copy/output safeguards also retain non-UTF-8 helper output as bounded
+raw failure evidence and stop a reviewed-source copy that grows beyond 4 MiB.
+The partial copy and exclusive claim remain retained; a retry is refused.
+Fifty-three focused tests passed locally. Final full-suite verification is
+recorded below. No Linux compatibility/syscall/unit execution occurred.
+
+Final complete offline regression: 1,078 tests passed in 72.261 seconds on Intel
+macOS / Python 3.14.6, including permitted localhost fixtures. All 53 focused
+protocol/adapter/envelope/production tests passed, and every changed Python file
+passed Python 3.9 syntax parsing. These are local tests, not Linux native
+compatibility or enforcement verification. Source sealing occurs after a clean
+implementation commit; its local receipt is kept outside Git. Runtime sealing
+requires the pending read-only remote review, then smoke execution needs a
+separate authorization. No compatibility unit or scheduling comparison was run.

@@ -26,7 +26,7 @@ class WaitExecutionTests(unittest.TestCase):
                     kernel='fixture-kernel', libc_version='2.34', monotonic_resolution='1e-9',
                     signal_handlers='fixture-read-only-handler-context',
                     python_binary_sha256='a'*64, libc_binary_sha256='b'*64,
-                    select_binary_sha256='c'*64, select_review_source_sha256='d'*64,
+                    select_binary_sha256='c'*64, select_binary_kind='extension', select_review_source_sha256='d'*64,
                     select_review_receipt_sha256='e'*64)
 
     def names(self):
@@ -34,6 +34,9 @@ class WaitExecutionTests(unittest.TestCase):
             'infra/stream/recorder_absolute_wait.py', 'infra/stream/recorder_wait_comparison.py',
             'infra/stream/recorder_wait_comparison_v2.py', 'infra/stream/recorder_wait_comparison_audit.py',
             'infra/stream/recorder_wait_execution.py', 'infra/stream/recorder_wait_lifecycle.py',
+            'infra/stream/recorder_wait_compatibility_worker.py',
+            'infra/stream/recorder_wait_production.py',
+            'tests/test_recorder_wait_production.py',
             'execution_truth/contracts.py', 'tests/test_recorder_wait_execution.py'})
 
     def freeze(self):

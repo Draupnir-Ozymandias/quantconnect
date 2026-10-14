@@ -71,6 +71,9 @@ def source_inventory(root, tracked_paths):
         'infra/stream/recorder_wait_comparison_audit.py',
         'infra/stream/recorder_wait_execution.py',
         'infra/stream/recorder_wait_lifecycle.py',
+        'infra/stream/recorder_wait_compatibility_worker.py',
+        'infra/stream/recorder_wait_production.py',
+        'tests/test_recorder_wait_production.py',
         'execution_truth/contracts.py',
         'tests/test_recorder_wait_execution.py',
     }
@@ -109,6 +112,7 @@ def validate_runtime(runtime):
     for key, value in expected.items():
         require(type(runtime.get(key)) is type(value) and runtime[key] == value, 'runtime field differs: '+key)
     require(runtime.get('machine') in ('aarch64', 'x86_64'), 'unsupported machine')
+    require(runtime.get('select_binary_kind') in ('builtin', 'extension'), 'reviewed select binary kind required')
     for key in ('kernel', 'libc_version', 'monotonic_resolution', 'signal_handlers'):
         require(type(runtime.get(key)) is str and 0 < len(runtime[key]) <= 2048, 'bounded runtime context required: '+key)
     for key in ('python_binary_sha256', 'libc_binary_sha256', 'select_binary_sha256',
@@ -135,6 +139,9 @@ def freeze(*, source_commit, sources, runtime):
                            'infra/stream/recorder_wait_comparison_audit.py',
                            'infra/stream/recorder_absolute_wait.py',
                            'infra/stream/recorder_wait_comparison.py',
+                           'infra/stream/recorder_wait_compatibility_worker.py',
+                           'infra/stream/recorder_wait_production.py',
+                           'tests/test_recorder_wait_production.py',
                            'execution_truth/contracts.py', 'tests/test_recorder_wait_execution.py'}
     require(required <= set(sources), 'freeze inventory incomplete')
     validate_runtime(runtime)

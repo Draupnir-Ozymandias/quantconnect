@@ -46,8 +46,8 @@ Linux ABI compatibility, native scheduling behavior or actual improvement.
 
 A finite compatibility declaration, source/runtime freeze validation and injected
 launcher lifecycle rehearsal now exist; see `WAIT_EXECUTION_PREPARATION.md`.
-Next implement the compatibility worker and bounded production adapters offline,
-including identity/context/journal reads and timeout/partial-evidence handling. Independently verify
+The compatibility worker and production adapters are now implemented and tested
+offline; see the production continuation below. Independently verify
 the Linux ABI, timespec field offsets and native symbol envelope; freeze execution
 sources and runtime before any separately authorized native measurement. Confirm
 the installed select retry behavior and signal context against v2's disclosure.
@@ -115,3 +115,45 @@ no production launcher or native worker is available. Thirty-eight focused local
 tests and all 1,063 offline regression tests passed (85.739 seconds, localhost
 fixtures permitted); Python 3.9 syntax checks passed for the new files.
 Native verification and process-kill/host-loss evidence retention remain pending.
+
+## Compatibility worker and production-adapter milestone
+
+The worker now retains both arm slots and failed setup/interruption/missed-target
+states, publishes bounded exclusive durable controls/results, and requires native
+source/runtime match plus independently bound release. It installs no signal
+handlers and cannot retry. The production root-Linux entrypoint runs only the
+private regression-test and declared two-wait compatibility roles, with fixed
+unit limits, no measurement-network access and private-only cleanup. Helper
+output/deadlines, effective properties, live identities, partial journals and
+final origin inventories have offline fault coverage. No new diagnostic layer.
+
+A concrete receipt-validation gap was repaired: non-null collector/fatal errors
+cannot pass even if adapter observations are marked observed. A built-in-select
+fixture also required recording reviewed binary kind and hashing its actual
+Python backing binary. Original compatibility/v1/v2 plan hashes are unchanged.
+
+The source candidate will be sealed from the clean published implementation
+revision under `.qcrl/reviews/wait-compatibility-source-COMMIT12/source-freeze.json`.
+This is source-only: runtime remains unfrozen pending authorized read-only access
+to the existing Ohio host and independent installed-binary/source review. The
+full execution freeze must bind this exact source inventory and the verified
+Linux runtime; no Mac/fixture runtime may substitute. Remote inspection permission
+is pending. Afterward report readiness and request separate native authorization
+for one compatibility smoke only; the v2 comparison remains unauthorized.
+
+Offline readiness: the worker, production adapters and final copy/output
+safeguards pass 53 focused tests. Complete exception/collector failure states,
+release/setup/drift paths, effective property checks, bounded helper failures,
+partial journals/source copies and exclusive claims have regression coverage.
+No compatibility wait syscalls, native unit or remote inspection was performed.
+The read-only remote authorization question remains pending; without installed
+binary/source review the Linux runtime freeze and smoke execution readiness
+cannot be claimed. The source-only candidate receipt will identify the exact
+clean published commit. Full regression counts are in the preparation document.
+
+Final verification for this milestone: all 1,078 offline tests passed in 72.261
+seconds on Intel macOS / Python 3.14.6 with localhost fixtures permitted. All 53
+focused tests and Python 3.9 syntax checks passed. The implementation is ready
+for source-candidate sealing and authorized read-only Linux runtime inspection;
+full source/runtime freeze and native-smoke execution readiness are still gated
+on that installed-runtime review. No smoke authorization is implied.

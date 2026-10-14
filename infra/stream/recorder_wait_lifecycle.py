@@ -48,11 +48,13 @@ def validate_compatibility(result, frozen, ready, release):
     require(result.get('identity') == ready['identity'], 'compatibility identity differs')
     for key in ('native_origin_verified', 'compatibility_verified', 'acceptance_demonstrated', 'orders_authorized'):
         require(result.get(key) is False, 'compatibility authority must remain false')
+    require(result.get('fatal_error') is None, 'fatal compatibility receipt cannot pass')
     rows = result.get('waits')
     require(type(rows) is list and len(rows) == 2, 'both declared compatibility waits required')
     epoch = timestamp(result.get('epoch_ns'))
     last = epoch
     for ordinal, (arm, row) in enumerate(zip(COMPATIBILITY['arm_order'], rows)):
+        require(row.get('error') is None, 'collector fault cannot pass compatibility')
         require(row.get('arm') == arm, 'compatibility order differs')
         observation = row['observation']
         verify_artifact_hash(observation, 'wait_sha256', 'compatibility wait')

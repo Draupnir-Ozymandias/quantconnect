@@ -2544,3 +2544,23 @@ actual runtime receipt/freeze was generated. Production workers, bounded context
 journal/control adapters and timeout/host-loss retention remain next offline
 work. No native binding/sleep/unit execution, infrastructure, credentials,
 capture, main merge, QC sync or frozen-evidence mutation performed.
+
+## Compatibility worker and bounded production adapters — offline continuation
+
+Implemented the declared compatibility worker, retained unknown/setup/fatal arm
+slots, guarded native source/runtime and readiness/release gates, and bounded
+exclusive durable control/result publication. Implemented production adapters
+for fresh scoped stages, fixed test/compatibility commands, bounded helpers,
+effective properties and live PID/boot/cgroup binding, scoped cleanup, partial
+journals and byte-hashed origin inventories. No new diagnostic layer or engine
+interface; no new Workstream A requests. Scientific plan hashes are unchanged.
+
+Fixed a concrete validation gap allowing fatal collector errors alongside observed
+rows, and a concrete select-module portability case requiring reviewed builtin vs
+extension binary identity. Fifty-two focused tests and all 1,077 offline tests
+passed (72.618 seconds for the full suite). New Python files pass Python 3.9 syntax
+parsing. Offline subprocess fixtures test cap/timeout/nonzero behavior; ABI/runtime
+observations are mocked. Source-only sealing uses the clean committed implementation.
+Installed Linux review/runtime freeze requires read-only remote authorization;
+compatibility execution needs separate approval. No native smoke, comparison,
+credentials, infrastructure, main merge or QC sync.
