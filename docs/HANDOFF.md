@@ -5,7 +5,51 @@ Updated October 14, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
-## Current execution gate — October 14, failed comparison readiness
+## October 14 — Frozen two-run comparison completed, one unknown
+
+Renewed direct approval covered corrected cb23c4c / execution freeze
+`7c0ddaf5f697493302fd6791a64aacc68618d391a2a80c3bfd3a8dca198c3f55`.
+Fresh exact source/runtime/public preflight passed. Linux Python 3.9.25 regression
+passed: 1,093 discovered in 105.935 seconds, 1,092 pass and one declared skip.
+The two fixed serial AB/BA units then completed once, without fatal wait or
+transport faults. No tuning, catch-up, replay or additional measurement occurred.
+
+Independent native audit
+`c2a6b59f07563fbf10f8184fd09494d89f0400e6bc9917bf1337ced04a466f4d`
+checks the observed host/transfer, all 23 retained evidence files, source/runtime,
+readiness/release/live identities, actual limits, serialized lifetimes, journal
+and receipt equality, independent timing/float/rational arithmetic and cleanup.
+Private receipt: `.qcrl/reviews/wait-comparison-native-20261014LupusCompare02/`.
+All private units are inactive; public/environment/source/runtime unchanged.
+Original declarations, compatibility smoke and failed first readiness evidence
+remain untouched. All producer/freeze authority flags remain false.
+
+Transport is complete but scientific comparison completeness remains false:
+23 observed cells, one unknown. Run-zero absolute 50-ms target was already
+8.892023 ms late before invocation, following select's 58.771055-ms-late
+60-second return. No absolute request was made for that cell; no replacement.
+The paired 50-ms median is null. All 12 select internal retry counts remain
+unknown. All 20 declared context-file observations succeeded; 16 structured
+ancestry nulls retain absent root limit/disabled child cpuset files, not invented
+numeric limits. Endpoint context cannot identify per-target host/signal/scheduler
+causes. Quiet regression identities and RPM signature/reproducible-build limits
+remain explicit in the full audit.
+
+At 60 seconds, select lateness was 58.771055 / 60.099649 ms and absolute was
+0.136841 / 0.131331 ms; paired median absolute-minus-select = -59.301266 ms.
+These are descriptive serial samples with host/time confounding, no tail,
+significance, exclusive-causality, recorder-acceptance or trading conclusion.
+Recorder application compatibility and its budget cohort remain unfinished.
+The finite comparison authorization is consumed; further native execution needs
+separate approval. No new diagnostic layer, main merge or QC sync.
+
+Full observations, identities and every unknown are documented in
+[native comparison audit](WAIT_COMPARISON_NATIVE_AUDIT_2026_10_14.md).
+
+## Earlier execution gate — preserved failed comparison readiness
+
+This section records the stopped first attempt; the renewed, corrected-source
+execution and its separate receipts are reported above.
 
 The operator directly authorized exact b7db2c2 / freeze
 `f1339e0b54b84703368fc39efdfeb7c470ce4220bbb15d6df8284e46c0036f61`.
@@ -40,7 +84,8 @@ unit properties/journal, no comparison directories/units, no worker processes an
 unchanged public/source/runtime. It does not verify a successful scientific pair.
 Producer flags and original b7db/2cb freezes/evidence remain unchanged.
 
-Every unknown: all 24 run/arm/interval cells (two runs × two arms × 50 ms,
+For this failed attempt only, all 24 run/arm/interval cells remain unknown
+(two runs × two arms × 50 ms,
 100 ms, 500 ms, 1 s, 5 s, 60 s); epochs, baselines, request/return brackets,
 worker context and all descriptive comparison statistics are unavailable.
 Select internal retry counts remain unknown; no comparison calls were made.
@@ -64,9 +109,9 @@ performance acceptance remain false. The earlier counter smoke's final endpoint
 missed the fixed deadline before any counter read. Preserve both failures and
 the original 50-ms budget.
 
-The absolute-monotonic adapter has now passed the single native interface smoke;
-recorder integration and scheduling performance remain unverified. The active
-prospective comparison is now
+The absolute-monotonic adapter passed its native interface smoke and the later
+finite v2 comparison retained 23 observed cells and one missed target. Recorder
+integration and performance acceptance remain unverified. The active comparison is
 [ABSOLUTE_SELECT_COMPARISON_V2.md](ABSOLUTE_SELECT_COMPARISON_V2.md), with plan hash
 `c501255908329a12c93cab58d6e7ffc0f44711175141749db8953c95c6a2982d`.
 V2 preserves two serial 133.3-second AB/BA runs and integer targets while allowing
@@ -76,9 +121,9 @@ The predecessor
 and its hash `a5d43bd01b36c616edd4bd594f673126f392e327bdf1f2d9d98929ae3d7bd3ee`
 remain retained; v1 has no native result. Both hashes have literal regression pins.
 Injected select/absolute collection, pair lifecycle, validation, exact descriptive
-evaluation and bounded exclusive publication now exist. A native transport exists
-and is tested offline; its first Linux readiness gate failed before measurement.
-No native comparison result exists.
+evaluation and bounded exclusive publication now exist. The native transport
+first stopped on a failed Linux readiness gate. Its corrected source later passed
+the gate and completed the declared pair, as audited above.
 
 ## Verification and migration
 

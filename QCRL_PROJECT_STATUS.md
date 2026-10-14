@@ -26,6 +26,47 @@ market mechanics without changing the signal or opening the prospective Q4
 evidence.
 
 
+## October 14 — Frozen two-run comparison completed, one unknown
+
+Renewed direct approval covered corrected cb23c4c / execution freeze
+`7c0ddaf5f697493302fd6791a64aacc68618d391a2a80c3bfd3a8dca198c3f55`.
+Fresh exact source/runtime/public preflight passed. Linux Python 3.9.25 regression
+passed: 1,093 discovered in 105.935 seconds, 1,092 pass and one declared skip.
+The two fixed serial AB/BA units then completed once, without fatal wait or
+transport faults. No tuning, catch-up, replay or additional measurement occurred.
+
+Independent native audit
+`c2a6b59f07563fbf10f8184fd09494d89f0400e6bc9917bf1337ced04a466f4d`
+checks the observed host/transfer, all 23 retained evidence files, source/runtime,
+readiness/release/live identities, actual limits, serialized lifetimes, journal
+and receipt equality, independent timing/float/rational arithmetic and cleanup.
+Private receipt: `.qcrl/reviews/wait-comparison-native-20261014LupusCompare02/`.
+All private units are inactive; public/environment/source/runtime unchanged.
+Original declarations, compatibility smoke and failed first readiness evidence
+remain untouched. All producer/freeze authority flags remain false.
+
+Transport is complete but scientific comparison completeness remains false:
+23 observed cells, one unknown. Run-zero absolute 50-ms target was already
+8.892023 ms late before invocation, following select's 58.771055-ms-late
+60-second return. No absolute request was made for that cell; no replacement.
+The paired 50-ms median is null. All 12 select internal retry counts remain
+unknown. All 20 declared context-file observations succeeded; 16 structured
+ancestry nulls retain absent root limit/disabled child cpuset files, not invented
+numeric limits. Endpoint context cannot identify per-target host/signal/scheduler
+causes. Quiet regression identities and RPM signature/reproducible-build limits
+remain explicit in the full audit.
+
+At 60 seconds, select lateness was 58.771055 / 60.099649 ms and absolute was
+0.136841 / 0.131331 ms; paired median absolute-minus-select = -59.301266 ms.
+These are descriptive serial samples with host/time confounding, no tail,
+significance, exclusive-causality, recorder-acceptance or trading conclusion.
+Recorder application compatibility and its budget cohort remain unfinished.
+The finite comparison authorization is consumed; further native execution needs
+separate approval. No new diagnostic layer, main merge or QC sync.
+
+Full observations, identities and every unknown are documented in
+[native comparison audit](docs/WAIT_COMPARISON_NATIVE_AUDIT_2026_10_14.md).
+
 ## October 14 — Comparison readiness stopped; offline test correction
 
 Direct operator approval covered frozen b7db2c2, one Linux readiness unit and the
