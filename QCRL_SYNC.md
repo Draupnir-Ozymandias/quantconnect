@@ -2639,3 +2639,30 @@ performance, recorder acceptance, comparison execution and orders remain false.
 Existing producer/freeze flags, plans and historical evidence were not rewritten.
 The one-smoke authorization is consumed; further native execution needs a separate
 approval. No concrete failure requires a new diagnostic layer or protocol change.
+
+
+## 2026-10-14 — Offline native transport for unchanged comparison v2
+
+Relayed two-run continuation prompted readiness review. Original frozen candidate
+2cb6880 has no comparison entrypoint; implemented a separate bounded transport and
+retained-byte auditor offline. All original Python files and scientific plan hashes
+remain unchanged. New source requires its own freeze/direct native authorization.
+No comparison, new Linux test unit or extra compatibility smoke ran.
+
+Controller preserves AB/BA ordering, cumulative integer targets, 16 baseline pairs,
+75% CPU/512 MiB/32 tasks/240 seconds, denied comparison IP access, fatal cancellation,
+nonfatal missed-target continuation and no replay/tuning. Original production
+helpers and bounded context snapshots are reused; no diagnostic acquisition layer.
+Fault tests cover gates/publication/cleanup and rehashed byte/identity/unknown loss.
+Transport-only KeyboardInterrupt conversion retains earlier rows at wait/clock
+boundaries without handler changes or retries. Escaping interrupts/kills before
+publication leave explicit unavailable cells, not invented epochs/success rows.
+Exact native regression population must be 1,093 with the existing Python 3.10+
+inventory skip; extra skips or missing tests stop before measurement. Source seal
+and final local verification are recorded after the implementation milestone.
+
+Final candidate local verification: all 1,093 offline tests passed in 90.520 seconds;
+68 focused tests and Python 3.9 syntax checks pass. The seven-file diff preserves
+every prior Python byte and all three frozen declaration hashes. No new native
+unit or comparison result. Seal the exact implementation revision before requesting
+direct authorization of this new execution source.

@@ -280,3 +280,29 @@ source/runtime freeze v1 and installed-select review v1, including reviewed
 compatibility lifecycle. Byte-hashed origin inventory v1 is not native-origin
 proof. Tests: `tests/test_recorder_wait_production.py` plus existing envelope,
 lifecycle and protocol regression tests. No scientific plan identity changed.
+
+
+## Native comparison transport (October 14; offline implementation)
+
+The scientific plan/run/summary v2 and wait schemas/hashes remain unchanged.
+`recorder_wait_comparison_native.py` transports those receipts through bounded
+private units, and `audit_retained` checks copied bytes/identities/arithmetic.
+New transport schemas: qcrl.wait_comparison_native_envelope.v1 (envelope_sha256)
+binds run_sha256, run index, readiness/release, freeze, process identity and after
+context; qcrl.wait_comparison_launch.v1 (launch_sha256) retains stage, transport
+completion, operational/fatal stop, unknown cells, public states and optional exact
+v2 summary; qcrl.wait_comparison_origin_inventory.v1 (inventory_sha256) records
+exact retained file populations/byte hashes bound to the source/runtime freeze.
+Readiness retains run index/plan/freeze/identity/before-context and ready_sha256;
+release retains the existing readiness/freeze/live-binding linkage and release_sha256.
+All producer authority flags stay false. Hash consistency does not prove origin.
+
+Transport complete is separate from comparison_complete. A fatal scientific run
+zero with cancelled run one remains a valid incomplete comparison; an external
+native gate fault may leave no valid pair summary and explicit unavailable cells.
+Default-handler KeyboardInterrupt from wait/clock callables is retained by a
+transport-only Exception conversion; no handler change or retry. Interrupts escaping
+elsewhere after collection begins cannot create a fictitious null-epoch receipt.
+Publication is after collection, with partial/journal retention and no replay.
+Tests: test_recorder_wait_comparison_native.py plus unchanged v2/envelope/production
+contracts. See WAIT_COMPARISON_NATIVE_PREPARATION.md; no native comparison is implied.

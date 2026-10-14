@@ -79,6 +79,19 @@ capture, infrastructure provisioning, credential import or QuantConnect sync is
 part of this continuation. The dated September inventory/test count below is
 historical and must not be read as the current engineering inventory.
 
+## October 14 comparison transport preparation
+
+The original 2cb6880 freeze cannot execute the comparison: its native driver supports
+only tests/compatibility. A separate two-run transport, frozen-regression gate and
+offline retained-evidence auditor are now implemented and fault-tested locally.
+Scientific v2 hash/geometry and all prior Python implementation bytes are unchanged;
+original declarations/evidence remain preserved. See
+`docs/WAIT_COMPARISON_NATIVE_PREPARATION.md` for publication, interruption and
+unavailable-cell semantics. No new diagnostic acquisition layer or tuning.
+No comparison unit or Linux validation of this new source has run. The new execution
+source must be separately frozen and directly authorized before staging/execution.
+Current native validation remains the single compatibility smoke described above.
+
 ## Version and Contract State
 
 | Concern | Current state |

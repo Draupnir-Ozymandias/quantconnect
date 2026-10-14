@@ -5,6 +5,17 @@ Updated October 14, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## Next comparison execution source — offline preparation
+
+The original frozen 2cb6880 candidate has no native comparison launcher. The new
+`recorder_wait_comparison_native.py` transport and fault tests are implemented
+only offline; see `WAIT_COMPARISON_NATIVE_PREPARATION.md`. V2's scientific hash,
+ordering, intervals, limits and stopping rules are unchanged, and every original
+Python file remains byte-identical. The source extension requires its own exact
+freeze. No comparison unit, new Linux test unit or extra compatibility smoke ran.
+Direct operator authorization of the newly frozen execution revision is required;
+the relayed other-chat instruction is recorded as the proposed continuation.
+
 ## Current execution gate — October 14
 
 One operator-authorized bounded Linux compatibility attempt is complete.
@@ -40,7 +51,8 @@ The predecessor
 and its hash `a5d43bd01b36c616edd4bd594f673126f392e327bdf1f2d9d98929ae3d7bd3ee`
 remain retained; v1 has no native result. Both hashes have literal regression pins.
 Injected select/absolute collection, pair lifecycle, validation, exact descriptive
-evaluation and bounded exclusive publication now exist. No native runner exists.
+evaluation and bounded exclusive publication now exist. A native transport now
+exists and is tested offline; no native comparison result exists.
 
 ## Verification and migration
 
@@ -345,3 +357,49 @@ comparison after review of these receipts. Do not replay this stage or consume n
 results under the single-smoke approval. Preserve all original declarations,
 scientific failures and budgets. Continue authorized offline work on the development
 branch; no main merge or QuantConnect sync.
+
+## October 14 — Two-run native transport prepared offline
+
+The operator relayed a proposed frozen two-run continuation. Readiness review found
+that original candidate 2cb6880 only launches tests/compatibility; executing the
+comparison under that freeze is impossible. Added a separate bounded native worker,
+controller and retained-byte auditor without editing the v1/v2 declarations or
+any existing Python implementation. The original full freeze, native compatibility
+audit and all historical evidence remain intact. Source/runtime extension and direct
+native authorization are required before execution; this is a material execution
+source change, not a timing-plan revision or a new diagnostic layer.
+
+The new controller runs a frozen Linux regression readiness gate before two fresh
+AB/BA workers. Source/runtime/public drift, missing/additional skipped tests,
+readiness/binding/unit/publication/capture faults stop advancement. Run-zero fatal
+receipts cancel run one; nonfatal missed targets retain original targets and continue.
+No retry, replay, adjustment, tuning or additional measurement run exists. Limits
+remain CPU 75%, 512 MiB, 32 tasks and 240 seconds; comparison network remains denied.
+Captured before/after context uses the existing bounded reader. Helper polling,
+private-only cleanup and partial-evidence retention reuse the tested production
+adapters. Independent audit checks bytes, identities, lifetimes, effective limits,
+original arithmetic, exact summary and explicit unknown cells/context.
+
+Offline fault coverage exposed default-handler KeyboardInterrupt as a BaseException
+that the unchanged injected collector cannot directly retain. The transport wraps
+only the wait/clock callable boundary, records this fault as an Exception without
+handler changes or retries, and preserves prior rows. An escaping interruption
+outside those boundaries after collection starts leaves the receipt unavailable;
+it never fabricates a null-epoch setup result. Post-collection journal publication
+retains rows if exclusive file creation fails. Kills/timeouts before publication
+cannot recover all in-memory rows; retain available files/journals and report every
+unavailable cell rather than claiming success or adopting a partial artifact.
+
+The frozen Linux test expectation is 1,093 discovered with exactly the existing
+Python 3.10+ inventory skip on Python 3.9.25. No new Linux test or native comparison
+has run. All 68 focused offline tests pass, including 15 new transport fault tests;
+Python 3.9 syntax parsing passes. Complete local regression and exact source/runtime
+seal are recorded below when finalized. Native origin, comparison completeness,
+scheduling improvement, recorder acceptance and orders remain unclaimed.
+
+Final offline verification for this execution candidate: all 1,093 tests passed
+in 90.520 seconds on Intel macOS/Python 3.14.6, with localhost fixtures permitted.
+All 68 focused tests and Python 3.9 syntax checks pass. Seven-file implementation/
+documentation diff reviewed; every original Python file, all three plan hashes
+and original private evidence are unchanged. Native validation of the new transport
+remains pending its separate authorization and Linux regression readiness gate.
