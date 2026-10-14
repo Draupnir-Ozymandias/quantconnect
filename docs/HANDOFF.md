@@ -182,3 +182,22 @@ The existing source-only receipt has been rechecked and remains bound to
 Its path is `.qcrl/reviews/wait-compatibility-source-2cb688039f1b/source-freeze.json`.
 This documentation continuation does not replace that candidate or its evidence;
 use its exact frozen checkout for runtime binding. Runtime remains unfrozen.
+
+## October 14 — Dedicated Lupus SSH key generated
+
+Operator explicitly authorized generating a new dedicated Ed25519 key and adding
+its public half to ec2-user's authorized_keys. Generated
+`/Users/eric/.ssh/qcrl_lupus_ed25519` without replacing an existing file; private
+mode is 600, public mode 644. Public fingerprint:
+`SHA256:ld+08VAeLSi1eLAzpKuwkTjnhUFFl7TtaRPIBmT3FDc` (comment `qcrl-lupus`).
+Private material remains in ~/.ssh, outside the project/Git; none was imported.
+
+A BatchMode/IdentitiesOnly/StrictHostKeyChecking=yes connection to the explicitly
+provided Ohio address reached SSH but refused the unknown ED25519 host key before
+authentication or remote command execution. No host key was accepted implicitly.
+There is still no other local SSH-agent identity for bootstrapping installation.
+The next access step is an existing authenticated ec2-user session adding only
+the new public key and returning the trusted server public host key. Public-key
+installation is authorized; changing ingress/infrastructure or running native
+smoke/comparison units is not. Source candidate and prior evidence are unchanged;
+runtime review remains pending authenticated access.

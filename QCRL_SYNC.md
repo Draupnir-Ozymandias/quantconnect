@@ -2575,3 +2575,13 @@ approved connection method. Rechecked the existing 2cb6880 source-only receipt;
 source and evidence remain frozen, Linux runtime review is still pending.
 Updated handoff only; no code changes or new tests needed. Native compatibility
 and comparison execution remain separately gated. No new diagnostic layer.
+
+## 2026-10-14 — Authorized dedicated Lupus SSH key generation
+
+Generated the operator-approved fresh key outside Git, verified permissions and
+recorded only its public fingerprint in the handoff. A strict noninteractive SSH
+check reached the provided host but refused its unknown ED25519 host key; no
+remote command ran and no pin was bypassed. Public-key installation/trusted pin
+handoff requires an existing authenticated path from the original Mac. No AWS
+legacy credential use, infrastructure change, native experiment or source/evidence
+modification. Documentation-only continuation; no regression rerun needed.
