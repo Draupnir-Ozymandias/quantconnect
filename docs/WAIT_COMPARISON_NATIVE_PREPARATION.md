@@ -172,3 +172,36 @@ independently copy/hash/audit results and enumerate all unknowns. The forwarded
 other-chat instruction is not treated as authorization for this new execution
 revision. No remote staging, new Linux test or comparison call occurred during
 this offline implementation/sealing continuation. Original 2cb6880 cannot run it.
+
+
+## October 14 — Comparison readiness stopped; offline test correction
+
+Direct operator approval covered frozen b7db2c2, one Linux readiness unit and the
+conditional AB/BA pair. Exact live preflight passed. Linux regression failed:
+1,079 entries / 105.799 seconds, 1,077 pass, one existing skip, one import error.
+Python 3.9 rejected the new test's static nested-block depth; 15 new tests never
+loaded. No comparison worker, measurement, retry, replay or tuning occurred.
+All 24 planned cells and their clocks/baselines/brackets/context remain unavailable;
+select internal retries remain unknown. Failed unit retained with MainPID 0;
+comparison units absent, public/environment/source/runtime unchanged.
+
+The eight-file native inventory and observed host/transfer/failure/cleanup audit
+are retained privately at .qcrl/reviews/wait-comparison-native-20261014LupusCompare01/.
+Audit 353a9e1fa414aa8a77bf562ada0aa34bb5ff332c61d367f8d20bc055ac1af5e6
+verifies failed-gate origin only, not successful comparison origin/acceptance.
+Original declarations, freezes and evidence remain immutable. Offline correction
+replaces nested test mocks with ExitStack; production code is unchanged. Local
+Python 3.8.2 compiler checks and 15 focused tests pass; corrected Linux validation
+is pending. A fresh candidate seal and approval are required before native execution.
+
+The preceding pending-approval/source-readiness sections describe the sealed
+b7db candidate historically. Direct authorization was subsequently received,
+but its first readiness gate failed. No automatic resumption or reuse of that
+stage is allowed. Python feature-version AST parsing was insufficient to catch
+the old compiler's static block limit; local compiler checks now supplement it.
+They do not substitute for the installed Python 3.9 Linux readiness gate.
+
+Corrected local regression: all 1,093 tests passed in 97.249 seconds on Intel
+macOS/Python 3.14.6 with existing numeric-localhost fixtures permitted. Fifteen
+focused fault tests pass; Python 3.8.2 compilation reproduces the original nested
+block failure and accepts the corrected files. No corrected Linux unit ran.

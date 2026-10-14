@@ -5,29 +5,53 @@ Updated October 14, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
-## Next comparison execution source — offline preparation
+## Current execution gate — October 14, failed comparison readiness
 
-The original frozen 2cb6880 candidate has no native comparison launcher. The new
-`recorder_wait_comparison_native.py` transport and fault tests are implemented
-only offline; see `WAIT_COMPARISON_NATIVE_PREPARATION.md`. V2's scientific hash,
-ordering, intervals, limits and stopping rules are unchanged, and every original
-Python file remains byte-identical. The source extension is now sealed as exact candidate b7db2c2, with full freeze
-f1339e0b54b84703368fc39efdfeb7c470ce4220bbb15d6df8284e46c0036f61. No comparison unit, new Linux test unit or extra compatibility smoke ran.
-Direct operator authorization of the newly frozen execution revision is required;
-the relayed other-chat instruction is recorded as the proposed continuation.
+The operator directly authorized exact b7db2c2 / freeze
+`f1339e0b54b84703368fc39efdfeb7c470ce4220bbb15d6df8284e46c0036f61`.
+A fresh private stage passed live source/runtime/public preflight, then its bounded
+Linux regression failed before either comparison worker was created. The declared
+native gate stopped advancement; no measurement, retry, tuning or extra run occurred.
+The failed test unit is retained as failed with MainPID 0; both comparison units
+are absent. Public collectors, environment and frozen source/runtime are unchanged.
+Further native execution requires approval of a new sealed execution revision.
 
-## Current execution gate — October 14
+Linux Python 3.9.25 discovered 1,079 entries in 105.799 seconds: 1,077 passed,
+one existing Python 3.10+ stdlib-inventory guard skipped and one module import
+error. Fifteen new tests were replaced by one loader-error placeholder. The exact
+failure is `SyntaxError: too many statically nested blocks` in the new fault test,
+line 312. The earlier Python 3.9 AST parse checked grammar, not compiler block
+depth. Offline correction uses ExitStack for the same mocks, preserving their
+order, cleanup and assertions. Production Python and every plan remain unchanged.
+Both new files now compile with local Python 3.8.2; 15 focused fault tests pass.
+This is local verification, not repaired Linux validation. A new candidate seal
+and complete local regression result will be recorded below.
 
-One operator-authorized bounded Linux compatibility attempt is complete.
-Source/runtime freeze
-`8fd4a9557b16bc46fad770b5a9cd1279ce63390e5ab92624addee248c4c690c1`
-binds implementation commit `2cb688039f1b0c0bf4bae4f783902759aa263aef`
-and its original 488-file inventory. The Linux regression gate and both declared
-compatibility waits succeeded; separate offline receipt/origin checks passed.
-Both private units are stopped; public/source/runtime state is unchanged.
-The one-attempt authorization is consumed. No scheduling comparison, recorder
-cohort, replay or additional native run is authorized. The source candidate and
-all historical evidence remain fixed across subsequent documentation commits.
+Untouched receipts: `.qcrl/reviews/wait-comparison-native-20261014LupusCompare01/`.
+Separate failed-gate audit:
+`353a9e1fa414aa8a77bf562ada0aa34bb5ff332c61d367f8d20bc055ac1af5e6`.
+All eight native evidence files match origin inventory
+`c4c320fcb1d61dc2f374d5c2a0fdebd15b243e1c2b05de8b08ca7da2b04111c7`;
+transferred archive SHA-256
+`7e502385ac81b015faec70c187010d2ae386dd4ffddea05552436374f248d265`.
+Audit independently checks observed host/transfer origin, frozen controls, failed
+unit properties/journal, no comparison directories/units, no worker processes and
+unchanged public/source/runtime. It does not verify a successful scientific pair.
+Producer flags and original b7db/2cb freezes/evidence remain unchanged.
+
+Every unknown: all 24 run/arm/interval cells (two runs × two arms × 50 ms,
+100 ms, 500 ms, 1 s, 5 s, 60 s); epochs, baselines, request/return brackets,
+worker context and all descriptive comparison statistics are unavailable.
+Select internal retry counts remain unknown; no comparison calls were made.
+Quiet regression output does not enumerate individual passing test identities.
+RPM provenance still lacks independent signature verification/reproducible build.
+No scheduling, recorder-acceptance, causal or trading conclusion follows.
+
+The earlier single native compatibility smoke remains independently verified
+under the original 2cb6880 / 488-source freeze
+`8fd4a9557b16bc46fad770b5a9cd1279ce63390e5ab92624addee248c4c690c1`.
+Its 1,078-entry Linux gate and both waits passed. The failed new gate does not
+rewrite that evidence or validate the new transport on Linux.
 
 ## Current scientific status
 
@@ -51,8 +75,9 @@ The predecessor
 and its hash `a5d43bd01b36c616edd4bd594f673126f392e327bdf1f2d9d98929ae3d7bd3ee`
 remain retained; v1 has no native result. Both hashes have literal regression pins.
 Injected select/absolute collection, pair lifecycle, validation, exact descriptive
-evaluation and bounded exclusive publication now exist. A native transport now
-exists and is tested offline; no native comparison result exists.
+evaluation and bounded exclusive publication now exist. A native transport exists
+and is tested offline; its first Linux readiness gate failed before measurement.
+No native comparison result exists.
 
 ## Verification and migration
 
@@ -431,3 +456,8 @@ independently copy/hash/audit results and enumerate all unknowns. The forwarded
 other-chat instruction is not treated as authorization for this new execution
 revision. No remote staging, new Linux test or comparison call occurred during
 this offline implementation/sealing continuation. Original 2cb6880 cannot run it.
+
+Corrected local regression: all 1,093 tests passed in 97.249 seconds on Intel
+macOS/Python 3.14.6 with existing numeric-localhost fixtures permitted. Fifteen
+focused fault tests pass; Python 3.8.2 compilation reproduces the original nested
+block failure and accepts the corrected files. No corrected Linux unit ran.

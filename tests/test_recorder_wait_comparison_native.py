@@ -1,3 +1,4 @@
+from contextlib import ExitStack
 from copy import deepcopy
 import json
 from pathlib import Path
@@ -292,22 +293,25 @@ class ComparisonNativeTests(unittest.TestCase):
                 def collector(**kwargs):
                     if failure=='escaped':raise KeyboardInterrupt('outside wrapped call')
                     return real_collect(**kwargs)
-                with patch.multiple(transport, ROOT=stage/'source',STAGE=re.escape(str(stage))), \
-                     patch('infra.stream.recorder_wait_lifecycle.STAGE',re.escape(str(stage))), \
-                     patch.object(transport.platform,'system',return_value='Linux'), \
-                     patch.object(transport.os,'geteuid',return_value=123), \
-                     patch.object(transport.pwd,'getpwnam',return_value=SimpleNamespace(pw_uid=123)), \
-                     patch.object(transport,'prerequisite',return_value=True), \
-                     patch.object(transport,'inspect_source',return_value=(frozen['sources'],frozen['source_commit'])), \
-                     patch.object(transport,'observe_runtime',return_value=frozen['runtime']), \
-                     patch.object(transport.sys,'executable',transport.PYTHON), \
-                     patch('infra.stream.recorder_application_resources.LinuxReader',return_value=reader), \
-                     patch('infra.stream.recorder_wake_worker.context',return_value={'fixture':True}), \
-                     patch.object(transport,'native',return_value=absolute) as binder, \
-                     patch.object(transport.time,'monotonic_ns',side_effect=lambda:clock.value), \
-                     patch.object(transport.select,'select',side_effect=selected), \
-                     patch.object(transport,'collect_run',side_effect=collector), \
-                     patch.object(transport,'publish',side_effect=publisher),patch('builtins.print') as printed:
+                # ExitStack avoids Python 3.9's static block-depth limit.
+                with ExitStack() as patches:
+                    patches.enter_context(patch.multiple(transport, ROOT=stage/'source',STAGE=re.escape(str(stage))))
+                    patches.enter_context(patch('infra.stream.recorder_wait_lifecycle.STAGE',re.escape(str(stage))))
+                    patches.enter_context(patch.object(transport.platform,'system',return_value='Linux'))
+                    patches.enter_context(patch.object(transport.os,'geteuid',return_value=123))
+                    patches.enter_context(patch.object(transport.pwd,'getpwnam',return_value=SimpleNamespace(pw_uid=123)))
+                    patches.enter_context(patch.object(transport,'prerequisite',return_value=True))
+                    patches.enter_context(patch.object(transport,'inspect_source',return_value=(frozen['sources'],frozen['source_commit'])))
+                    patches.enter_context(patch.object(transport,'observe_runtime',return_value=frozen['runtime']))
+                    patches.enter_context(patch.object(transport.sys,'executable',transport.PYTHON))
+                    patches.enter_context(patch('infra.stream.recorder_application_resources.LinuxReader',return_value=reader))
+                    patches.enter_context(patch('infra.stream.recorder_wake_worker.context',return_value={'fixture':True}))
+                    binder = patches.enter_context(patch.object(transport,'native',return_value=absolute))
+                    patches.enter_context(patch.object(transport.time,'monotonic_ns',side_effect=lambda:clock.value))
+                    patches.enter_context(patch.object(transport.select,'select',side_effect=selected))
+                    patches.enter_context(patch.object(transport,'collect_run',side_effect=collector))
+                    patches.enter_context(patch.object(transport,'publish',side_effect=publisher))
+                    printed = patches.enter_context(patch('builtins.print'))
                     if failure=='prior':
                         with self.assertRaises(ContractError):transport.worker(stage,1,execute=True)
                         binder.assert_not_called()
