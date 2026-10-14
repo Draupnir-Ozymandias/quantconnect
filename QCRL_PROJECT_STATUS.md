@@ -89,7 +89,10 @@ original declarations/evidence remain preserved. See
 `docs/WAIT_COMPARISON_NATIVE_PREPARATION.md` for publication, interruption and
 unavailable-cell semantics. No new diagnostic acquisition layer or tuning.
 No comparison unit or Linux validation of this new source has run. The new execution
-source must be separately frozen and directly authorized before staging/execution.
+source is sealed as b7db2c2 (491 files), full freeze
+f1339e0b54b84703368fc39efdfeb7c470ce4220bbb15d6df8284e46c0036f61.
+All 1,093 local offline tests pass; direct authorization of this new execution
+revision is pending before staging or Linux validation.
 Current native validation remains the single compatibility smoke described above.
 
 ## Version and Contract State

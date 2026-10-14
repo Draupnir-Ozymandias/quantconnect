@@ -11,8 +11,8 @@ The original frozen 2cb6880 candidate has no native comparison launcher. The new
 `recorder_wait_comparison_native.py` transport and fault tests are implemented
 only offline; see `WAIT_COMPARISON_NATIVE_PREPARATION.md`. V2's scientific hash,
 ordering, intervals, limits and stopping rules are unchanged, and every original
-Python file remains byte-identical. The source extension requires its own exact
-freeze. No comparison unit, new Linux test unit or extra compatibility smoke ran.
+Python file remains byte-identical. The source extension is now sealed as exact candidate b7db2c2, with full freeze
+f1339e0b54b84703368fc39efdfeb7c470ce4220bbb15d6df8284e46c0036f61. No comparison unit, new Linux test unit or extra compatibility smoke ran.
 Direct operator authorization of the newly frozen execution revision is required;
 the relayed other-chat instruction is recorded as the proposed continuation.
 
@@ -403,3 +403,31 @@ All 68 focused tests and Python 3.9 syntax checks pass. Seven-file implementatio
 documentation diff reviewed; every original Python file, all three plan hashes
 and original private evidence are unchanged. Native validation of the new transport
 remains pending its separate authorization and Linux regression readiness gate.
+
+## Sealed comparison execution candidate — October 14
+
+Implementation commit: `b7db2c25d8550b3f75d3324846f45b2ad4c3503d`.
+Selected source inventory: 491 files, each verified against that exact Git commit.
+Full execution-freeze hash:
+`f1339e0b54b84703368fc39efdfeb7c470ce4220bbb15d6df8284e46c0036f61`.
+Private controls and local verification:
+`.qcrl/reviews/wait-comparison-source-b7db2c25d855/`.
+Verification receipt hash:
+`4bb24cc655edafd303d91ef1608785f91165e9ab2f38ba52aaff3e6c4e335b2c`.
+
+The freeze reuses the independently reviewed original runtime and compatibility
+audit and confirms every previous Python file unchanged. It preserves all original
+source/runtime/compatibility evidence and all three declared plan identities.
+These later receipt-documentation commits do not replace the execution candidate;
+stage exact b7db2c2, not the later documentation HEAD. Native origin/execution/
+compatibility/acceptance/order flags in the new freeze remain false.
+
+Ready to request direct operator approval of this exact new freeze: one bounded
+Linux regression readiness unit (1,093 discovered, the existing Python 3.10+ skip),
+then the preregistered two comparison units once in AB/BA order. No additional
+compatibility smoke, tuning, replay or extra measurement run. Preserve public
+collectors, retain partial evidence, stop on declared fatal/native gate conditions,
+independently copy/hash/audit results and enumerate all unknowns. The forwarded
+other-chat instruction is not treated as authorization for this new execution
+revision. No remote staging, new Linux test or comparison call occurred during
+this offline implementation/sealing continuation. Original 2cb6880 cannot run it.

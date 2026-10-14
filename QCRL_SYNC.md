@@ -2666,3 +2666,17 @@ Final candidate local verification: all 1,093 offline tests passed in 90.520 sec
 every prior Python byte and all three frozen declaration hashes. No new native
 unit or comparison result. Seal the exact implementation revision before requesting
 direct authorization of this new execution source.
+
+
+## 2026-10-14 — New comparison execution candidate sealed
+
+Candidate b7db2c25d8550b3f75d3324846f45b2ad4c3503d, 491 selected files verified
+against exact Git bytes; all previous Python files and plan hashes unchanged.
+Full freeze f1339e0b54b84703368fc39efdfeb7c470ce4220bbb15d6df8284e46c0036f61
+reuses the reviewed runtime and original native compatibility prerequisite.
+Private receipt .qcrl/reviews/wait-comparison-source-b7db2c25d855/; local verifier
+4bb24cc655edafd303d91ef1608785f91165e9ab2f38ba52aaff3e6c4e335b2c records
+1,093 offline tests/68 focused tests/Python 3.9 syntax, with no new Linux/native
+validation or execution authorization. Later receipt docs do not replace this
+source candidate. Direct approval of the exact new freeze is pending. No new
+remote stage, unit, comparison result, tuning, replay or extra compatibility smoke.

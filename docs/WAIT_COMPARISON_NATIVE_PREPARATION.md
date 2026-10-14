@@ -144,3 +144,31 @@ capture or further native execution is included.
 Final local regression: 1,093 tests passed in 90.520 seconds on Intel macOS/Python
 3.14.6. These results verify this offline implementation only. The original native
 compatibility result remains the prerequisite; the new source has not run on Linux.
+
+## Sealed comparison execution candidate — October 14
+
+Implementation commit: `b7db2c25d8550b3f75d3324846f45b2ad4c3503d`.
+Selected source inventory: 491 files, each verified against that exact Git commit.
+Full execution-freeze hash:
+`f1339e0b54b84703368fc39efdfeb7c470ce4220bbb15d6df8284e46c0036f61`.
+Private controls and local verification:
+`.qcrl/reviews/wait-comparison-source-b7db2c25d855/`.
+Verification receipt hash:
+`4bb24cc655edafd303d91ef1608785f91165e9ab2f38ba52aaff3e6c4e335b2c`.
+
+The freeze reuses the independently reviewed original runtime and compatibility
+audit and confirms every previous Python file unchanged. It preserves all original
+source/runtime/compatibility evidence and all three declared plan identities.
+These later receipt-documentation commits do not replace the execution candidate;
+stage exact b7db2c2, not the later documentation HEAD. Native origin/execution/
+compatibility/acceptance/order flags in the new freeze remain false.
+
+Ready to request direct operator approval of this exact new freeze: one bounded
+Linux regression readiness unit (1,093 discovered, the existing Python 3.10+ skip),
+then the preregistered two comparison units once in AB/BA order. No additional
+compatibility smoke, tuning, replay or extra measurement run. Preserve public
+collectors, retain partial evidence, stop on declared fatal/native gate conditions,
+independently copy/hash/audit results and enumerate all unknowns. The forwarded
+other-chat instruction is not treated as authorization for this new execution
+revision. No remote staging, new Linux test or comparison call occurred during
+this offline implementation/sealing continuation. Original 2cb6880 cannot run it.
