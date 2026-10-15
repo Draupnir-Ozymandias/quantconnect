@@ -5,6 +5,33 @@ Updated October 15, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 15 — Six-case readiness review: blocked; no native work
+
+Reviewed 92889b0 against the actual parent/absolute/persistence declarations and
+launcher/auditor. Incremental observer overhead and continuous RSS peak are **not
+acceptance gates** for this inclusive-CPU/current-RSS cohort; both remain unknown,
+not passed. Prior probe-cost rejections are unchanged. Credit mode requires raw
+operator-anchored EC2 instance/credit responses plus instance identity/live boot.
+The October 12 raw context still verifies against its historical external anchor,
+but is not fresh; October 15 smoke console context lacks required cohort fields.
+Balance remains unknown; no numeric balance threshold was preregistered.
+
+Concrete integration blockers: old six-case launcher still routes legacy workers;
+successor completion uses the frozen 68-frame archive reader (offline frame 69
+fails); full producer records exceed the small-control cap; no successor six-case
+wait/closure/origin auditor, exact execution freeze or same-source compatibility
+binding exists. Do not rename the smoke receipt or bypass that binding. Eight
+existing launcher/auditor fault tests pass locally; no native validation performed.
+
+[Readiness and single blocked packet](RECORDER_COHORT_READINESS_20261015.md) fixes
+all six schedules, units, unchanged budgets and stop rules while marking absent
+execution identities explicitly. This is **not yet an executable approval request**.
+Private packet payload b8da8c80ef67ddfb4d24eb10517f860a7affbaeb226c9cfba3addb1e60400777.
+Resolve offline integration/source/audit requirements and fresh host evidence,
+then bind one final concrete approval packet. No standalone smoke is presently
+justified or scheduled; another would require a concrete remaining native gate.
+No cohort, units, infrastructure changes or remote mutations occurred in this review.
+
 ## October 15 — Successor Linux compatibility passes; stopped after one run
 
 The user approved the exact successor packet below. Fresh source/runtime/boot/

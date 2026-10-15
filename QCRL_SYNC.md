@@ -3011,3 +3011,21 @@ verdict/evidence/thresholds unchanged. Incremental overhead, continuous RSS peak
 credit balance and internal sleep retry counts unknown; original host-context
 gates remain open. No budget acceptance, orders, merge, QC sync or further native
 authorization. Updated HANDOFF/status; raw evidence remains private.
+
+## 2026-10-15 — Six-case readiness review; blocked approval packet
+
+Reviewed successor progression offline at 92889b0. Existing eight launcher/auditor
+fault tests pass in 0.148 s. Deterministic checks show the successor completion
+path rejects archive frame 69 and a full producer result exceeds 2 MiB. The
+legacy six-case launcher/auditor does not bind the new persistence/absolute path;
+no successor execution freeze or same-source receipt bridge exists. Historical
+raw host-credit context verifies but remains dated; fresh required raw context
+is missing. No numerical credit-balance minimum exists in the declaration.
+
+Inclusive CPU and sampled current RSS are the resource acceptance gates.
+Incremental observer overhead and continuous RSS peak remain unknown, not passed;
+they are not extra gates under this preregistration. Full review and fixed-scope
+blocked packet: docs/RECORDER_COHORT_READINESS_20261015.md. No execution identities
+were invented, native units/smokes started or historical evidence revised. An
+executable final approval packet remains blocked pending implementation/freeze
+and fresh host evidence; no further native execution is authorized.
