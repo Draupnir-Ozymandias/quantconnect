@@ -2936,3 +2936,22 @@ replay, tuning, extra runs, resource changes or six-case cohort. Historical nati
 audit hashes reverified unchanged. See docs/RECORDER_ABSOLUTE_SMOKE_RESULT_20261015.md
 and the current HANDOFF for full anchors, unknowns and private evidence location.
 Native work stopped after this single smoke; no cohort or further run authorized.
+
+
+## October 15 — Offline durability/drain diagnosis; successor fixes proposed
+
+Retained native timestamps and code show nearly two seconds of receive/sync
+scheduling before the persistence path completes, leaving insufficient margin
+under the unchanged 2-s durability bound. Producer drain treats normal close after
+all sends like premature normal close, and may suppress faults after a concurrent
+stop. Capture-closed presence alone neither binds the case nor proves success.
+The retained exception ordering is unknown; original compatibility fail remains.
+Fourteen deterministic tests reproduce boundaries, all persistence-stage faults,
+closure/timeout/control/stop races and failed/missing capture markers. Full offline
+suite: 1,142 passing in 89.878 s on Intel macOS/Python 3.14.6. Original declaration,
+native inventory/archive and failed audit hashes reverify unchanged. Proposed
+successors cap pending receive waits at sync deadlines and reconcile terminal
+close events with completed sends and verified recorder lifecycle evidence. No
+runtime fix is wired in, no thresholds changed, and no native replay or cohort
+ran. A successor needs a new prospective identity/freeze before any execution.
+See docs/RECORDER_FAILURE_ANALYSIS_20261015.md and current docs/HANDOFF.md.

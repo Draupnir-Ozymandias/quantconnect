@@ -5,6 +5,28 @@ Updated October 15, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 15 — Offline failure diagnosis and prospective fixes
+
+The failed smoke verdict, frozen bytes, implementation and thresholds remain
+unchanged. [Offline diagnosis](RECORDER_FAILURE_ANALYSIS_20261015.md) traces both
+failures. Persistence scheduling can consume nearly two seconds in two receive
+waits before flush/fsync finishes; the full path has no sufficient margin under
+the 2-s bound. Drain records normal close as an error after all sends and cannot
+distinguish premature normal closure; a concurrent stop can also mask read faults.
+The capture-closed marker is published on failure as well as success, and the
+producer currently adopts presence without validation. The retained close's exact
+ordering is unknown, so the historical failure is not waived.
+
+All 1,142 offline tests passed in 89.878 seconds on Intel macOS / Python 3.14.6.
+Fourteen deterministic tests reproduce interval/count boundaries, persistence
+faults, exact threshold, close/timeout/control/stop interleavings and failed/missing
+capture witnesses using existing code. Proposed successors: cap blocking receives
+at pending sync deadlines, and classify a bounded terminal close event against
+completed-send and verified recorder lifecycle evidence. These are proposals;
+no runtime fix is wired in, and no diagnostic layer was added. Implementation
+would change receive/persistence/producer/audit scope and require a new prospective
+identity and source/runtime freeze. No native replay or cohort is authorized.
+
 ## October 15 — One Linux recorder smoke completed; compatibility failed; stopped
 
 User approval covered exactly one staging/run under freeze
