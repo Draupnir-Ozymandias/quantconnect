@@ -3065,3 +3065,18 @@ remains unrun (1,169 total, 1,168 pass + one declared skip, 240-s unit ceiling).
 Incremental overhead/continuous RSS peak remain unknown, outside declared gates;
 reported 576-credit dated observation introduces no minimum balance gate. Stop
 after any approved finite cohort for independent full evidence audit.
+
+## 2026-10-15 — Cohort approved; transport staged; AWS sign-in required
+
+User approval binds the exact 8c72652 / 90dfdd96... executable packet. Fresh
+pre-stage runtime/boot/public/namespace checks passed; refreshed raw EC2 context
+at 20:34:54 UTC remains t4g.small/standard, latest returned balance 576 at 20:29 UTC.
+Created fresh private stage and uploaded all 187,056 acknowledged base64 characters
+of the approved 140,290-byte packet. AWS console expired during the subsequent
+extraction/checkout attempt, before acknowledgement. Actual extraction/source
+state must be inspected after sign-in; never blindly repeat the mutation.
+
+No controller, native readiness unit or case unit was submitted. Approval persists;
+user sign-in is the only current access blocker. Private checkpoint and exact
+resume steps are in current HANDOFF. No retry/replay/extra smoke/resource/public
+change, merge or QC sync. Partial staging evidence is retained.

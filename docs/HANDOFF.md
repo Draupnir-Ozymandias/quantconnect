@@ -5,6 +5,32 @@ Updated October 15, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## Approved cohort staging checkpoint — AWS sign-in required
+
+The user explicitly approved the exact executable packet ("totally approved").
+That approval remains valid for candidate 8c726522a7ba9b19411d309b42d17a92faf72395 /
+freeze 90dfdd968ccbb584ba2da2a2e9ff7db90cb7d4673c87ecea11ce9e0ef232b686.
+Fresh pre-staging runtime/boot/public/namespace checks passed. Refreshed raw AWS
+responses at 20:34:54 UTC confirm unchanged t4g.small/standard context; latest
+returned credit balance remains 576 at 20:29 UTC, without a minimum gate.
+
+Created the fresh private recorder-persistence-20261015LupusCohort01 stage and
+transferred all 187,056 base64 characters of the approved 140,290-byte packet,
+with every offset acknowledged. The console expired during the following
+extraction/checkout command attempt; no completion acknowledgement was observed.
+**Inspect actual stage/extraction/source state after sign-in before any mutation.**
+Do not recreate/adopt a measurement launch or blindly repeat the staging command.
+No controller invocation, claim or native readiness/case unit was submitted.
+
+Private resume checkpoint:
+`.qcrl/reviews/recorder-cohort-native-20261015LupusCohort01/sign-in-required-checkpoint.json`
+(payload 65cf7379778e76fc6f473c77a9a629f770b7a230139cef79d8a11f1197b9bafa).
+AWS portal now requires user sign-in. Once restored, verify remote packet SHA,
+all controls/516 candidate sources and full preflight, then invoke the approved
+controller exactly once. Readiness remains first and unrun; no retry, replay,
+extra smoke/cases or resource/public changes. Preserve partial staging evidence.
+The packet's pending-approval wording below is the earlier frozen checkpoint.
+
 ## Frozen executable cohort packet — awaiting approval
 
 Candidate `8c726522a7ba9b19411d309b42d17a92faf72395`, 516 selected source files.
