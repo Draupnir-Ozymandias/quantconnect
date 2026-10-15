@@ -1,6 +1,10 @@
 # Six-case successor cohort readiness — October 15
 
-**Blocked; not ready for execution approval.** This review checks development
+**Historical blocked checkpoint, superseded by the implementation and fresh host
+evidence described in [HANDOFF](HANDOFF.md) and the [successor contract](RECORDER_PERSISTENCE_COHORT.md).**
+
+The following preserves the original readiness finding; its blocked packet is not
+the final executable packet. This review checks development
 commit `92889b0b54745dc28c5dd7736c0723df0274ddf9`. The passing successor smoke
 establishes its own bounded compatibility only. There is no frozen successor
 six-case executable or independently bound compatibility receipt for that route.

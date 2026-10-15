@@ -63,8 +63,8 @@ def verify_recorder_completion(root, case):
     verified = verify_completion(report, root/'archive', expected_domain='localhost.'+case['boot_id'],
                                  expected_sources=_sources())
     require(verified['frames'] == case['spec']['max_frames'], 'recorder completion population differs')
-    from infra.stream.recorder_absolute_smoke_audit import archive_frames
-    frames, footer, gaps = archive_frames(root/'archive')
+    from infra.stream.recorder_case_archive import archive_frames
+    frames, footer, gaps = archive_frames(root/'archive', case['spec']['max_frames'])
     require(not gaps and footer == summary and frames == [message(i) for i in range(case['spec']['max_frames'])],
             'recorder ordered population/footer differs')
     return dict(consumer=consumer, completion=report, closed=closed)

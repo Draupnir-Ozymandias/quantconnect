@@ -8,13 +8,16 @@
 
 ## October 15 recorder engineering status
 
-Six-case progression is **blocked**, despite the bounded smoke pass. A successor
-cohort transport/auditor/freeze and fresh raw host-credit/identity context are
-missing. Incremental overhead and continuous RSS peak remain unknown and are not
-gates in the preregistered inclusive CPU/current RSS contract. Credit mode evidence
-is required; no numeric minimum balance is declared. See [readiness and blocked
-approval packet](docs/RECORDER_COHORT_READINESS_20261015.md). No further native work
-or standalone smoke ran for this review.
+Successor six-case integration and fresh raw host/credit evidence are complete;
+execution awaits an exact source/runtime/transport freeze and separate approval.
+The case-sized verifier passes actual 69-/60,000-frame paths and declared-count
+boundaries. The new launcher/auditor preserves original schedules/budgets and
+explicitly binds the reviewed delta from the passed smoke. All 1,169 offline tests
+pass in 152.925 s; installed Linux readiness (1,168 pass plus one declared skip)
+remains unrun. Fresh standard credit mode is raw-API verified; latest returned
+balance 576 at 19:34 UTC, without a minimum balance gate. Incremental overhead and
+continuous RSS peak remain unknown, outside declared acceptance. See [successor
+contract](docs/RECORDER_PERSISTENCE_COHORT.md). No new native units or smoke ran.
 
 The prospectively frozen successor Linux recorder smoke **passes bounded
 compatibility** after 1,156 readiness tests (1,155 pass, one declared version skip).

@@ -5,6 +5,40 @@ Updated October 15, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 15 — Successor cohort implementation and fresh host evidence complete
+
+The completion verifier now follows each case's declared frame count, bounded to
+its supported 1..60,000 corpus population. Boundary tests cover 1/2/67/68/69/70/
+59,999/60,000 and missing/extra/invalid counts; actual 69- and 60,000-frame recorder
+completion paths pass. Original smoke reader/evidence and failed verdicts remain
+unchanged. The worker change is exactly the two-expression verifier substitution.
+
+The new prospective six-case launcher/auditor routes persistence plus absolute
+observation, retains original budgets/schedules, enforces exact readiness, live
+bindings, serial lifecycle, fatal stops and scoped cleanup, and uses large producer
+artifact verification. Compatibility lineage pins the original passed smoke audit
+and external origin receipt, unchanged tested Python sources except the reviewed
+verifier substitution, and exact installed wait/dependency/boot envelope. This is
+an explicitly identified integration delta, not same-source native validation.
+See [successor cohort contract](RECORDER_PERSISTENCE_COHORT.md).
+
+Fresh read-only CloudShell DescribeInstances/DescribeInstanceCreditSpecifications
+responses and Session Manager IMDS/boot/source/runtime/public observations are
+retained and externally byte-anchored. Host remains Ohio t4g.small/standard, same
+boot and public context. Latest returned CPUCreditBalance: 576 at 2026-10-15
+19:34 UTC (query 19:39:39 UTC); no minimum balance acceptance gate. Incremental
+observer overhead and continuous RSS peak remain unknown, outside the inclusive
+CPU/current-RSS acceptance gates. New stage/prefix absent, free space >4 GiB.
+
+All **1,169 offline tests pass in 152.925 s**, Intel macOS/Python 3.14.6. Exact
+prospective Linux gate: 1,169 total, 1,168 pass plus one existing version skip,
+within the unchanged 240-s readiness unit limit; unrun, no timeout guarantee.
+Private freeze/packet preparation: `.qcrl/reviews/recorder-cohort-preparation-20261015/`.
+Freeze this implementation candidate and present exact staging/one-cohort approval
+before any units. No additional smoke is required or scheduled. No new native code,
+case/unit, replay, infrastructure/resource/IAM change, merge or QC sync occurred.
+The blocked readiness section below is the preserved pre-implementation checkpoint.
+
 ## October 15 — Six-case readiness review: blocked; no native work
 
 Reviewed 92889b0 against the actual parent/absolute/persistence declarations and
