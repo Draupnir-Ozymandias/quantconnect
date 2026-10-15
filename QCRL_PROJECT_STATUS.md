@@ -20,12 +20,14 @@ one run; no replay, six-case cohort or production acceptance is authorized.
 The prospective 50-ms pre-read timing does not revise historical 2-ms results.
 See [handoff](docs/HANDOFF.md) and [native result](docs/RECORDER_ABSOLUTE_SMOKE_RESULT_20261015.md).
 
-Offline follow-up identifies insufficient persistence scheduling margin and a
-producer drain lifecycle mismatch; 14 deterministic boundary/fault tests reproduce
-the defects. Proposed deadline-aware receive scheduling and evidence-bound close
-classification are documented in [failure analysis](docs/RECORDER_FAILURE_ANALYSIS_20261015.md).
-Runtime implementation, thresholds and failed verdict remain unchanged; no native
-replay or cohort is authorized.
+Both fixes are now implemented offline in separately identified isolated runtime
+paths: pending receives respect a one-second prospective persistence reserve, and
+closure requires all planned sends plus verified recorder completion. Faults
+survive a stop race; control publication is atomic/exclusive. The failed run,
+original runtime/declaration and thresholds are unchanged. Fourteen successor tests
+cover actual local runtime paths and deterministic faults. A new 68-occurrence
+smoke is prepared for approval; no native replay or cohort has run.
+See [successor preparation](docs/RECORDER_PERSISTENCE_SMOKE_PREPARATION.md).
 
 ## Executive Summary
 

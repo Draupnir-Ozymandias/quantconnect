@@ -2955,3 +2955,24 @@ close events with completed sends and verified recorder lifecycle evidence. No
 runtime fix is wired in, no thresholds changed, and no native replay or cohort
 ran. A successor needs a new prospective identity/freeze before any execution.
 See docs/RECORDER_FAILURE_ANALYSIS_20261015.md and current docs/HANDOFF.md.
+
+
+## October 15 — Persistence/closure successor implemented offline
+
+New isolated runtime lane/worker implement deadline-aware persistence with an
+explicit one-second prospective reserve within the unchanged two-second bound,
+and closure requires all planned sends plus verified recorder completion/archive.
+Normal closure alone cannot pass; faults remain across concurrent stop. Atomic
+exclusive control publication prevents partial consumer.json adoption and retains
+partial writes/collisions. Original runtime/declaration/observer, failed native
+run and thresholds are unchanged. New finite smoke/controller/auditor routes only
+to the successor and has no cohort path. Fourteen successor tests cover actual
+localhost workers/collector/completion, boundary/fault/stop/publication cases and
+controller command/readiness/cleanup paths. All 1,156 offline tests passed in
+77.706 s on Intel macOS/Python 3.14.6; focused tests also pass after the final
+successor/observer declaration-label clarification. Python 3.9 syntax parses;
+no installed Linux successor validation. Prospective Linux gate is 1,156 total,
+1,155 passing plus the declared one existing version skip. A newly committed
+candidate/freeze packet is required for one separately approved 68-at-1-Hz smoke.
+No native staging/run, replay, cohort, resource change or public operation occurred.
+See docs/RECORDER_PERSISTENCE_SMOKE_PREPARATION.md and current docs/HANDOFF.md.

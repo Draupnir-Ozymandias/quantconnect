@@ -5,6 +5,34 @@ Updated October 15, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 15 — Successor fixes implemented offline; new smoke awaiting approval
+
+The new isolated persistence lane and worker implement both fixes; historical
+runtime files, original c9207f... declaration, 2-s durable limit, failed f045b061...
+smoke and audit remain unchanged. Pending receives now stop at the earlier of
+last-sync+1 s and oldest pending application-return+1 s, with pre-receive and
+append checks. The prospective reserve is explicitly **1 second**, not a timing
+guarantee; injected persistence stalls still fail the unchanged bound.
+
+Successor drain retains terminal close type/codes/time even across a concurrent
+stop. Success requires all planned ordered sends before the normal close **and**
+case-bound verified recorder completion, exact archive population/footer and no
+capture/reconnect/observer failure. A normal close or capture-closed marker alone
+never passes. Atomic exclusive control publication prevents partial consumer.json
+adoption. Existing bounded deadlines, resource limits and observer grid/50-ms lead
+are preserved. No diagnostic observer layer or native run was added.
+
+All 1,156 offline tests passed in 77.706 seconds on Intel macOS/Python 3.14.6;
+the 14 successor tests also pass after the final declaration metadata clarification.
+Prospective Linux gate: 1,156 discovered, 1,155 pass plus one existing version skip.
+Fourteen successor tests exercise the actual runtime paths, deterministic boundary
+and fault cases, and smoke routing/cleanup. See
+[prospective successor smoke](RECORDER_PERSISTENCE_SMOKE_PREPARATION.md) for the
+new 68-at-1-Hz plan and explicit reserve. The candidate requires a new committed
+source/runtime freeze and approval; prior native authorization is spent. No
+replay, six-case cohort, resource change, public rollout, merge or QC sync.
+Earlier proposal-only sections below are historical checkpoints.
+
 ## October 15 — Offline failure diagnosis and prospective fixes
 
 The failed smoke verdict, frozen bytes, implementation and thresholds remain
