@@ -2994,3 +2994,20 @@ remains mandatory before any units. Proposed stage is recorder-absolute-
 explicit one-second prospective persistence reserve and verified completion-bound
 closure. Stop afterward; no replay/cohort/resource/public-service change. No
 successor staging or Linux/native execution has occurred. See current HANDOFF.
+
+## 2026-10-15 — One successor Linux persistence smoke; bounded compatibility pass
+
+User approved exact candidate 371fa03 / freeze
+3338edbfc19048fa39787d86cc70abebd458318b4a79abd816c531f2fad3ca4f.
+Fresh preflight passed, followed by 1,156 Linux tests in 112.488 s (1,155 pass,
+one declared skip) and exactly one 68-occurrence recorder pair. Independent audit
+passes ordered archive/completion/closure/durability/resource gates with no missed
+slots. Durability worst upper 0.183876711 s; 60-s inclusive CPU upper 0.0048931556;
+sampled RSS max 27,553,792 bytes. Full costs, byte anchors and remaining unknowns:
+[successor result](docs/RECORDER_PERSISTENCE_SMOKE_RESULT_20261015.md).
+
+Stopped; no retries/replay/extra run/cohort. Public context and historical failed
+verdict/evidence/thresholds unchanged. Incremental overhead, continuous RSS peak,
+credit balance and internal sleep retry counts unknown; original host-context
+gates remain open. No budget acceptance, orders, merge, QC sync or further native
+authorization. Updated HANDOFF/status; raw evidence remains private.

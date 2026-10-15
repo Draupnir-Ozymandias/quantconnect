@@ -5,6 +5,31 @@ Updated October 15, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 15 — Successor Linux compatibility passes; stopped after one run
+
+The user approved the exact successor packet below. Fresh source/runtime/boot/
+public preflight passed; one controller staged and ran one readiness unit followed
+by the 68-occurrence producer/recorder pair. Linux Python 3.9.25/aarch64 readiness:
+1,156 tests in 112.488 s, 1,155 pass plus the declared existing version skip.
+This is distinct from all 1,156 offline Intel macOS/Python 3.14.6 tests passing.
+
+Independent frozen audit **passes bounded compatibility**: 68 ordered frames,
+archive/completion integrity, all planned sends plus verified recorder completion,
+no drain errors, no missing observer slots. Worst durability upper 0.183876711 s
+against unchanged 2 s. Inclusive 60-s CPU upper fraction 0.0048931556; sampled RSS
+max 27,553,792 bytes. One-second persistence reserve remains prospective and is
+not a guarantee. Separate origin attestation preserves original self-report flags.
+
+See [complete audit, inclusive costs, unknowns and anchors](RECORDER_PERSISTENCE_SMOKE_RESULT_20261015.md).
+Private evidence: `.qcrl/reviews/recorder-persistence-native-20261015LupusPersistence01/`.
+All scoped units are gone; public state/hashes and historical failed evidence are
+unchanged. No retry/replay, extra run or cohort occurred. Incremental observer
+overhead, continuous RSS peak, credit balance and producer internal sleep retries
+remain unknown; original cohort raw host-context gates remain open. Budget/cohort
+acceptance and orders remain false. Native authorization is spent: stop here;
+no six-case cohort, public rollout, merge or QC sync. The following pending/unrun
+sections preserve the historical preparation chronology, not the current state.
+
 ## Frozen successor approval packet — October 15 (not executed)
 
 Implementation candidate: `371fa03c3d2622d784128b9359c3ab730f082cf2`, 509 selected

@@ -8,26 +8,20 @@
 
 ## October 15 recorder engineering status
 
-The one approved Linux recorder smoke completed after readiness passed 1,128 tests
-(1,127 pass plus the declared skip), but independent compatibility audit **failed**:
-two durability upper bounds exceeded 2 s and producer drain recorded
-`ConnectionClosedOK`. All 68 ordered frames and archive/completion integrity pass;
-zero missed observer slots. Inclusive resource gates pass, with one complete
-60-second CPU-window upper fraction 0.0045852 and sampled RSS max 27,389,952 bytes.
-Incremental observer overhead, continuous RSS peak and credit balance remain
-unknown. Public collectors and historical evidence are unchanged. Stopped after
-one run; no replay, six-case cohort or production acceptance is authorized.
-The prospective 50-ms pre-read timing does not revise historical 2-ms results.
-See [handoff](docs/HANDOFF.md) and [native result](docs/RECORDER_ABSOLUTE_SMOKE_RESULT_20261015.md).
+The prospectively frozen successor Linux recorder smoke **passes bounded
+compatibility** after 1,156 readiness tests (1,155 pass, one declared version skip).
+All 68 ordered frames, archive/completion integrity, verified closure and unchanged
+2-s durability/resource gates pass; worst durability upper 0.183876711 s and zero
+missed observer slots. Inclusive 60-s CPU upper fraction is 0.0048931556; sampled
+RSS max 27,553,792 bytes. The one-second persistence reserve is not a guarantee.
 
-Both fixes are now implemented offline in separately identified isolated runtime
-paths: pending receives respect a one-second prospective persistence reserve, and
-closure requires all planned sends plus verified recorder completion. Faults
-survive a stop race; control publication is atomic/exclusive. The failed run,
-original runtime/declaration and thresholds are unchanged. Fourteen successor tests
-cover actual local runtime paths and deterministic faults. A new 68-occurrence
-smoke is prepared for approval; no native replay or cohort has run.
-See [successor preparation](docs/RECORDER_PERSISTENCE_SMOKE_PREPARATION.md).
+Stopped after the single approved successor run. Public collectors and historical
+failed f045b061... evidence/verdict remain unchanged. Incremental observer overhead,
+continuous RSS peak, credit balance and producer internal sleep retries remain
+unknown; original cohort host-context gates remain open. No replay, extra run,
+six-case cohort, production/budget acceptance, orders, merge or QC sync authorized.
+See [handoff](docs/HANDOFF.md), [successor result](docs/RECORDER_PERSISTENCE_SMOKE_RESULT_20261015.md)
+and [preserved failed result](docs/RECORDER_ABSOLUTE_SMOKE_RESULT_20261015.md).
 
 ## Executive Summary
 
