@@ -8,6 +8,15 @@
 
 ## October 15 recorder engineering status
 
+Offline memory diagnosis/revision is complete. The 60,000-frame audit fixture
+peaks above 512 MiB even alone; final suite RSS remains elevated after GC.
+The [new executable packet](docs/RECORDER_COHORT_READINESS_V2_APPROVAL_20261015.md)
+proposes **1-GiB readiness only**, preserving 512-MiB producer/recorder limits and
+all budgets. Candidate 4926d62 / v2 freeze 6428a09a...: all 1,177 revised offline
+tests pass in 154.120 s; all 520 selected source files reconstruct from the bundle.
+No new staging/native unit/remote inspection occurred. Fresh read-only host checks
+and new approval remain required; no native pass or headroom guarantee is claimed.
+
 The approved successor cohort attempt **failed at native readiness**: the single
 prerequisite unit was memory-cgroup OOM-killed under the unchanged 512-MiB limit
 at 148.369297 s. Zero case units started. Frozen independent audit reports an
@@ -18,7 +27,7 @@ stopped test unit retains its failed state. Exact active test/allocation and mem
 peak are unknown. Local 1,169-test success does not substitute for native readiness.
 Incremental overhead/continuous peak remain unknown; no new credit gate was added.
 See [result](docs/RECORDER_PERSISTENCE_COHORT_RESULT_20261015.md) and [handoff](docs/HANDOFF.md).
-Native approval is spent; stop pending prospective offline diagnosis/fix and review.
+Prior native approval is spent; the revised packet awaits new approval.
 
 The prospectively frozen successor Linux recorder smoke **passes bounded
 compatibility** after 1,156 readiness tests (1,155 pass, one declared version skip).

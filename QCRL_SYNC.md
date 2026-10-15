@@ -3099,3 +3099,26 @@ audit SHA dbbad8a92853db3afd3f39f5fdef3edb52ddba2d8c64670efc2dbfb3af229337.
 Full cost, kernel supplement, unknowns and anchors:
 docs/RECORDER_PERSISTENCE_COHORT_RESULT_20261015.md. Stop; approval spent, no native
 replacement/cohort/smoke, resource/public/IAM change, merge or QC sync.
+
+## 2026-10-15 — Offline readiness memory v2; exact approval packet prepared
+
+Original OOM attempt/verdict and ten-file evidence inventory remain unchanged.
+Offline original suite: 1,169 pass, 647,921,664-byte peak RSS; 60,000-frame
+completion/producer/audit test alone: 604,839,936 bytes. Final original-suite RSS
+231,817,216 bytes was unchanged by explicit GC; no unbounded leak/native active
+test attribution claimed. Choose prospectively 1-GiB readiness only; full test
+coverage, 240 s/75%/32 tasks unchanged, producer/recorder still 512 MiB and every
+measurement budget unchanged. New actual adapter/auditor fault tests pin this
+separate envelope. Revised 1,177 offline tests pass in 154.120 s, local peak
+632,987,648 bytes. A removed auditor binding import was caught by the first local
+full suite, restored and fully retested; failed local log retained.
+
+Candidate 4926d62faab552af8a3c8e3fe964dc16052e4773; freeze
+6428a09a34633987a353c32beeca340be535b33c1e11aa897f291d37a4da434b;
+packet dcce731de610681470fb773e3ed95be1d47329b9bc0905fa0b7cfdb3ad3399e2.
+Fresh scratch bundle reconstruction verifies all 520 selected source files.
+Exact packet: docs/RECORDER_COHORT_READINESS_V2_APPROVAL_20261015.md.
+No staging/native/remote inspection this revision; retained host/runtime context
+is dated and fresh read-only checks are required before execution after new
+approval. Proposed Cohort02 only; no extra smoke/replay/retry/cohort now, public/
+VM/IAM changes, merge or QC sync. Prior execution approval is spent.

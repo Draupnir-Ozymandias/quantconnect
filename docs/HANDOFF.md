@@ -5,6 +5,33 @@ Updated October 15, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 15 — Revised executable packet frozen; no native rerun
+
+Candidate **4926d62faab552af8a3c8e3fe964dc16052e4773** is committed/pushed. All 1,177 revised
+offline tests pass (154.120 s, Intel macOS/Python 3.14.6); installed Linux
+readiness is still unrun. Exact v2 freeze:
+`6428a09a34633987a353c32beeca340be535b33c1e11aa897f291d37a4da434b`.
+Approval packet payload: `dcce731de610681470fb773e3ed95be1d47329b9bc0905fa0b7cfdb3ad3399e2`.
+
+[Revised approval packet](RECORDER_COHORT_READINESS_V2_APPROVAL_20261015.md)
+proposes 1-GiB readiness only, then the same six serial cases/360,000 occurrences.
+Producer/recorder remain 512 MiB; CPU/time/tasks, all measurement thresholds,
+original plan and failed OOM evidence/verdict remain unchanged. Actual readiness
+properties and independent audit paths are tested; no extra diagnostic observer.
+All 520 selected candidate source files reconstruct from the incremental bundle in a
+fresh scratch checkout. Controls/runtime/lineage are frozen as dated expectations,
+not freshly observed Linux validation. Private packet/transport directory:
+`.qcrl/reviews/recorder-cohort-readiness-v2-preparation-20261015/`.
+
+Fresh stage proposed: recorder-persistence-20261015LupusCohort02. Nothing is staged,
+no remote inspection/native unit was run for this revision. Obtain fresh read-only
+host/credit/runtime/public/namespace checks after new approval and before units;
+report available host memory/balance and unknowns without inventing a minimum.
+**Await new explicit staging/execution approval.** The prior approval is spent.
+No smoke/replay/retry, public/resource/infrastructure/IAM change (apart from the
+explicit proposed private readiness allowance), main merge or QC sync.
+Earlier sections preserve chronology and do not authorize an old launch.
+
 ## October 15 — Offline readiness memory revision; awaiting a new approval
 
 Offline profiling at cfe5154 identifies the 60,000-frame completion/producer/audit
