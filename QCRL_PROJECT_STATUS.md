@@ -1,10 +1,20 @@
 # QCRL Project Status
 
-**As of:** 2026-10-14 (engineering update; historical inventory below is September 23)
+**As of:** 2026-10-15 (engineering update; historical inventory below is September 23)
 **Repository:** `Draupnir-Ozymandias/quantconnect` / `polymarket-martingale`  
 **QuantConnect project:** 33239307  
 **Current research decision:** Hold feature optimization; preserve the locked
 2026Q4 prospective baseline while building execution infrastructure separately.
+
+## October 15 recorder engineering status
+
+One bounded 68-occurrence native recorder compatibility smoke is prepared offline;
+execution awaits approval of its committed source/runtime freeze. The prospective
+50-ms CPU pre-read timing differs from the historical 2-ms timing. Original
+budgets/evidence remain frozen. Read-only Ohio runtime/package/boot and EC2-console
+host/standard-credit observations are retained privately; credit balance remains
+unknown. No new native result, cohort authorization or production acceptance.
+See [handoff](docs/HANDOFF.md) and [smoke contract](docs/RECORDER_ABSOLUTE_SMOKE_PREPARATION.md).
 
 ## Executive Summary
 

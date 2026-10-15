@@ -328,3 +328,25 @@ Tests: `tests/test_recorder_absolute_observer.py`. Protocol, bounds and unimplem
 native gates: [recorder absolute preregistration](RECORDER_ABSOLUTE_BUDGET_PREREGISTRATION.md).
 All origin/compatibility/acceptance/execution/order flags remain false; prior
 schemas, source-frozen evidence and recorder budgets remain unchanged.
+
+
+## October 15 — Prospective recorder smoke transport
+
+`recorder_absolute_smoke.py` declares smoke-plan v1 and source/runtime smoke-freeze
+v1 with literal plan identity, complete selected source inventory, source-bound
+observer declaration, installed wait ABI/binary/source and WebSocket file identities,
+boot, dated console host/credit context and exact Linux readiness population.
+The fixed case adds smoke_only/freeze/smoke-plan bindings and a UTC/monotonic epoch
+recipe. Existing archive/completion and worker artifacts retain their schemas.
+Explicit transmitter injection leaves legacy producer behavior unchanged.
+
+Launch v1 retains three private units' public context, result and preservation
+faults. Inventory v1 binds the complete retained file population/bytes; its byte
+SHA-256 must be independently observed at origin. The offline smoke auditor checks
+live bindings, ready/release chronology, unit lifetimes, exact corpus/archive,
+completion barriers and observer receipts before unchanged gates. Cost reporting
+is inclusive recorder-unit CPU/RSS/brackets/throttling/memory events; incremental
+observer overhead stays unknown. No producer flag self-attests native origin or
+cohort/order authority. See `tests/test_recorder_absolute_smoke.py` and
+[smoke preparation](RECORDER_ABSOLUTE_SMOKE_PREPARATION.md). Historical contracts
+and frozen evidence are unchanged.

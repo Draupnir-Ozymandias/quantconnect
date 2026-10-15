@@ -1,9 +1,59 @@
 # Development handoff
 
-Updated October 14, 2026. Continue in
+Updated October 15, 2026. Continue in
 `/Users/eric/Projects/quantconnect/polymarket-martingale` on
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
+
+## October 15 — Recorder smoke transport prepared; native approval pending
+
+The next target is exactly one native recorder compatibility smoke, not another
+isolated timing comparison. The smoke-only controller has one readiness-regression
+unit, one producer and one recorder; no cohort route. It sends original corpus
+occurrences 0..67 at epoch+j seconds, frame limit 68/capture limit 180 seconds,
+20-second epoch lead and 100-ms readiness margin. Separate live PID/cgroup bindings,
+fixed commands/limits, one capture per unit and scoped cleanup are audited offline.
+Every unit retains CPU 75%, memory 512 MiB, 32 tasks and 240 seconds; numeric IPv4
+localhost only. See [exact smoke preparation](RECORDER_ABSOLUTE_SMOKE_PREPARATION.md).
+
+The 2-ms to 50-ms CPU pre-read lead **changes measurement timing** despite unchanged
+budgets. Prospective observer policy remains bdd41717abfb6b5d02e21fb11cf8059fab27723b80497a893a66c28adc50e52f;
+new smoke plan is e3b86ea5be1482c7352552459ab14df365789f12b74e37c746adcdb1b529321d.
+The producer adds an explicit injected transmitter; its legacy default is unchanged.
+This changes its source-bound declaration prospectively. The October 14 declaration
+41187030fbf5825311b03c0558bd137b104b7d692078a11777b7bf4242931e15 and private receipt remain
+historical frozen identities, not the new candidate. No earlier unknown or result
+is repaired; original recorder c9207f... declaration and absolute-wait code stay fixed.
+
+Read-only Session Manager inspection on October 15 observed the existing Linux
+Python 3.9.25/aarch64/glibc 2.34 runtime, unchanged boot and public collector/hash
+context, and byte-hashed all 60 installed websockets 15.0.1 distribution files.
+The EC2 console showed t4g.small/two vCPUs/standard credit mode. The instance role
+denied credit-description API access; no IAM change. Console observation is
+retained honestly as console evidence, not substituted raw API output. Credit
+balance remains unknown. The original cohort host-context gates still apply later.
+Private preparation receipts: `.qcrl/reviews/recorder-smoke-preparation-20261015/`.
+
+Offline fixtures exercise full synthetic archives, byte anchors, ordered corpus,
+completion/durability linkage, binding/release/lifetime/limit and rehashed wait
+faults, failed readiness/cleanup, missing slots with known budget failure, extra
+files/symlinks and incomplete launches. They do not establish Linux/native results.
+The post-run review must cover archive integrity, completeness, missed slots,
+inclusive recorder CPU/RSS/read brackets/throttling/memory events and separate
+producer resources. Incremental observer overhead remains unknown from one run.
+Any required unknown blocks progression. Stop after this smoke for independent
+review and a separate six-case authorization decision. No units have started.
+
+Verification: all 1,128 offline tests passed in 85.018 seconds on Intel macOS /
+Python 3.14.6, including the 14 new transport/audit tests and existing localhost
+fixtures. New transport/auditor/tests compile with local Python 3.8.2. Fresh
+read-only wait-runtime bytes exactly match the earlier frozen comparison envelope;
+that observation is not execution of the new recorder path. Installed Linux
+readiness tests and native recorder measurements remain unrun. New source-bound
+observer declaration: 0f3a9b8494804f792d5778a0388d787cb2bc52a5de7fd4bc1cdb60738ded6bf1.
+
+Exact candidate/freeze receipt will follow once sealed; request approval only for that immutable packet. No main merge, QC sync,
+credentials import, infrastructure change or native execution is authorized here.
 
 ## October 14 — Offline absolute observer integration and successor preregistration
 

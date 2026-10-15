@@ -149,7 +149,7 @@ def transmit(conn, kind, epoch, *, clock=time.monotonic, pause=time.sleep):
     return dict(rows=rows, error=error, complete=error is None and len(rows) == 60000)
 
 
-def produce(root, declaration, *, execute=False):
+def produce(root, declaration, *, execute=False, transmitter=None):
     from websockets.sync.server import serve
     root = Path(root)
     case = context(root, declaration, execute)
@@ -202,7 +202,7 @@ def produce(root, declaration, *, execute=False):
                 raise ContractError('independent bindings missed epoch')
             thread = threading.Thread(target=drain, daemon=True)
             thread.start()
-            result = transmit(conn, case['case'].split('-')[0], case['epoch'])
+            result = (transmit if transmitter is None else transmitter)(conn, case['case'].split('-')[0], case['epoch'])
             # Keep the connection alive while the recorder drains, never send extras.
             while not (root / 'capture-closed.json').exists() and time.monotonic() < case['epoch'] + 185:
                 time.sleep(.01)
