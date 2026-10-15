@@ -9,7 +9,7 @@
 ## October 15 recorder engineering status
 
 Successor six-case integration and fresh raw host/credit evidence are complete;
-execution awaits an exact source/runtime/transport freeze and separate approval.
+execution awaits separate approval of the [exact frozen packet](docs/RECORDER_PERSISTENCE_COHORT_APPROVAL_20261015.md).
 The case-sized verifier passes actual 69-/60,000-frame paths and declared-count
 boundaries. The new launcher/auditor preserves original schedules/budgets and
 explicitly binds the reviewed delta from the passed smoke. All 1,169 offline tests

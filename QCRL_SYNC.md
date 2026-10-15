@@ -3047,3 +3047,21 @@ CPU/current RSS remain acceptance measures; incremental overhead and continuous
 peak remain unknown. No extra smoke, native unit, new source staging, public or
 resource change occurred. Preserve historical evidence and await exact packet
 approval. See docs/RECORDER_PERSISTENCE_COHORT.md and current HANDOFF.
+
+## 2026-10-15 — Executable cohort packet frozen; explicit approval pending
+
+Candidate 8c726522a7ba9b19411d309b42d17a92faf72395, 516 selected files, execution
+freeze 90dfdd968ccbb584ba2da2a2e9ff7db90cb7d4673c87ecea11ce9e0ef232b686.
+Transport 140,290 bytes / SHA-256
+13d24cec0206c648702823982bda2d8d3ebe9eeac98545d579f42f2a996caa60;
+fresh offline prerequisite-only checkout reconstructed every selected candidate
+file exactly. Packet e9805de66fb3eb939ad7c5ad57b7820625ba731e30c4e0f68679092834d073c5
+binds one readiness unit then six fixed serial cases, fresh anchored host evidence,
+unchanged budgets/resources, compatibility lineage and fatal stopping. Exact
+command/stage: docs/RECORDER_PERSISTENCE_COHORT_APPROVAL_20261015.md.
+
+No new staging/native units/smoke; approval pending. Installed Linux readiness
+remains unrun (1,169 total, 1,168 pass + one declared skip, 240-s unit ceiling).
+Incremental overhead/continuous RSS peak remain unknown, outside declared gates;
+reported 576-credit dated observation introduces no minimum balance gate. Stop
+after any approved finite cohort for independent full evidence audit.

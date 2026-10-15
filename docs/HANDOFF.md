@@ -5,6 +5,25 @@ Updated October 15, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## Frozen executable cohort packet — awaiting approval
+
+Candidate `8c726522a7ba9b19411d309b42d17a92faf72395`, 516 selected source files.
+Freeze `90dfdd968ccbb584ba2da2a2e9ff7db90cb7d4673c87ecea11ce9e0ef232b686`.
+Approval-packet payload `e9805de66fb3eb939ad7c5ad57b7820625ba731e30c4e0f68679092834d073c5`.
+Transport 140,290 bytes, SHA-256
+`13d24cec0206c648702823982bda2d8d3ebe9eeac98545d579f42f2a996caa60`.
+[Exact executable approval packet](RECORDER_PERSISTENCE_COHORT_APPROVAL_20261015.md)
+binds fresh raw host/credit evidence, installed runtime, exact compatibility delta,
+source/bundle reconstruction, command/stage, 13-unit lifecycle, unchanged schedules/
+budgets and fatal-stop/audit rules. Fresh stage is recorder-persistence-
+20261015LupusCohort01. Neither source staging nor native units have started.
+
+One readiness-gated cohort only after explicit approval. Expected Linux gate:
+1,169 total, 1,168 pass plus one declared version skip within unchanged 240 s.
+No further smoke, retries/replay/replacement/tuning, resource/public/infrastructure/
+IAM changes, credentials, merge or QC sync. Stop afterward for independent review.
+The implementation candidate, not subsequent documentation-only HEADs, is frozen.
+
 ## October 15 — Successor cohort implementation and fresh host evidence complete
 
 The completion verifier now follows each case's declared frame count, bounded to
