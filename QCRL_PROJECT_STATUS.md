@@ -8,13 +8,17 @@
 
 ## October 15 recorder engineering status
 
-One bounded 68-occurrence native recorder compatibility smoke is prepared offline;
-execution awaits approval of its committed source/runtime freeze. The prospective
-50-ms CPU pre-read timing differs from the historical 2-ms timing. Original
-budgets/evidence remain frozen. Read-only Ohio runtime/package/boot and EC2-console
-host/standard-credit observations are retained privately; credit balance remains
-unknown. No new native result, cohort authorization or production acceptance.
-See [handoff](docs/HANDOFF.md) and [smoke contract](docs/RECORDER_ABSOLUTE_SMOKE_PREPARATION.md).
+The one approved Linux recorder smoke completed after readiness passed 1,128 tests
+(1,127 pass plus the declared skip), but independent compatibility audit **failed**:
+two durability upper bounds exceeded 2 s and producer drain recorded
+`ConnectionClosedOK`. All 68 ordered frames and archive/completion integrity pass;
+zero missed observer slots. Inclusive resource gates pass, with one complete
+60-second CPU-window upper fraction 0.0045852 and sampled RSS max 27,389,952 bytes.
+Incremental observer overhead, continuous RSS peak and credit balance remain
+unknown. Public collectors and historical evidence are unchanged. Stopped after
+one run; no replay, six-case cohort or production acceptance is authorized.
+The prospective 50-ms pre-read timing does not revise historical 2-ms results.
+See [handoff](docs/HANDOFF.md) and [native result](docs/RECORDER_ABSOLUTE_SMOKE_RESULT_20261015.md).
 
 ## Executive Summary
 

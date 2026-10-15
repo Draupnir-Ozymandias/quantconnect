@@ -5,6 +5,37 @@ Updated October 15, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 15 — One Linux recorder smoke completed; compatibility failed; stopped
+
+User approval covered exactly one staging/run under freeze
+`f045b0612401874948d307bde0e1cc11447d64837c082de9510a050d8de1da93`.
+Candidate `81fc2ba` was staged in a fresh private namespace and all 500 selected
+source/runtime/public-context bindings passed preflight. Linux readiness passed
+1,128 tests in 109.029 seconds: 1,127 pass plus the declared Python-version skip.
+The controller then ran the one 68-occurrence producer/recorder pair once under
+the unchanged limits. All scoped units are gone; public collectors, source and
+environment hash remain unchanged. No replay, tuning, extra run or cohort.
+
+Independent audit: complete 68-frame ordered archive and durability linkage,
+verified origin inventory/bytes and actual unit bindings; zero missed observer
+slots across 71 absolute wait receipts. Resource gates pass, including one complete
+60-second CPU window at upper fraction 0.0045852; sampled RSS max 27,389,952 bytes.
+**Overall fail:** sequences 9/44 durability upper bounds 2.000667292/2.000551980 s
+exceed 2 s, and producer drain retains `ConnectionClosedOK`. Compatibility and
+budget acceptance remain false. No frozen implementation, threshold or evidence
+was changed to reinterpret these failures. The 50-ms lead remains prospective.
+
+See [full native audit result](RECORDER_ABSOLUTE_SMOKE_RESULT_20261015.md) for
+inclusive CPU/read/RSS/throttling measurements, archive anchors and all limitations.
+Incremental observer overhead, continuous RSS peak, host credit balance and producer
+internal sleep retries remain unknown. The original six-case host-context gates
+remain open. Private evidence/audit/origin receipt:
+`.qcrl/reviews/recorder-smoke-native-20261015LupusSmoke01/`.
+Only offline retained-evidence analysis remains in scope; no further native run,
+cohort, resource change, merge or QuantConnect sync is authorized. Earlier sections
+below preserve the preparation chronology; their pending/unrun wording describes
+the state before this approved smoke, not current readiness.
+
 ## October 15 — Recorder smoke transport prepared; native approval pending
 
 The next target is exactly one native recorder compatibility smoke, not another

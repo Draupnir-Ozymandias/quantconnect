@@ -2917,3 +2917,22 @@ standard-credit observation does not replace the original six-case cohort's raw
 host-context gates. No isolated timing run, tuning, replay, cohort, public-service
 change, infrastructure provisioning, main merge or QC synchronization is included.
 **Await the user's approval of this exact packet before staging/execution.**
+
+
+## October 15 — Authorized single recorder smoke completed; audit failed; stop
+
+Executed once under freeze f045b0612401874948d307bde0e1cc11447d64837c082de9510a050d8de1da93
+with exact candidate 81fc2ba and fresh source/runtime/public preflight. Linux
+readiness: 1,128 tests in 109.029 s, 1,127 passing plus the declared existing skip.
+The fixed 68-at-1-Hz recorder smoke completed. Independent byte/origin inventory,
+unit binding, ordered archive and completion checks pass; zero missed observer
+slots, one complete 60-second CPU window and resource gates pass. Compatibility
+fails: sequence 9/44 durable upper bounds 2.000667292/2.000551980 s exceed 2 s;
+producer drain retains ConnectionClosedOK. Frozen thresholds/code/evidence stay
+unchanged. Inclusive resource cost is documented without claiming incremental
+observer overhead, continuous RSS peak or long-run acceptance. All scoped units
+are gone; public collector/source/environment context is unchanged. No retries,
+replay, tuning, extra runs, resource changes or six-case cohort. Historical native
+audit hashes reverified unchanged. See docs/RECORDER_ABSOLUTE_SMOKE_RESULT_20261015.md
+and the current HANDOFF for full anchors, unknowns and private evidence location.
+Native work stopped after this single smoke; no cohort or further run authorized.
