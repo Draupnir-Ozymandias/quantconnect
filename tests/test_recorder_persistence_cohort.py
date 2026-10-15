@@ -298,7 +298,7 @@ class OriginAuditTests(unittest.TestCase):
             native_origin_verified=False,compatibility_verified=False,budget_cohort_authorized=False,orders_authorized=False)
         launch['launch_sha256']=payload_hash(launch);(e/'launch-result.json').write_text(json.dumps(launch))
         value=cohort.spec(STAGE,'tests');raw=dict(value['properties'],Id=value['unit']+'.service',CPUQuotaPerSecUSec='750ms',
-            RuntimeMaxUSec='4min',MemoryMax='536870912',ActiveState='active',SubState='exited',Result='success',
+            RuntimeMaxUSec='4min',MemoryMax='1073741824',ActiveState='active',SubState='exited',Result='success',
             ExecMainStatus='0',ExecMainCode='1',ExecMainPID='10',ExecMainStartTimestampMonotonic='1000000',ExecMainExitTimestampMonotonic='2000000')
         raw['ExecStart']='{ argv[]='+cohort.PYTHON+' -m unittest discover -s tests -q ; }'
         (e/(value['unit']+'-properties.txt')).write_text('\n'.join(k+'='+v for k,v in raw.items()))

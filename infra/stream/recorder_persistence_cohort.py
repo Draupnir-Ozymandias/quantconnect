@@ -2,6 +2,7 @@
 import argparse
 from copy import deepcopy
 from datetime import timedelta
+from decimal import Decimal
 import hashlib
 import importlib.metadata
 import json
@@ -25,7 +26,7 @@ from infra.stream.recorder_application_resources import LinuxReader
 from infra.stream.recorder_wait_execution import validate_runtime
 from infra.stream.recorder_wait_execution import selected
 from infra.stream.recorder_wait_lifecycle import BASE_PROPERTIES
-from infra.stream.recorder_wait_production import Production, command, inspect_source, observe_runtime, PYTHON, verified_properties
+from infra.stream.recorder_wait_production import Production, CommandError, command, inspect_source, observe_runtime, PYTHON, verified_properties, seconds
 from infra.stream.recorder_wait_compatibility_worker import load, publish
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -47,6 +48,12 @@ COMPATIBILITY_FREEZE='3338edbfc19048fa39787d86cc70abebd458318b4a79abd816c531f2fa
 COMPATIBILITY_AUDIT='798a1ed0d68bb796d9805794a967ed4337f3b4183f9d7e2342b7dd7b260a2f88'
 COMPATIBILITY_ORIGIN='cad3586f7fc282f53589f20a7043cc6e089d6306716669e65f2e70ceb89e32d1'
 CONTROLS=('execution-freeze.json','runtime-review.json','select-review-source.c','host-context.json','compatibility-lineage.json')
+READINESS_ENVELOPE = dict(schema_version='qcrl.recorder_readiness_envelope.v1',
+    memory_max_bytes=1073741824, memory_max='1G', cpu_quota='75%', tasks_max='32',
+    runtime_max_seconds=240, process_isolation='original_single_unittest_discovery_process',
+    measurement_memory_max_bytes=536870912, coverage_reduction=False,
+    prior_failed_freeze='90dfdd968ccbb584ba2da2a2e9ff7db90cb7d4673c87ecea11ce9e0ef232b686',
+    earlier_failure_superseded=False, native_execution_authorized=False)
 
 
 def declaration():
@@ -55,11 +62,12 @@ def declaration():
     value=observer_declaration();value.pop('declaration_sha256')
     value.update(schema_version='qcrl.recorder_persistence_cohort_declaration.v1',
         observer_plan=value['plan'],plan=deepcopy(PLAN),plan_sha256=payload_hash(PLAN),
-        persistence_policy=deepcopy(PERSISTENCE_POLICY))
+        persistence_policy=deepcopy(PERSISTENCE_POLICY),readiness_envelope=deepcopy(READINESS_ENVELOPE))
     for name in ('infra/stream/recorder_persistence_lane.py','infra/stream/recorder_persistence_worker.py',
         'infra/stream/recorder_case_archive.py','infra/stream/recorder_persistence_cohort.py',
         'infra/stream/recorder_persistence_cohort_audit.py','tests/test_recorder_persistence_cohort.py',
-        'docs/RECORDER_PERSISTENCE_COHORT.md'):
+        'docs/RECORDER_PERSISTENCE_COHORT.md','docs/RECORDER_READINESS_MEMORY_V2.md',
+        'tests/test_recorder_readiness_memory.py'):
         value['sources'][name]=file_hash(ROOT/name)
     value['declaration_sha256']=payload_hash(value)
     return value
@@ -149,7 +157,7 @@ def freeze(commit,sources,installed,linux_tests,lineage):
     validate_lineage(lineage,sources,installed)
     require(set(declaration()['sources'])<=set(sources) and all(selected(n) and re.fullmatch('[0-9a-f]{64}',h)
         for n,h in sources.items()),'complete cohort source inventory required')
-    value=dict(schema_version='qcrl.recorder_persistence_cohort_freeze.v1',source_commit=commit,
+    value=dict(schema_version='qcrl.recorder_persistence_cohort_freeze.v2',source_commit=commit,
         sources=deepcopy(sources),runtime=deepcopy(installed),observer=declaration(),
         cohort_plan_sha256=payload_hash(PLAN),linux_tests=linux_tests,linux_skips=1,
         lineage_sha256=payload_hash(lineage),native_execution_authorized=False,
@@ -159,7 +167,7 @@ def freeze(commit,sources,installed,linux_tests,lineage):
 
 def validate_freeze(value,lineage=None):
     verify_artifact_hash(value,'freeze_sha256','cohort freeze')
-    require(value['schema_version']=='qcrl.recorder_persistence_cohort_freeze.v1'
+    require(value['schema_version']=='qcrl.recorder_persistence_cohort_freeze.v2'
         and value['observer']==declaration() and value['cohort_plan_sha256']==payload_hash(PLAN)
         and all(value[k] is False for k in ('native_execution_authorized','acceptance_demonstrated','orders_authorized')),
         'cohort declaration/authority differs')
@@ -217,8 +225,27 @@ def spec(stage, role, case_name=None):
     props=dict(BASE_PROPERTIES,ReadWritePaths=evidence,ReadOnlyPaths=stage+'/source',
         InaccessiblePaths='-/etc/qcrl-stream.env -/etc/qcrl-collector.env',
         RestrictAddressFamilies='AF_UNIX AF_INET',IPAddressAllow='127.0.0.1/32')
+    if role=='tests':props['MemoryMax']=READINESS_ENVELOPE['memory_max']
     return dict(unit='qcrl-persistence-'+tag+'-'+role,role='tests',worker_role=role,
                 properties=props,working_directory=stage+'/source')
+
+
+def verify_cohort_properties(raw, value):
+    """Separate prospective readiness allowance; never relax measurement limits."""
+    if value['worker_role']!='tests':return verified_properties(raw,value)
+    expected=value['properties']
+    require(expected['MemoryMax']=='1G' and raw.get('MemoryMax')=='1073741824',
+        'readiness memory envelope differs')
+    require(seconds(raw.get('CPUQuotaPerSecUSec',''))==Decimal('.75')
+        and seconds(raw.get('RuntimeMaxUSec',''))==240,'readiness CPU/runtime differs')
+    for key in ('User','Group','TasksMax','RemainAfterExit','NoNewPrivileges','PrivateTmp','ProtectSystem','ProtectHome'):
+        require(raw.get(key)==expected[key],'readiness effective property differs: '+key)
+    for key in ('ReadWritePaths','ReadOnlyPaths','InaccessiblePaths','RestrictAddressFamilies'):
+        require({v.lstrip('-') for v in raw.get(key,'').split()}==
+            {v.lstrip('-') for v in expected[key].split()},'readiness isolation differs: '+key)
+    require(set(raw.get('IPAddressDeny','').split()) in ({'any'},{'0.0.0.0/0','::/0'})
+        and set(raw.get('IPAddressAllow','').split())=={'127.0.0.1/32'},'readiness network differs')
+    return deepcopy(expected)
 
 
 def worker_main(root, role, case_name, *, execute=False):
@@ -285,6 +312,33 @@ class CohortProduction(Production):
             '--worker',role,'--case',self.case_name,'--execute']
         command(['systemd-run','--unit='+value['unit'],'--working-directory='+str(self.root/'source'),
             *['--property='+k+'='+v for k,v in value['properties'].items()],PYTHON,*args],execute=True)
+
+    def capture(self, unit, *, max_journal_bytes):
+        if self.specs[unit]['worker_role']!='tests':
+            return super().capture(unit,max_journal_bytes=max_journal_bytes)
+        # Keep the historical production adapter frozen. Retain the actual 1-GiB
+        # properties before verifying the prospectively distinct readiness spec.
+        errors=[];raw=None
+        try:
+            text,raw=self.properties(unit)
+            with (self.evidence/(unit+'-properties.txt')).open('x') as handle:handle.write(text)
+        except Exception as exc:
+            errors.append(type(exc).__name__)
+            if isinstance(exc,CommandError):
+                with (self.evidence/(unit+'-properties.partial')).open('xb') as handle:handle.write(exc.output)
+        try:
+            try:
+                journal=command(['journalctl','-u',unit+'.service','--no-pager','-o','short-monotonic'],
+                    cap=max_journal_bytes,execute=True).encode()
+            except CommandError as exc:
+                journal=exc.output;errors.append(str(exc)[:160])
+            with (self.evidence/(unit+'-journal.txt')).open('xb') as handle:handle.write(journal)
+        except Exception as exc:errors.append(type(exc).__name__)
+        if errors:
+            publish(self.evidence/(unit+'-capture-error.json'),dict(errors=errors,truncated_or_incomplete=True))
+            raise ContractError('readiness capture incomplete; retained partial evidence')
+        return dict(unit=unit,result=raw.get('Result'),exec_status=int(raw.get('ExecMainStatus','-1')),
+            substate=raw.get('SubState'),observed_properties=verify_cohort_properties(raw,self.specs[unit]))
 
     def claim(self):
         publish(self.root/'launch-claim.json',dict(freeze_sha256=self.frozen['freeze_sha256'],replay_authorized=False))

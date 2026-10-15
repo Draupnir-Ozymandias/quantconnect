@@ -5,6 +5,34 @@ Updated October 15, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 15 — Offline readiness memory revision; awaiting a new approval
+
+Offline profiling at cfe5154 identifies the 60,000-frame completion/producer/audit
+fixture as the dominant working set: 604,839,936-byte fresh-process peak versus
+647,921,664-byte full-suite peak. All original 1,169 tests passed locally. Final
+RSS remained 231,817,216 bytes even after explicit GC; this does not prove a leak
+or identify the active native OOM test. Profiling and raw local logs remain private
+in `.qcrl/reviews/readiness-memory-offline-20261015/`.
+
+Prospective code now separates **1-GiB readiness only** from the unchanged
+512-MiB producer/recorder units. Complete test discovery, one declared Python 3.9
+skip, CPU 75%, TasksMax 32 and 240 s remain. The new v2 freeze binds the explicit
+readiness envelope; launcher capture and independent audit verify actual limits
+without rewriting retained properties. Eight new fault/routing/audit tests cover
+the distinction. All **1,177 offline tests pass in 154.120 s** on Intel macOS /
+Python 3.14.6; local peak RSS 632,987,648 bytes. Python 3.9 syntax checks pass.
+The first revised full suite caught a removed import still used by recorder binding;
+it was restored and the complete suite passed; both local logs are retained.
+See [prospective rationale](RECORDER_READINESS_MEMORY_V2.md).
+
+No native staging, unit, replay or host change occurred for this revision.
+The original failed 512-MiB attempt and all measurement budgets/evidence remain
+unchanged. A separate exact approval packet will bind candidate, full offline
+suite, freeze, bundle and fresh Cohort02 namespace. Read-only host/runtime/public
+and credit context must be refreshed before any newly approved execution; retained
+host/credit evidence is dated, not new native validation. No minimum credit gate.
+The prior authorization is spent. Do not execute without a new approval.
+
 ## October 15 — Approved cohort stopped at readiness OOM; zero cases; audit complete
 
 One controller (PID 1492498) ran under approved candidate 8c72652 / freeze

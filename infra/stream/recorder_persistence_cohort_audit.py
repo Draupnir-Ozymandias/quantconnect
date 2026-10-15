@@ -13,7 +13,7 @@ from execution_truth.market_stream import stream_plan
 from infra.stream import recorder_persistence_worker as worker
 from infra.stream.recorder_absolute_observer import audit_resources
 from infra.stream.recorder_persistence_cohort import PLAN, spec, validate_freeze, require, PYTHON
-from infra.stream.recorder_persistence_cohort import declaration
+from infra.stream.recorder_persistence_cohort import declaration, verify_cohort_properties
 from infra.stream.recorder_application_audit import verify_binding
 from infra.stream.recorder_application_evaluator import finite, timing_gate, outcome, stimulus_gate, large_control
 from infra.stream.recorder_application_budget import POLICY
@@ -114,7 +114,7 @@ def components(case_root, frozen):
 
 
 def verify_unit(raw, value, source, expected_pid=None, case_name=None):
-    verified_properties(raw,value)
+    verify_cohort_properties(raw,value)
     require(raw['Id']==value['unit']+'.service' and raw['SubState']=='exited' and raw['ActiveState']=='active'
         and raw['Result']=='success' and raw['ExecMainStatus']=='0' and raw['ExecMainCode']=='1',
         'smoke native completion differs')
