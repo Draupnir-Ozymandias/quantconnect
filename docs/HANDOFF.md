@@ -5,6 +5,37 @@ Updated October 15, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 15 — Approved cohort stopped at readiness OOM; zero cases; audit complete
+
+One controller (PID 1492498) ran under approved candidate 8c72652 / freeze
+90dfdd968ccbb584ba2da2a2e9ff7db90cb7d4673c87ecea11ce9e0ef232b686.
+After sign-in, the partial stage was inspected, approved packet/source/control
+bytes verified and exact 516-file/runtime/public preflight passed. Native readiness
+PID 1492531 was killed by memory-cgroup OOM at 148.369297 s under unchanged
+512-MiB / 240-s limits. Actual properties and the separately anchored existing
+kernel journal confirm the readiness cgroup and PID. No case was prepared or
+started; no replay, extra smoke, population/skip or resource change occurred.
+
+Frozen independent audit: complete=false, verdict=fail, application_budget_pass=false.
+All ten originating evidence files and external byte anchors verify. Native test
+completion/count/skip, active test/allocation at kill and every unrun case's budget,
+stimulus/archive/window/slot evidence remain unavailable. Continuous RSS peak and
+incremental overhead remain unknown. The readiness unit's whole CPU total is
+101.731637 s; it is not recorder/observer budget evidence. Unit MemoryPeak absent.
+
+[Full result and anchors](RECORDER_PERSISTENCE_COHORT_RESULT_20261015.md).
+Private evidence: `.qcrl/reviews/recorder-cohort-native-20261015LupusCohort01/`.
+Source/runtime/public context remains unchanged; no scoped unit runs. The test
+unit remains failed with MainPID=0; failure state was not reset. No preservation
+errors reported. Fresh raw EC2 mode remains standard, latest returned balance
+576 at 22:26 UTC; no minimum credit gate. Historical evidence/verdicts untouched.
+
+**Stop: authorization spent.** No native replacement/replay, standalone smoke,
+cohort, resource change, merge or QC sync. Next prospective work requires offline
+memory analysis/fix and a new reviewed identity before another native attempt.
+Earlier staging/pending approval sections below preserve chronology, not current
+status. No implementation or threshold was changed after this failure.
+
 ## Approved cohort staging checkpoint — AWS sign-in required
 
 The user explicitly approved the exact executable packet ("totally approved").

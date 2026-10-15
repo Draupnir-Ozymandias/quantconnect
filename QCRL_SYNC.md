@@ -3080,3 +3080,22 @@ No controller, native readiness unit or case unit was submitted. Approval persis
 user sign-in is the only current access blocker. Private checkpoint and exact
 resume steps are in current HANDOFF. No retry/replay/extra smoke/resource/public
 change, merge or QC sync. Partial staging evidence is retained.
+
+## 2026-10-15 — Approved cohort readiness OOM; zero cases; stopped and audited
+
+After restored sign-in, exact 8c72652 / 90dfdd96... staging/preflight passed and
+controller 1492498 was invoked once. Readiness PID 1492531 was memory-cgroup
+OOM-killed at 148.369297 s with unchanged 512-MiB/240-s limits. Kernel supplement
+names its exact cgroup/PID. No case directories/units were created. Native test
+completion/count/skip and active test are unknown; no retry or limit/population
+change was attempted. The earlier 1,169 offline passing tests remain distinct.
+
+Independent frozen audit: incomplete fail, application budget pass false; all six
+unrun case components unavailable. Ten-file origin inventory and outcome byte
+anchors verify. Public/source/runtime state unchanged, no running scoped units;
+failed test unit/MainPID=0 retained, no reset. All preservation errors absent.
+Outcome SHA d00a9c5d779833d52903df7c6bf2d1f90eaf438c2f45e9664e967961422e7989;
+audit SHA dbbad8a92853db3afd3f39f5fdef3edb52ddba2d8c64670efc2dbfb3af229337.
+Full cost, kernel supplement, unknowns and anchors:
+docs/RECORDER_PERSISTENCE_COHORT_RESULT_20261015.md. Stop; approval spent, no native
+replacement/cohort/smoke, resource/public/IAM change, merge or QC sync.

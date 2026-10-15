@@ -8,19 +8,17 @@
 
 ## October 15 recorder engineering status
 
-Successor six-case integration and fresh raw host/credit evidence are complete;
-the user approved the [exact frozen packet](docs/RECORDER_PERSISTENCE_COHORT_APPROVAL_20261015.md).
-The approved transport is uploaded to the fresh private stage, but AWS sign-in
-expired before extraction/checkout was acknowledged. Inspect stage state after
-sign-in before proceeding; no controller or native readiness/case unit started.
-The case-sized verifier passes actual 69-/60,000-frame paths and declared-count
-boundaries. The new launcher/auditor preserves original schedules/budgets and
-explicitly binds the reviewed delta from the passed smoke. All 1,169 offline tests
-pass in 152.925 s; installed Linux readiness (1,168 pass plus one declared skip)
-remains unrun. Fresh standard credit mode is raw-API verified; latest returned
-balance 576 at 19:34 UTC, without a minimum balance gate. Incremental overhead and
-continuous RSS peak remain unknown, outside declared acceptance. See [successor
-contract](docs/RECORDER_PERSISTENCE_COHORT.md). No new native units or smoke ran.
+The approved successor cohort attempt **failed at native readiness**: the single
+prerequisite unit was memory-cgroup OOM-killed under the unchanged 512-MiB limit
+at 148.369297 s. Zero case units started. Frozen independent audit reports an
+incomplete failed launch with all six case outcomes unavailable; evidence byte
+integrity verifies. No replay, extra smoke or limit/threshold change followed.
+Source/runtime/public context remains unchanged; no scoped unit runs, while the
+stopped test unit retains its failed state. Exact active test/allocation and memory
+peak are unknown. Local 1,169-test success does not substitute for native readiness.
+Incremental overhead/continuous peak remain unknown; no new credit gate was added.
+See [result](docs/RECORDER_PERSISTENCE_COHORT_RESULT_20261015.md) and [handoff](docs/HANDOFF.md).
+Native approval is spent; stop pending prospective offline diagnosis/fix and review.
 
 The prospectively frozen successor Linux recorder smoke **passes bounded
 compatibility** after 1,156 readiness tests (1,155 pass, one declared version skip).
