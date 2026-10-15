@@ -52,8 +52,54 @@ that observation is not execution of the new recorder path. Installed Linux
 readiness tests and native recorder measurements remain unrun. New source-bound
 observer declaration: 0f3a9b8494804f792d5778a0388d787cb2bc52a5de7fd4bc1cdb60738ded6bf1.
 
-Exact candidate/freeze receipt will follow once sealed; request approval only for that immutable packet. No main merge, QC sync,
+The exact candidate/freeze approval packet is recorded below. No main merge, QC sync,
 credentials import, infrastructure change or native execution is authorized here.
+
+## Frozen approval packet — October 15
+
+Implementation candidate: `81fc2ba00fc5cae35316b3661dbb2ec6044f666b` (500 selected source files).
+Execution freeze: `f045b0612401874948d307bde0e1cc11447d64837c082de9510a050d8de1da93`.
+Private preparation verification receipt:
+`3f15daf0206e50663d3174ce78218c48132f496cd7bd894e1068ec3ff1774d1e`.
+These bind the implementation candidate, not later documentation-only HEADs.
+The original three native audit payload hashes still verify unchanged.
+
+Prepared private transport packet `stage-packet.tar.gz`: 119,716 bytes,
+SHA-256 `f974a66a733218802f53afc31fa1f31ca9335557fbe20c33ad4c74fc28c6164f`.
+It contains the incremental Git bundle (prerequisite frozen cb23c4c), exact freeze,
+reviewed select source/review and dated host context. No credential or evidence
+archive is included. Source is not yet staged remotely; no new candidate code,
+readiness unit or recorder unit has executed on Linux. After approval, stage into
+one fresh private directory, verify packet/commit/all source/runtime bindings
+before starting units, and reject any existing evidence/claim/unit namespace.
+Do not overwrite or execute in an old comparison/evidence directory. The transport
+bundle and controls must reconstruct the candidate exactly; stop on any mismatch.
+
+Proposed stage: `/var/lib/qcrl-stream/recorder-absolute-20261015LupusSmoke01`.
+After separately approved staging and gate checks, the one controller invocation is:
+
+```sh
+/opt/qcrl-stream/venv/bin/python -B -m infra.stream.recorder_absolute_smoke --root /var/lib/qcrl-stream/recorder-absolute-20261015LupusSmoke01 --execute
+```
+
+Run it as root from that stage's `source` directory through the authorized existing
+Session Manager connection. Expected readiness population: **1,128 tests, 1,127
+passing and one existing Python-version skip**, within its separate 240-second
+unit. Those are prospective Linux counts, not observed Linux results. Any other
+population, failure, drift, effective-limit/binding/readiness fault or retention
+failure stops progression and preserves the attempt without replay. Then only
+the declared producer/recorder pair: 68 occurrences at 1 Hz over offsets 0..67,
+20-second original epoch lead, frame limit 68/capture limit 180 seconds, fixed
+75% CPU/512 MiB/32 tasks/240 seconds per unit, 50-ms CPU pre-read policy.
+
+Stop after one smoke. Independently transfer/verify the external origin inventory
+anchor, audit completeness, ordered archive/durability, actual wait/read/missed-slot
+coverage, inclusive observer/recorder cost and every unknown. Incremental observer
+overhead and host credit balance are explicitly unknown. The console's dated
+standard-credit observation does not replace the original six-case cohort's raw
+host-context gates. No isolated timing run, tuning, replay, cohort, public-service
+change, infrastructure provisioning, main merge or QC synchronization is included.
+**Await the user's approval of this exact packet before staging/execution.**
 
 ## October 14 — Offline absolute observer integration and successor preregistration
 
