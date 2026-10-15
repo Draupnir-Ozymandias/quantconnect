@@ -2976,3 +2976,21 @@ no installed Linux successor validation. Prospective Linux gate is 1,156 total,
 candidate/freeze packet is required for one separately approved 68-at-1-Hz smoke.
 No native staging/run, replay, cohort, resource change or public operation occurred.
 See docs/RECORDER_PERSISTENCE_SMOKE_PREPARATION.md and current docs/HANDOFF.md.
+
+
+## October 15 — Successor approval packet frozen offline; execution pending
+
+Candidate 371fa03c3d2622d784128b9359c3ab730f082cf2, 509 selected files;
+freeze 3338edbfc19048fa39787d86cc70abebd458318b4a79abd816c531f2fad3ca4f;
+preparation receipt 3e30514f0bbda19bbca22826756738f4b19c2a625543c934988b39ee634235b4.
+Private 107,692-byte stage packet SHA-256:
+7987395433a724ad16adf5f843cd31fb8017547c5e6ebefe8deb77f982adc26f.
+Fresh predecessor-only offline reconstruction verified every selected candidate
+file from the transport bundle. Runtime binding uses the previous October 15
+observed installed envelope; a fresh read-only exact source/runtime/public check
+remains mandatory before any units. Proposed stage is recorder-absolute-
+20261015LupusPersistence01. One separately approved 68-at-1-Hz smoke only, after
+1,156 Linux tests with 1,155 pass/one declared skip, original limits/epoch/grid,
+explicit one-second prospective persistence reserve and verified completion-bound
+closure. Stop afterward; no replay/cohort/resource/public-service change. No
+successor staging or Linux/native execution has occurred. See current HANDOFF.

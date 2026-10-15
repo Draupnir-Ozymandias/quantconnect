@@ -5,6 +5,50 @@ Updated October 15, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## Frozen successor approval packet — October 15 (not executed)
+
+Implementation candidate: `371fa03c3d2622d784128b9359c3ab730f082cf2`, 509 selected
+source files. Execution freeze:
+`3338edbfc19048fa39787d86cc70abebd458318b4a79abd816c531f2fad3ca4f`.
+Successor declaration:
+`b3dfda1aa30d2fff664f889e61e76401adc0c561fa331e366429b79450cc066d`.
+Private preparation receipt:
+`3e30514f0bbda19bbca22826756738f4b19c2a625543c934988b39ee634235b4`.
+These bind the implementation candidate, not later documentation-only HEADs.
+
+Exact scope for approval: staging plus **one** successor recorder smoke, only after
+fresh source/runtime/public-state preflight and Linux readiness **1,156 total,
+1,155 pass plus one declared existing Python-version skip**. Original occurrences
+0..67, 1 Hz at epoch+j seconds; 20-second epoch lead / 100-ms readiness margin;
+68 frames / 180-second capture cap; unchanged CPU 75%, memory 512 MiB, 32 tasks,
+240 seconds per unit. One readiness unit, producer and recorder, original observer
+grid with 50-ms CPU pre-read lead. Explicit prospective persistence reserve 1 s
+inside the unchanged 2-s durable bound; no guarantee or tolerance adjustment.
+Closure requires every planned send and verified recorder completion, not merely
+ConnectionClosedOK. Stop afterward for independent completeness/inclusive-cost/
+archive/missed-slot review regardless of outcome. No retries/replay, replacement,
+extra runs, tuning, resource/public-service changes or six-case cohort.
+
+Proposed fresh stage:
+`/var/lib/qcrl-stream/recorder-absolute-20261015LupusPersistence01`.
+See [full successor contract/command](RECORDER_PERSISTENCE_SMOKE_PREPARATION.md).
+Private packet: `.qcrl/reviews/recorder-persistence-preparation-20261015/`.
+`stage-packet.tar.gz` is 107,692 bytes, SHA-256
+`7987395433a724ad16adf5f843cd31fb8017547c5e6ebefe8deb77f982adc26f`.
+It contains the candidate Git bundle, exact freeze and three unchanged runtime/
+host review controls. A fresh offline repository containing only predecessor
+81fc2ba history reconstructed all 509 selected candidate files exactly from the
+bundle. No credentials or raw capture/measurement archives enter this packet or GitHub.
+
+The freeze binds the previously observed October 15 Ohio installed envelope;
+it is **not a fresh successor host observation**. Before any unit, fresh read-only
+runtime/boot/dependency/source/public checks must match exactly or stop without
+execution. Credit balance, incremental observer overhead and continuous RSS peak
+remain unknown. Original cohort host-context gates remain open. No successor stage,
+claim or unit was created; no Linux successor result exists. Await explicit user
+approval of this exact packet. Historical failed freeze f045b061... and its failed
+verdict remain intact.
+
 ## October 15 — Successor fixes implemented offline; new smoke awaiting approval
 
 The new isolated persistence lane and worker implement both fixes; historical
