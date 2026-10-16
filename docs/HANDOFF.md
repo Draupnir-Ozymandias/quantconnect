@@ -5,6 +5,31 @@ Updated October 16, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 16 — Component contract drafted; retained-evidence question answered
+
+**Original application-budget verdict remains FAIL. No new combined badge.**
+[Draft component contract](RECORDER_COMPONENT_EVIDENCE_DRAFT_V1.md), identity
+`qcrl.recorder_component_evidence.draft.v1`, is not adopted/frozen/executable or
+execution-approved. [Small retrospective report](RECORDER_COMPONENT_REPORT_20261016.md)
+keeps original archive/completion, timing, CPU and RSS findings separate, with
+all original UTC failures and resource unknowns prominent. No contract execution.
+
+Concrete question: do one-second local timestamp-observation counts resolve the
+ten-second burst in the original three mixed cases, with boundary ambiguity?
+All 180,000 occurrences retained. Every burst bin has >=2,986 certain observations;
+no low-rate bin has >514 possible observations. 179,999 intervals fit one bin;
+mixed-0 sequence 43496 straddles bins 36/37 and stays an original UTC failure.
+Mixed-2's final occurrence falls in bin 70 and is retained. Seven wide-UTC rows
+are included without requalification. This answers local synthetic coarse-count
+description, not real-market flow, true UTC alignment or exact recv/venue times.
+
+All 208 cohort origin files/218,570,554 bytes and original byte anchors reverify;
+exact-rational binning agrees with independent direct interval scanning and fault /
+edge checks. One-off report retained privately; public method/results/hashes in
+the report. Current-source acceptance was not substituted for frozen audit.
+No production/threshold/observer change, native run, cohort or execution approval.
+Incremental overhead/continuous RSS remain unknown. Following sections are history.
+
 ## October 16 — Bracket requirements reviewed; recommend narrower claims
 
 [Requirement rationale, dependencies and recommendation](RECORDER_BRACKET_REQUIREMENTS_REVIEW_20261016.md).

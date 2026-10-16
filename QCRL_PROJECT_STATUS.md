@@ -8,6 +8,16 @@
 
 ## October 16 RSS CPU validation result
 
+[Component contract draft](docs/RECORDER_COMPONENT_EVIDENCE_DRAFT_V1.md) is now
+written, not adopted or executed. **Original application acceptance remains FAIL;
+no new combined badge.** A [retrospective component report](docs/RECORDER_COMPONENT_REPORT_20261016.md)
+answers one local descriptive question over all 180,000 original mixed-case
+occurrences: every burst-second bin contains >=2,986 certain observations, versus
+<=514 possible in any low-rate bin. One interval straddles two bins; 179,999 fit
+one bin, and a final bin-70 occurrence is retained. This supports coarse local
+synthetic observation counts, not true UTC/venue time or real-market burst claims.
+All original precision failures/resource unknowns remain; no new native run.
+
 [Bracket-requirements review](docs/RECORDER_BRACKET_REQUIREMENTS_REVIEW_20261016.md)
 recommends prospectively narrowing conclusions to component/descriptive evidence.
 The 1-ms UTC and 5-ms resource ceilings remain binding original gates; neither

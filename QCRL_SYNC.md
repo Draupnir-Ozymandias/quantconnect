@@ -3314,3 +3314,34 @@ cannot guarantee scheduling tails. Four latest UTC failures remain separate.
 No implementation, threshold/evaluator change, new test/benchmark, remote access
 or native run. Historical outcomes unchanged. HANDOFF/status maintained; full
 review: docs/RECORDER_BRACKET_REQUIREMENTS_REVIEW_20261016.md.
+
+## October 16 — component-evidence draft and retrospective coarse-count report
+
+Original application-budget verdict remains FAIL; no new combined badge.
+Drafted qcrl.recorder_component_evidence.draft.v1 as a non-adopted/non-frozen,
+non-executable component reporting contract. No contract execution or new run.
+Archive/completion, elapsed timing, UTC precision, CPU and RSS coverage remain
+separate. Original numeric thresholds, failure labels, unknowns and full raw /
+performance denominators stay intact. Future adoption/collection needs its own
+review and identity/approval; none supplied by the draft.
+
+Question stated before calculation: can one-second local timestamp-observation
+counts resolve the declared ten-second burst in original mixed-0/1/2, with
+explicit boundary ambiguity? Retrospective exploratory population 180,000 frames,
+no wide-UTC exclusions. Exact retained clock intervals, own case monotonic epoch,
+half-open bins; lower=wholly contained, upper=intersecting. Burst-bin lower counts
+>=2,986, every low-bin upper <=514. 179,999 intervals occupy one bin; mixed-0
+43496 spans 36/37 (4.449055 ms, still original UTC failure). Mixed-2 final frame
+59999 falls in bin 70 and remains included. All seven wide-UTC rows in this
+population remain original failures. This answers local synthetic coarse-count
+feasibility, not real-market flow, exact recv/source time or UTC alignment.
+
+Rechecked original audit/outcome/inventory anchors and 208 originating files /
+218,570,554 bytes. Case/completion payload/sequence/clock checks and arithmetic
+fault/boundary checks pass; floor-based counts agree with independent direct
+interval scan, including the observed tail. Report private script/output hashes
+and all methods/results in docs/RECORDER_COMPONENT_REPORT_20261016.md; draft in
+ docs/RECORDER_COMPONENT_EVIDENCE_DRAFT_V1.md. HANDOFF/status maintained.
+No frozen auditor rerun under current sources, evidence/threshold/production
+change, native execution, extra cohort, observer redesign, public/infrastructure
+change, QC sync or orders. Incremental overhead and continuous RSS remain unknown.
