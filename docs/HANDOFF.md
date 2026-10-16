@@ -5,6 +5,31 @@ Updated October 15, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 16 UTC — Six-case collection complete; sealed evidence retrieval/audit pending
+
+Cohort02 controller 1516839 completed exactly the six declared cases in order,
+with complete=true, error=null and preservation_errors=[]. At 03:24:48 UTC no
+scoped units remained listed. All 13 retained unit property files show success /
+exit 0; readiness MemoryMax=1 GiB, all 12 case units MemoryMax=512 MiB. Native
+readiness passed 1,177 total in 201.118 s, one declared skip. Original OOM evidence
+and failed verdict remain unchanged; no retry/replay/extra run or resource tuning.
+
+Post-stop exact source/runtime/public checks pass. Origin inventory: **208 files,
+218,570,554 bytes**. Sealed outcome archive: **65,739,818 bytes**, SHA-256
+`51609e2ecca1b155d0ea3a631b3961ee46b207489be49504dc0840782ce71b64`.
+External origin inventory file SHA-256:
+`69dfa0dfff98f2ca085cb1150ee1d4c9212b6810360a3797230e83afafca9847`.
+
+Full evidence is being retrieved using the existing Session Manager client in
+CloudShell (read-only archive copy after all units stopped; no IAM/credential/
+infrastructure change). The stream and originating archive remain private.
+**No application budget, archive-order or missed-slot verdict is claimed yet.**
+Next: verify the external archive anchor before safe exclusive extraction,
+reconstruct only the five byte-identical frozen controls, verify all 208 origin
+files and run the exact candidate's independent auditor offline. Retain all
+failures/unknowns and authority flags. Then update final result/HANDOFF and push.
+Native approval is spent; no further native experiment is authorized.
+
 ## October 16 UTC — Linux readiness passed; declared cohort in progress
 
 The single Cohort02 controller PID 1516839 remains the only submitted attempt.
