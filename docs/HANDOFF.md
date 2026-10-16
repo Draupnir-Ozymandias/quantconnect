@@ -5,6 +5,30 @@ Updated October 16, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 16 — Offline RSS path review; one optimization proposed only
+
+[Parsing, allocation, file access, locking and repeated-work review](RECORDER_RSS_PATH_REVIEW_20261016.md).
+Reader source still matches the frozen native candidate exactly. An existing
+three-ancestor/one-actor offline fixture confirms 48 text requests (40 reads,
+eight expected absences), four identity calls, two membership/path passes and
+three quota validations: two inside the wall bracket, one afterward. These are
+operation counts, not native substep timings or a syscall/allocation profile.
+
+Propose only per-read quota reuse: validate first fresh ancestry once, retain
+its effective quota locally, and reuse it if the second fresh snapshot matches.
+On mismatch retain closing validation before the original race error. Keep all
+file reads, actor/identity/membership/path checks, RSS parsing, wall/CPU endpoints
+and thresholds. This removes one redundant validation inside and one after the
+bracket, with no measured saving or compliance guarantee. No implementation,
+new production instrumentation, native rerun or cohort is authorized by this review.
+
+Alternative sources/cached or narrower RSS must be distinct measures unless
+equivalence is demonstrated; cgroup memory.current is not the current VmRSS sum.
+The four UTC failures (7236, 11693, 12410, 24142) remain separate and unresolved.
+RSS optimization does not establish UTC coverage. All eight RSS unknowns,
+failed verdicts and historical evidence remain unchanged. Authorization for the
+completed native attempt remains spent; the following sections are chronology.
+
 ## October 16 — RssCpu01 audited: useful measurement, application fails; stop
 
 [Full single-case result, every UTC failure and RSS CPU/wall pair](RECORDER_RSS_CPU_VALIDATION_RESULT_20261016.md).

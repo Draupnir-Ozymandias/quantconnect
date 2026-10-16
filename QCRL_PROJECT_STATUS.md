@@ -8,6 +8,13 @@
 
 ## October 16 RSS CPU validation result
 
+[Offline reader review](docs/RECORDER_RSS_PATH_REVIEW_20261016.md) proposes one
+minimal change: reuse a per-read validated quota after matching fresh ancestry
+snapshots, retaining every I/O/race check and original wall gate. It removes
+redundant pure validation, with no measured saving or implementation yet.
+Four UTC failures remain a distinct unresolved requirement; RSS work cannot
+establish their repair. No native rerun or new framework.
+
 The separately approved RssCpu01 completed one mixed case / 60,000 ordered frames,
 with full archive/completion/closure/native binding and all 43 origin-file byte
 checks verified. Linux readiness passed 1,194 total (1,193 pass + one skip) in

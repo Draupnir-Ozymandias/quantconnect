@@ -3243,3 +3243,20 @@ runtime/public checks match, no scoped units. Historical OOM/Cohort02 hashes,
 failed verdicts and thresholds preserved. Authorization spent: no replay, extra
 case/validation/cohort, resource/public change, diagnostic framework, merge,
 QuantConnect sync or orders. HANDOFF updated.
+
+## October 16 — offline RSS path review, proposal only
+
+Reviewed parsing, allocation, file access, locking and repeated work in the exact
+frozen reader. Existing Ohio fixture confirms 48 text attempts / 40 successes /
+eight expected absences, four identity calls and two membership/path passes.
+Quota validation occurs twice inside the wall bracket and once afterward.
+Propose one minimal optimization: reuse the first per-read validated quota only
+when the second freshly acquired ancestry matches; retain closing validation on
+mismatch, all I/O/race/RSS checks and original endpoints/thresholds. No production
+implementation, timing benchmark or native observation. No quantified saving or
+5-ms guarantee. Cheaper sources/populations/cached values are not drop-in RSS
+repairs; equivalence must be demonstrated or declared as a different measure.
+The four UTC rows 7236/11693/12410/24142 remain failed separately; RSS optimization
+does not establish UTC coverage. All historical failures/evidence unchanged.
+Details: docs/RECORDER_RSS_PATH_REVIEW_20261016.md; HANDOFF maintained. No rerun,
+new diagnostic framework or six-case cohort; native authorization remains spent.
