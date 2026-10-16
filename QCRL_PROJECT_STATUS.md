@@ -8,6 +8,15 @@
 
 ## October 16 RSS CPU validation result
 
+[Bracket-requirements review](docs/RECORDER_BRACKET_REQUIREMENTS_REVIEW_20261016.md)
+recommends prospectively narrowing conclusions to component/descriptive evidence.
+The 1-ms UTC and 5-ms resource ceilings remain binding original gates; neither
+alone proves bin eligibility or continuous memory safety. Archive/completion and
+admissible CPU observations retain separate meaning. No successor claim adopted,
+threshold/code change or native run; the four latest UTC failures remain blockers
+to original acceptance. A strict-uniform-precision goal would need a separately
+justified observer redesign, not more micro-optimization alone.
+
 [Quota reuse v1](docs/RECORDER_QUOTA_REUSE_V1_20261016.md) is implemented offline:
 full fresh ancestry equality covers all validation inputs and structure, with
 closing validation faults preserved on mismatch. All reads, measurement sources,

@@ -5,6 +5,27 @@ Updated October 16, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 16 — Bracket requirements reviewed; recommend narrower claims
+
+[Requirement rationale, dependencies and recommendation](RECORDER_BRACKET_REQUIREMENTS_REVIEW_20261016.md).
+The 1-ms UTC and 5-ms resource ceilings are binding frozen design assumptions,
+not derived sufficiency guarantees for one-second analysis. UTC width bounds
+local timestamp acquisition, not absolute UTC accuracy or exact library-return
+time. RSS width bounds a sequential full-reader sweep, not an atomic snapshot,
+continuous peak or incremental overhead. The same 5-ms width also qualifies CPU
+window endpoints. Archive fidelity, monotonic completion measurements and valid
+CPU windows retain separate meaning when UTC/RSS qualification fails.
+
+Recommend a prospective component/descriptive evidence scope with actual timing
+intervals, explicit ambiguous-bin/slot coverage and full population accounting;
+do not label it an original application-budget pass. This recommendation is not
+an adopted successor contract. Preserve every old threshold and failed verdict.
+If a specific research need requires both strict uniform guarantees, it calls
+for a materially different bounded acquisition architecture and new measurement
+identity, not further micro-optimization alone. No implementation, threshold
+change, new native test or execution authority. Four UTC failures remain a
+separate blocker to the original claim. The following sections are chronology.
+
 ## October 16 — Quota reuse v1 implemented offline; no Linux run justified alone
 
 [Implementation, complete-input review, tests and benchmark](RECORDER_QUOTA_REUSE_V1_20261016.md).

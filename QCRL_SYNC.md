@@ -3291,3 +3291,26 @@ unknowns and all failed verdicts remain; no retroactive adjusted bracket. RssCpu
 and Cohort02 archive/audit anchors and Cohort01 OOM archive reverify unchanged.
 HANDOFF/status maintained. No native rerun, cohort, remote access, resource/public
 collector change, QuantConnect sync or merge.
+
+## October 16 — offline UTC/RSS requirement and downstream-claim review
+
+Traced minimum-useful draft -> application preregistration -> witness/resource
+reader -> evaluator -> native outcomes. The 1-ms local UTC acquisition and 5-ms
+resource transaction widths are frozen design choices; no derivation from a
+bin-error budget or RSS error bound appears in the reviewed contracts. Essential
+requirements are honest observation intervals/clock domains, full population,
+raw fidelity/linkage, identity/race checks and inclusive resource accounting.
+Numeric widths do not prove true UTC accuracy, unambiguous bins, atomic unit RSS,
+continuous peak, incremental overhead or memory safety. The 5-ms endpoint rule
+also qualifies CPU windows, which remain separately interpretable when admissible.
+
+Recommend a prospectively identified component/descriptive scope: ordered finite
+localhost retention, observed monotonic append/durable bounds, actual UTC
+intervals with explicit bin ambiguity, admissible CPU windows and RSS sweeps with
+all coverage unknowns. Not an adopted contract or repaired application pass.
+Strict all-row/all-slot precision, if a downstream use requires it, instead needs
+a material acquisition redesign and new measurement identity; native code alone
+cannot guarantee scheduling tails. Four latest UTC failures remain separate.
+No implementation, threshold/evaluator change, new test/benchmark, remote access
+or native run. Historical outcomes unchanged. HANDOFF/status maintained; full
+review: docs/RECORDER_BRACKET_REQUIREMENTS_REVIEW_20261016.md.
