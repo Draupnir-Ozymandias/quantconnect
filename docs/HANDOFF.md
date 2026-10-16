@@ -5,6 +5,32 @@ Updated October 15, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 16 UTC — Revised cohort approved and submitted once
+
+The user's “please continue” approved the exact revised packet dcce731d... /
+freeze 6428a09a34633987a353c32beeca340be535b33c1e11aa897f291d37a4da434b.
+After AWS access restoration, fresh read-only host checks verified prior source,
+installed runtime/dependencies/live boot and public state. Host MemAvailable was
+1,230,979,072 bytes (snapshot only), no swap; disk free 6,689,808,384 bytes.
+Raw EC2/credit-mode response at 02:54:25 UTC confirms t4g.small/standard; latest
+balance 576 at 02:49 UTC, without a minimum gate. API file SHA-256:
+09083646b4406b3ff71d22f1aee72d265a2e3034185c94ca72c3b4f030a7a90c.
+
+Exact transport SHA and all six member/control bytes verify. Detached candidate
+4926d62 and all 520 source files match; full lineage/runtime/public/namespace
+preflight passed. Fresh Cohort02 stage created. Controller PID **1516839** was
+submitted exactly once at **2026-10-16 03:04:26.911235 UTC**. Readiness is the first
+gate (1 GiB, 240 s); no outcome is claimed yet. Producer/recorder limits and all
+budgets remain unchanged. Do not resubmit this controller under any circumstance.
+
+Private operator/preflight/API evidence:
+`.qcrl/reviews/recorder-cohort-native-20261015LupusCohort02/`.
+Next: observe the existing controller only; fatal conditions stop remaining units,
+retain all partial evidence, independently audit after stop. No retry/replay,
+replacement, extra smoke/case/cohort, tuning, public/resource/IAM changes, merge or
+QC sync. Historical OOM evidence/failed verdict remains intact. Earlier sections
+below preserve chronology, not current authorization or outcome.
+
 ## October 15 — Revised executable packet frozen; no native rerun
 
 Candidate **4926d62faab552af8a3c8e3fe964dc16052e4773** is committed/pushed. All 1,177 revised
