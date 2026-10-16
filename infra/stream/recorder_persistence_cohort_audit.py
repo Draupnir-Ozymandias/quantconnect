@@ -23,11 +23,12 @@ from infra.stream.recorder_wait_production import verified_properties
 from infra.stream.recorder_wait_compatibility_worker import load
 
 
-def verify_case(case, frozen):
+def verify_case(case, frozen, *, protocol=None):
+    plan = PLAN if protocol is None else protocol.PLAN
     from tests.test_taker_replay import raw_bundle, revise
     verify_artifact_hash(case,'artifact_sha256','smoke case')
-    require(case['cohort_only'] is True and case['cohort_plan_sha256']==payload_hash(PLAN)
-        and case['freeze_sha256']==frozen['freeze_sha256'] and case['case'] in PLAN['case_order']
+    require(case['cohort_only'] is True and case['cohort_plan_sha256']==payload_hash(plan)
+        and case['freeze_sha256']==frozen['freeze_sha256'] and case['case'] in plan['case_order']
         and case['fixture_is_synthetic'] is True and case['boot_id']==frozen['runtime']['boot_id'],
         'cohort case/source/boot binding differs')
     from infra.stream.recorder_application_budget import declare
@@ -45,9 +46,10 @@ def verify_case(case, frozen):
     return case
 
 
-def components(case_root, frozen):
-    root=Path(case_root);case=verify_case(worker.control(root/'case.json'),frozen)
-    binding=worker.control(root/'absolute-wait-plan.json');require(binding['declaration'] == declaration(), 'successor declaration differs')
+def components(case_root, frozen, *, protocol=None):
+    declared = declaration() if protocol is None else protocol.declaration()
+    root=Path(case_root);case=verify_case(worker.control(root/'case.json'),frozen,protocol=protocol)
+    binding=worker.control(root/'absolute-wait-plan.json');require(binding['declaration'] == declared, 'successor declaration differs')
     require(binding['case_sha256']==case['artifact_sha256'] and binding['declaration']==frozen['observer'],
             'cohort observer declaration binding differs')
     producer=large_control(root/'producer.json');consumer=worker.control(root/'consumer.json')
@@ -113,14 +115,15 @@ def components(case_root, frozen):
         compatibility_verified=False,budget_acceptance=False,orders_authorized=False)
 
 
-def verify_unit(raw, value, source, expected_pid=None, case_name=None):
+def verify_unit(raw, value, source, expected_pid=None, case_name=None,
+                worker_module='infra.stream.recorder_persistence_cohort'):
     verify_cohort_properties(raw,value)
     require(raw['Id']==value['unit']+'.service' and raw['SubState']=='exited' and raw['ActiveState']=='active'
         and raw['Result']=='success' and raw['ExecMainStatus']=='0' and raw['ExecMainCode']=='1',
         'smoke native completion differs')
     role=value['worker_role']
     args=['-m','unittest','discover','-s','tests','-q'] if role=='tests' else [
-        '-m','infra.stream.recorder_persistence_cohort','--root',str(Path(source).parent/'evidence'/case_name),
+        '-m',worker_module,'--root',str(Path(source).parent/'evidence'/case_name),
         '--worker',role,'--case',case_name,'--execute']
     match=re.search(r'argv\[\]=(.*?) ;',raw['ExecStart'])
     require(match is not None and match.group(1)==' '.join([PYTHON,*args]),'smoke actual command differs')
@@ -135,14 +138,15 @@ def worker_schedule(case):
     return schedule(case['case'].split('-')[0])
 
 
-def audit_case_native(e,case_name,frozen,stage,test_end,previous_end):
+def audit_case_native(e,case_name,frozen,stage,test_end,previous_end, *, protocol=None):
     root=e/case_name;case=worker.control(root/'case.json')
     require(case['case']==case_name,'case directory/name differs')
     units={};exit_accounting={}
     for role in ('producer','consumer'):
         value=spec(stage,role,case_name)
         raw=dict(line.split('=',1) for line in (e/(value['unit']+'-properties.txt')).read_text().splitlines() if '=' in line)
-        units[role]=verify_unit(raw,value,stage+'/source',case_name=case_name)
+        units[role]=verify_unit(raw,value,stage+'/source',case_name=case_name,
+            **({} if protocol is None else dict(worker_module=protocol.MODULE)))
         exit_accounting[role]=dict(cpu_usage_ns=int(raw['CPUUsageNSec']) if raw.get('CPUUsageNSec','').isdigit() else None,
             cgroup_memory_peak_bytes=int(raw['MemoryPeak']) if raw.get('MemoryPeak','').isdigit() else None,
             scope='whole_unit_including_startup_and_publication',continuous_rss_peak=None,process_high_water_rss=None)
@@ -192,12 +196,15 @@ def audit_case_native(e,case_name,frozen,stage,test_end,previous_end):
             require(units['consumer']['start']*1e9<=wait['before_ns']<=units['consumer']['end']*1e9
                 and (wait['after_ns'] is None or wait['before_ns']<=wait['after_ns']<=units['consumer']['end']*1e9),
                 'wait outside unit')
-    report=components(root,frozen);report.update(case=case_name,unit_bindings_verified=True)
+    report=components(root,frozen,**({} if protocol is None else dict(protocol=protocol)));report.update(case=case_name,unit_bindings_verified=True)
     report['inclusive_cost']['whole_unit_exit_accounting']=exit_accounting
     return report,max(u['end'] for u in units.values()),units
 
 
-def audit(root,*,expected_inventory_file_sha256,expected_freeze_sha256,expected_host_context_file_sha256):
+def audit(root,*,expected_inventory_file_sha256,expected_freeze_sha256,expected_host_context_file_sha256, protocol=None):
+    plan = PLAN if protocol is None else protocol.PLAN
+    validate = validate_freeze if protocol is None else protocol.validate_freeze
+    options = {} if protocol is None else dict(protocol=protocol)
     root=Path(root);e=root/'evidence';inventory_bytes=(root/'origin-inventory.json').read_bytes()
     require(hashlib.sha256(inventory_bytes).hexdigest()==expected_inventory_file_sha256,'external origin anchor differs')
     inventory=json.loads(inventory_bytes);verify_artifact_hash(inventory,'inventory_sha256','cohort inventory')
@@ -211,19 +218,19 @@ def audit(root,*,expected_inventory_file_sha256,expected_freeze_sha256,expected_
         b=p.read_bytes();total+=len(b);require(total<=4*1024**3,'cohort inventory total cap')
         actual[str(p.relative_to(e))]=dict(bytes=len(b),sha256=hashlib.sha256(b).hexdigest())
     require(actual==inventory['files'],'cohort retained population/bytes differ')
-    lineage=load(e/'compatibility-lineage.json');frozen=validate_freeze(load(e/'execution-freeze.json'),lineage)
+    lineage=load(e/'compatibility-lineage.json');frozen=validate(load(e/'execution-freeze.json'),lineage)
     require(frozen['freeze_sha256']==inventory['freeze_sha256']==expected_freeze_sha256,'external cohort freeze differs')
     require(hashlib.sha256((e/'host-context.json').read_bytes()).hexdigest()==expected_host_context_file_sha256,
         'external host context anchor differs')
     require(load(e/'host-context.json')==frozen['runtime']['host'],'cohort host context differs')
     launch=load(e/'launch-result.json');verify_artifact_hash(launch,'launch_sha256','cohort launch')
-    require(launch['freeze_sha256']==expected_freeze_sha256 and launch['cohort_plan_sha256']==payload_hash(PLAN),
+    require(launch['freeze_sha256']==expected_freeze_sha256 and launch['cohort_plan_sha256']==payload_hash(plan),
         'launch freeze/plan differs')
     require(all(launch[k] is False for k in ('native_origin_verified','compatibility_verified','budget_cohort_authorized','orders_authorized')),
         'producer authority flags changed')
     if not launch['complete']:
         reports=[];failures=['incomplete_native_launch'];unknowns=['independent_unit_binding_incomplete']
-        for name in PLAN['case_order']:
+        for name in plan['case_order']:
             case_root=e/name
             for file in ('producer.json','consumer.json'):
                 if not (case_root/file).exists():continue
@@ -234,14 +241,14 @@ def audit(root,*,expected_inventory_file_sha256,expected_freeze_sha256,expected_
                         failures.append(name+':'+file+':retained_runtime_fault')
                 except (ContractError,KeyError,TypeError,ValueError,OSError):failures.append(name+':invalid_retained_prefix')
             try:
-                report=components(case_root,frozen);report['case']=name;reports.append(report)
+                report=components(case_root,frozen,**options);report['case']=name;reports.append(report)
                 failures.extend(name+':'+v for v in report['failures']);unknowns.extend(name+':'+v for v in report['unknowns'])
             except (ContractError,KeyError,TypeError,ValueError,OSError) as exc:
                 unknowns.append(name+':component_unavailable:'+type(exc).__name__)
         return dict(complete=False,verdict='fail',failure=launch['error'],preservation_errors=launch['preservation_errors'],
             reports=reports,failures=failures,unknowns=unknowns,application_budget_pass=False,
             native_origin_verified=False,orders_authorized=False)
-    require(launch['error'] is None and not launch['preservation_errors'] and launch['completed']==PLAN['case_order']
+    require(launch['error'] is None and not launch['preservation_errors'] and launch['completed']==plan['case_order']
         and launch['public_before']==launch['public_after']==frozen['runtime']['host']['public'],'cohort incomplete/drift')
     stage=launch['stage'];tests=spec(stage,'tests')
     raw=dict(line.split('=',1) for line in (e/(tests['unit']+'-properties.txt')).read_text().splitlines() if '=' in line)
@@ -252,9 +259,9 @@ def audit(root,*,expected_inventory_file_sha256,expected_freeze_sha256,expected_
     for name in ('host-processes-before.txt','host-processes-after.txt'):
         require(0<(e/name).stat().st_size<=65536,'host concurrency disclosure missing')
     reports=[];units={'tests':test_unit};previous=test_unit['end'];binding_failures=[];binding_unknowns=[]
-    for name in PLAN['case_order']:
+    for name in plan['case_order']:
         try:
-            report,previous,pair=audit_case_native(e,name,frozen,stage,test_unit['end'],previous)
+            report,previous,pair=audit_case_native(e,name,frozen,stage,test_unit['end'],previous,**options)
             reports.append(report);units[name]=pair
         except (ContractError,KeyError,TypeError,ValueError,OSError) as exc:
             binding_failures.append(name+':invalid_native_or_component_evidence:'+type(exc).__name__)

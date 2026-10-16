@@ -3188,3 +3188,16 @@ mixed case under unchanged measurement limits, one prerequisite readiness unit,
 new source/runtime/transport freeze and separate approval. No wide bracket means
 inconclusive, no automatic repeat or six-case run. No remote/native execution.
 Details: docs/RECORDER_RSS_THREAD_CPU_V1.md; HANDOFF updated.
+
+## October 16 — RssCpu01 single-case validation preparation authorized
+
+User approved the proposed validation: one readiness unit, only on pass one
+60,000-frame mixed-rate pair, then stop/audit. New adapter binds the opt-in RSS
+CPU policy to a new one-case plan and actual worker command; old six-case default
+and thresholds remain unchanged. Full offline 1,192 tests pass in 177.606 s;
+17 focused tests pass after two extra binding tests (exact discovery now 1,194,
+native expected one declared skip). Fresh read-only host/runtime/public/namespace
+checks pass at 15:27:55 UTC. t4g.small standard mode, latest credit balance 576 at
+15:21 UTC, no minimum gate. Clock reports CLOCK_THREAD_CPUTIME_ID, 1-ns resolution.
+Next freeze/stage exact candidate; no native unit or stage started at checkpoint.
+Packet: docs/RECORDER_RSS_CPU_VALIDATION_20261016.md. Historical failures unchanged.

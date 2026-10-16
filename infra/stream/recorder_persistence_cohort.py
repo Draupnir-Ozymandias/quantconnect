@@ -179,7 +179,8 @@ def validate_freeze(value,lineage=None):
     return value
 
 
-def prepare(root, freeze_hash, case_name, *, execute=False):
+def prepare(root, freeze_hash, case_name, *, execute=False, protocol=None):
+    plan = PLAN if protocol is None else protocol.PLAN
     require(execute is True, 'explicit cohort preparation required')
     require(re.fullmatch('[0-9a-f]{64}',freeze_hash),'exact smoke freeze binding required')
     from tests.test_taker_replay import raw_bundle, revise
@@ -190,16 +191,16 @@ def prepare(root, freeze_hash, case_name, *, execute=False):
     revise(raw, 'gamma_market', startDate=utc_text(epoch_utc-timedelta(seconds=60)),
            eventStartTime=utc_text(epoch_utc-timedelta(seconds=10)),
            endDate=utc_text(epoch_utc+timedelta(seconds=290)))
-    require(case_name in PLAN['case_order'],'fixed cohort case required')
+    require(case_name in plan['case_order'],'fixed cohort case required')
     spec = stream_plan(raw, segmented=True, max_frames=60000, max_seconds=180)
     case = worker.publish(root/'case.json', dict(case=case_name,
         plan_sha256=parent_declaration()['plan_sha256'],freeze_sha256=freeze_hash,
-        cohort_plan_sha256=payload_hash(PLAN), cohort_only=True,
+        cohort_plan_sha256=payload_hash(plan), cohort_only=True,
         epoch=epoch, epoch_utc=utc_text(epoch_utc), epoch_clock=dict(before=before, after=after,utc=utc_text(now)),
         raw_bundle=raw, spec=spec, fixture_is_synthetic=True,
         implementation_sources=worker.implementation_sources(),
         boot_id=boot()))
-    worker.publish(root/'absolute-wait-plan.json', dict(case_sha256=case['artifact_sha256'], declaration=declaration()))
+    worker.publish(root/'absolute-wait-plan.json', dict(case_sha256=case['artifact_sha256'], declaration=declaration() if protocol is None else protocol.declaration()))
     return case
 
 
@@ -399,11 +400,12 @@ def verify_case_lifecycle(root,case):
         producer['control_errors'],worker.verify_recorder_completion(root,case),case)
 
 
-def execute_cohort(ops, *, execute=False):
+def execute_cohort(ops, *, execute=False, protocol=None):
+    plan = PLAN if protocol is None else protocol.PLAN
     require(execute is True,'explicit finite smoke launch required')
     frozen=ops.frozen;before=ops.preflight();ops.claim()
     report=dict(schema_version='qcrl.recorder_persistence_cohort_launch.v1',
-        stage=str(ops.root),freeze_sha256=frozen['freeze_sha256'],cohort_plan_sha256=payload_hash(PLAN),
+        stage=str(ops.root),freeze_sha256=frozen['freeze_sha256'],cohort_plan_sha256=payload_hash(plan),
         public_before=before,public_after=None,complete=False,completed=[],error=None,preservation_errors=[],
         native_origin_verified=False,compatibility_verified=False,budget_cohort_authorized=False,orders_authorized=False)
     started=[];captured=set();stopped=set()
@@ -421,7 +423,7 @@ def execute_cohort(ops, *, execute=False):
                 and re.findall(r'OK \(skipped=(\d+)\)',text)[-1:]==['1'],'Linux readiness population/success differs')
         stop(tests)
         require(all(ops.recheck(str(ops.root),frozen).values()) and ops.public_state()==before,'post-regression drift')
-        for case_name in PLAN['case_order']:
+        for case_name in plan['case_order']:
             ops.prepare(case_name);case=worker.control(ops.evidence/case_name/'case.json');deadline=case['epoch']-.1
             producer=start('producer');server=ops.ready('server-ready.json',deadline);pb=ops.bind('producer',server,deadline)
             consumer=start('consumer');ready=ops.ready('worker-ready.json',deadline);observer=ops.ready('observer-ready.json',deadline)

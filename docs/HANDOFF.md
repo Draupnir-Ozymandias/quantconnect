@@ -5,6 +5,34 @@ Updated October 16, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 16 — One RssCpu01 validation authorized; preparing exact packet
+
+The user approved proceeding with the proposed single-case validation. Scope is
+one readiness unit followed, only on its pass, by one 60,000-frame mixed producer /
+recorder pair, then stop and audit. [Exact scope and gates](RECORDER_RSS_CPU_VALIDATION_20261016.md).
+The new adapter reuses the original lifecycle/resource/native-binding audit with
+an explicit one-case plan; it enables RSS thread CPU only in that consumer.
+Historical six-case declaration/default behavior remain unchanged.
+
+Full offline suite: 1,192 tests pass in 177.606 s on Intel macOS / Python 3.14.6.
+After two additional binding tests and stricter auxiliary checks, all 17 focused
+instrumentation/validation tests pass in 1.709 s. Exact current discovery count
+is 1,194; native readiness must run 1,194 total with the one declared skip.
+Python 3.9 syntax checks pass; no Linux validation is claimed yet.
+
+Fresh read-only host/public/runtime checks pass at 15:27:55 UTC; new prefix/stage
+absent, 6.38 GB free disk, about 1.227 GB available memory. Native thread clock
+reports CLOCK_THREAD_CPUTIME_ID, monotonic/non-adjustable, resolution 1 ns.
+Read-only AWS query at 15:26:15 UTC: t4g.small, standard mode, latest balance 576
+at 15:21 UTC. No credit minimum. Historical failed unit remains retained.
+
+Private preparation/evidence directory:
+`.qcrl/reviews/recorder-rss-cpu-validation-20261016LupusRssCpu01/`.
+Next: freeze the clean candidate, stage/verify transport/source/runtime, one
+controller only after every gate passes. No native unit or new stage started at
+this checkpoint. Preserve previous failed verdict/evidence, all thresholds and
+measurement limits; no replay/replacement/extra case or six-case cohort.
+
 ## October 16 — RSS thread CPU v1 implemented offline; native approval pending
 
 [Prospective identity, placement, faults and smallest validation proposal](RECORDER_RSS_THREAD_CPU_V1.md).
