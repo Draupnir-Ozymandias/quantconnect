@@ -3201,3 +3201,14 @@ checks pass at 15:27:55 UTC. t4g.small standard mode, latest credit balance 576 
 15:21 UTC, no minimum gate. Clock reports CLOCK_THREAD_CPUTIME_ID, 1-ns resolution.
 Next freeze/stage exact candidate; no native unit or stage started at checkpoint.
 Packet: docs/RECORDER_RSS_CPU_VALIDATION_20261016.md. Historical failures unchanged.
+
+## October 16 — RssCpu01 controller submitted once
+
+Candidate eb13a5136ae5a4f88a2987706cf46a5d874f2054, 528 selected files; freeze
+babeecedfe2ac3f4d3f2c86cd2d952f8f28745feeff5f48f03511c2e3ff5caee.
+151,734-byte transport c7c4ac476048e6ea699cdd25eb917284aa3b25e31fe9e81f42c147a5ff30ff7a
+and all native source/runtime/public/namespace gates verify. Staged 15:36:21 UTC.
+Single controller PID 1588005 submitted 15:36:48.252682 UTC. Readiness pending;
+1,194 tests / one declared skip required before the sole mixed-0 pair. Stop after
+this attempt/audit. No additional controller, retry or six-case cohort. HANDOFF
+retains exact identity/checkpoint; historical failed verdicts remain unchanged.

@@ -5,6 +5,26 @@ Updated October 16, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 16 — RssCpu01 staged; one controller submitted, readiness pending
+
+Candidate `eb13a5136ae5a4f88a2987706cf46a5d874f2054` (528 selected files) is frozen:
+`babeecedfe2ac3f4d3f2c86cd2d952f8f28745feeff5f48f03511c2e3ff5caee`.
+Operator packet `5dc7a5b5a6130156af7a773f0e9f2eb83765faab777275366f830772c48a576b`.
+Transport: 151,734 bytes, SHA-256
+`c7c4ac476048e6ea699cdd25eb917284aa3b25e31fe9e81f42c147a5ff30ff7a`.
+Both offline reconstruction and native staging verify all source bytes, reviewed
+delta, runtime/thread clock, public state and fresh namespace. Staging preflight
+passed at 15:36:21 UTC, with zero units started at that checkpoint.
+
+Exactly one controller, PID **1588005**, submitted at **15:36:48.252682 UTC**.
+Readiness is pending: 1,194 total with one declared skip required, under the
+existing 1-GiB readiness-only envelope. Only on pass may one mixed-0 pair start.
+At most three units and one case; no repetition, six-case cohort or changes to
+measurement limits, thresholds, public collectors or historical failures.
+Retain partial evidence and stop on declared faults. Do not start another
+controller if this chat is interrupted; inspect this exact stage and retained
+controller-start.json first. Private directory remains the RssCpu01 path below.
+
 ## October 16 — One RssCpu01 validation authorized; preparing exact packet
 
 The user approved proceeding with the proposed single-case validation. Scope is
