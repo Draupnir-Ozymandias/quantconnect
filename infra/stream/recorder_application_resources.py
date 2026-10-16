@@ -3,11 +3,65 @@ import math
 import os
 import re
 import stat
+import threading
 from pathlib import Path, PurePosixPath
 import time
 
-from execution_truth.contracts import ContractError
+from execution_truth.contracts import ContractError, payload_hash, verify_artifact_hash
 from infra.stream.receive_loop_validity_probe import process_start, unified_cgroup
+
+
+RSS_THREAD_CPU_POLICY = dict(schema_version='qcrl.rss_thread_cpu_policy.v1',
+    clock='time.thread_time_ns', scope='rss_reads_only_opt_in',
+    placement='wall_before_cpu_before_resource_work_cpu_after_wall_after',
+    cpu_clock_calls_per_read=2, retries=0, cpu_scope='inside_wall_bracket',
+    wall_bracket_authoritative=True, subtract_cpu_from_wall=False,
+    auxiliary_failure='retain_wall_sample_cpu_unknown',
+    linkage='sample_sha256_and_observer_thread_id',
+    incremental_overhead_proven=False, native_validation_complete=False)
+
+
+def cpu_stamp(clock):
+    """An auxiliary clock fault must not discard the authoritative RSS read."""
+    try:
+        value = clock()
+        if type(value) is not int or value < 0:
+            raise ContractError('nonnegative integer thread CPU nanoseconds required')
+        return value, None
+    except Exception as exc:
+        return None, (type(exc).__name__ + ':' + str(exc))[:160]
+
+
+def verify_rss_thread_cpu(sample, *, expected_thread_id):
+    """Verify auxiliary linkage only; never changes wall/resource acceptance."""
+    value = sample.get('rss_thread_cpu')
+    fields = {'schema_version', 'policy_sha256', 'thread_id', 'sample_sha256',
+              'before_ns', 'after_ns', 'delta_ns', 'status', 'error', 'witness_sha256'}
+    if not isinstance(value, dict) or set(value) != fields:
+        raise ContractError('RSS thread CPU witness required')
+    verify_artifact_hash(value, 'witness_sha256', 'RSS thread CPU witness')
+    original = {k: v for k, v in sample.items() if k != 'rss_thread_cpu'}
+    if (value['schema_version'] != 'qcrl.rss_thread_cpu.v1'
+            or value['policy_sha256'] != payload_hash(RSS_THREAD_CPU_POLICY)
+            or value['sample_sha256'] != payload_hash(original)
+            or sample.get('rss_bytes') is None
+            or type(expected_thread_id) is not int or expected_thread_id <= 0
+            or type(value['thread_id']) is not int
+            or value['thread_id'] != expected_thread_id):
+        raise ContractError('RSS thread CPU sample/policy/thread binding differs')
+    before, after = value['before_ns'], value['after_ns']
+    for stamp in (before, after):
+        if stamp is not None and (type(stamp) is not int or stamp < 0):
+            raise ContractError('invalid thread CPU reading')
+    ordered = before is not None and after is not None and before <= after
+    if value['status'] == 'observed':
+        if (not ordered or value['error'] is not None
+                or type(value['delta_ns']) is not int or value['delta_ns'] != after-before):
+            raise ContractError('invalid observed thread CPU delta')
+    elif (value['status'] != 'unknown' or ordered or value['delta_ns'] is not None
+            or type(value['error']) is not str or not 1 <= len(value['error']) <= 160):
+        raise ContractError('invalid unknown thread CPU witness')
+    return value
 
 
 def text(path):
@@ -125,9 +179,13 @@ def quota(ancestors):
 
 class LinuxReader:
     def __init__(self, *, execute=False, proc='/proc', mount='/sys/fs/cgroup',
-                 pid=None, monotonic=time.monotonic):
+                 pid=None, monotonic=time.monotonic, rss_thread_cpu=False,
+                 thread_cpu_ns=time.thread_time_ns):
         if execute is not True:
             raise ContractError('explicit resource observation required')
+        if type(rss_thread_cpu) is not bool or not callable(thread_cpu_ns):
+            raise ContractError('explicit RSS thread CPU option and callable clock required')
+        self.rss_thread_cpu, self.thread_cpu_ns = rss_thread_cpu, thread_cpu_ns
         self.proc, self.mount = Path(proc), Path(mount)
         if not self.proc.is_absolute() or self.proc.resolve() != self.proc:
             raise ContractError('canonical proc root required')
@@ -172,7 +230,11 @@ class LinuxReader:
         return sorted(values)
 
     def read(self, *, rss=False):
+        instrument = self.rss_thread_cpu and rss
+        thread_id = threading.get_ident() if instrument else None
         begin = self.clock()
+        if instrument:
+            cpu_before, before_error = cpu_stamp(self.thread_cpu_ns)
         self.check_paths()
         if self.identity(self.pid) != self.expected:
             raise ContractError('resource owner identity changed')
@@ -224,13 +286,26 @@ class LinuxReader:
         if ancestry_snapshot() != ancestry:
             raise ContractError('resource controller/limit ancestry raced')
         self.check_paths()
+        if instrument:
+            cpu_after, after_error = cpu_stamp(self.thread_cpu_ns)
         end = self.clock()
         if not math.isfinite(begin) or not math.isfinite(end) or not 0 <= begin <= end:
             raise ContractError('invalid resource clock')
-        return dict(before=begin, after=end, owner=self.expected, ancestry=ancestry,
+        result = dict(before=begin, after=end, owner=self.expected, ancestry=ancestry,
                     effective_quota=quota(ancestry), cpu=cpu, memory_events=events,
                     memory_current=current, actors=actors,
                     rss_bytes=sum(r['rss_bytes'] for r in actors) if rss else None)
+        if instrument:
+            error = before_error or after_error
+            if error is None and cpu_after < cpu_before:
+                error = 'ContractError:thread CPU clock regressed'
+            value = dict(schema_version='qcrl.rss_thread_cpu.v1',
+                policy_sha256=payload_hash(RSS_THREAD_CPU_POLICY), thread_id=thread_id,
+                sample_sha256=payload_hash(result), before_ns=cpu_before, after_ns=cpu_after,
+                delta_ns=cpu_after-cpu_before if error is None else None,
+                status='observed' if error is None else 'unknown', error=error)
+            result['rss_thread_cpu'] = dict(value, witness_sha256=payload_hash(value))
+        return result
 
 
 def observe(reader, epoch, stop, *, clock=time.monotonic, pause=time.sleep, capacity=184):

@@ -3169,3 +3169,22 @@ Recommend one prospective paired RSS thread-CPU delta only; not implemented.
 Full mapping: docs/RECORDER_COHORT_BRACKET_ANALYSIS_20261016.md. Original outcome
 and frozen audit byte anchors and all 24 analysis inputs verify. Documentation
 only; no tests/native rerun/framework/threshold or failed-verdict change.
+
+## October 16 — opt-in RSS thread CPU v1 implemented offline
+
+Policy qcrl.rss_thread_cpu_policy.v1 hash:
+6eb2509c03a390c53d3fdc31124177403638d700e1e4922ee8ce015e7cf81ee5.
+Two CPU clock calls inside the existing RSS wall bracket; unchanged wall gates,
+no subtraction, no per-frame UTC/CPU-pre-read instrumentation. Explicit opt-in
+in LinuxReader and persistence consume API; old launcher stays disabled.
+Clock faults retain wall samples with auxiliary unknown; witnesses bind sample,
+thread, policy and parent publication. Hashing/publication overhead is disclosed
+outside the bracket; incremental overhead remains unmeasured. 88 related offline
+regressions passed in 58.546 s with localhost access, then nine focused tests
+passed after constructor-fixture refinement. Python 3.9 syntax checks passed;
+none of this is installed Linux/native validation. Frozen failed audit and outcome
+byte anchors verified unchanged. Prospective proposal: one 60,000-frame/70-s
+mixed case under unchanged measurement limits, one prerequisite readiness unit,
+new source/runtime/transport freeze and separate approval. No wide bracket means
+inconclusive, no automatic repeat or six-case run. No remote/native execution.
+Details: docs/RECORDER_RSS_THREAD_CPU_V1.md; HANDOFF updated.

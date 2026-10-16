@@ -8,6 +8,12 @@
 
 ## October 16 recorder cohort result
 
+Optional [RSS thread CPU v1](docs/RECORDER_RSS_THREAD_CPU_V1.md) is now implemented
+offline in the existing reader/consumer, with clock-fault and publication tests.
+Both added clock calls count inside the unchanged RSS wall gate; no subtraction.
+Native validation remains pending. Proposed next scope is one 70-s mixed case,
+under a new freeze/approval, with no automatic repeat or six-case cohort.
+
 Offline follow-up maps [all 48 UTC/RSS bracket violations](docs/RECORDER_COHORT_BRACKET_ANALYSIS_20261016.md).
 RSS starts are timely; excess wall time is inside the reader bracket, with active
 work versus scheduling/blocking still unresolved. Burst concentration, surrounding

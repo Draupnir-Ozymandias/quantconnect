@@ -11,7 +11,7 @@ from execution_truth.contracts import ContractError, payload_hash
 from execution_truth.stream_segments import exclusive_json
 from infra.stream.recorder_application_worker import (context, control, transmit,
     LoopbackSocket as LegacyLoopbackSocket, implementation_sources, message, localhost_uri)
-from infra.stream.recorder_application_resources import LinuxReader, observe
+from infra.stream.recorder_application_resources import LinuxReader, observe, RSS_THREAD_CPU_POLICY
 from infra.stream.recorder_completion import CompletionWitnesses, verify_completion, _sources
 from infra.stream.recorder_persistence_lane import collect_with_completion
 
@@ -188,14 +188,14 @@ def produce(root, declaration, *, execute=False, transmitter=None):
         publish(root / 'producer-timeout.json', dict(case_sha256=case['artifact_sha256'], error='no_completed_handler'))
 
 
-def consume(root, declaration, *, execute=False, resource_observer=None):
+def consume(root, declaration, *, execute=False, resource_observer=None, rss_thread_cpu=False):
     root = Path(root)
     case = context(root, declaration, execute)
     ready = control(root / 'server-ready.json')
     if ready['case_sha256'] != case['artifact_sha256']:
         raise ContractError('server binding differs')
     localhost_uri(ready['uri'])
-    reader = LinuxReader(execute=True)
+    reader = LinuxReader(execute=True, rss_thread_cpu=rss_thread_cpu)
     if (ready['identity']['boot_id'] != reader.expected['boot_id']
             or ready['identity']['cgroup'] == reader.expected['cgroup']):
         raise ContractError('server boot/cgroup isolation differs')
@@ -204,11 +204,13 @@ def consume(root, declaration, *, execute=False, resource_observer=None):
                                    monotonic=time.monotonic, execute=True)
     stop = threading.Event()
     resources = {}
+    instrumentation = (dict(rss_thread_cpu_policy_sha256=payload_hash(RSS_THREAD_CPU_POLICY))
+                       if rss_thread_cpu else {})
     def monitor():
         try:
             initial = reader.read(rss=True)
             publish(root / 'observer-ready.json', dict(case_sha256=case['artifact_sha256'],
-                    at=time.monotonic(), identity=reader.expected, initial=initial))
+                    at=time.monotonic(), identity=reader.expected, initial=initial, **instrumentation))
             resources.update((observe if resource_observer is None else resource_observer)(reader, case['epoch'], stop))
         except Exception as exc:
             resources.update(rows=[], overflow=False, error=(type(exc).__name__ + ':' + str(exc))[:160])
@@ -232,4 +234,5 @@ def consume(root, declaration, *, execute=False, resource_observer=None):
             publish(root / 'completion-error.json', dict(error=(type(exc).__name__ + ':' + str(exc))[:160]))
         publish(root / 'consumer.json', dict(case_sha256=case['artifact_sha256'],
                 summary=summary, error=error, closed=closed, domain=domain,
-                identity=reader.expected, resources=resources, observer_thread_alive=thread.is_alive()))
+                identity=reader.expected, resources=resources, observer_thread_alive=thread.is_alive(),
+                **instrumentation))

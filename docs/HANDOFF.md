@@ -5,6 +5,31 @@ Updated October 16, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 16 — RSS thread CPU v1 implemented offline; native approval pending
+
+[Prospective identity, placement, faults and smallest validation proposal](RECORDER_RSS_THREAD_CPU_V1.md).
+Policy `qcrl.rss_thread_cpu_policy.v1`, hash
+`6eb2509c03a390c53d3fdc31124177403638d700e1e4922ee8ce015e7cf81ee5`.
+The existing LinuxReader and persistence consumer accept explicit opt-in; existing
+launchers remain disabled. Two thread CPU calls sit inside each enabled RSS wall
+bracket. That wall bracket and every original threshold remain authoritative;
+nothing is subtracted. CPU pre-reads and UTC witnesses receive no CPU calls.
+Hashing/publication work outside the bracket is disclosed; incremental overhead
+is unmeasured. A CPU fault/invalid reading retains the RSS sample with auxiliary
+unknown. Parent artifacts, sample hashes, policy and observer thread bind each
+witness; the auxiliary verifier does not change resource acceptance.
+
+88 related offline regressions passed in 58.546 s on Intel macOS / Python 3.14.6
+(localhost permission enabled); nine focused tests passed again after fixture
+refinement. Tests cover actual reader/absolute observer/consumer publication
+paths, clock faults and tampering. Python 3.9 syntax checks pass, but native clock
+behavior/overhead remains unvalidated.
+Propose one new mixed-rate case (60,000 frames over 70 s), preserving measurement
+limits, original scheduling/budgets and failure evidence. No wide bracket means
+inconclusive; no automatic repeat or six-case cohort. A new single-case launcher,
+source/runtime/transport freeze and exact approval are still required before any
+native execution. Historical source/evidence and failed verdicts remain intact.
+
 ## October 16 — Offline bracket mapping complete; failed verdict preserved
 
 [Every UTC/RSS violation and contention context](RECORDER_COHORT_BRACKET_ANALYSIS_20261016.md)
