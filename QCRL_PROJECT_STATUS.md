@@ -8,6 +8,16 @@
 
 ## October 16 RSS CPU validation result
 
+[Public-feed study draft](docs/PUBLIC_FEED_INTERVAL_COUNT_STUDY_DRAFT_V1.md) now
+defines one proposed October 17 BTC five-minute market (16:00–16:05 UTC) and a
+60-bin local counting minute nominally 16:01–16:02 UTC. Fixed interval rules,
+uncertain UTC alignment, no reconnections/replacement, bounded storage/resources,
+gap censoring and first-fault stopping are declared before capture. Exact market
+IDs, public transport integration, offline readiness/freeze and capture approval
+remain outstanding. **Draft only; no capture or execution authority.** Observer
+optimization stops. Synthetic findings do not establish venue completeness or
+real-market performance; original application verdict remains FAIL.
+
 [Component contract draft](docs/RECORDER_COMPONENT_EVIDENCE_DRAFT_V1.md) is now
 written, not adopted or executed. **Original application acceptance remains FAIL;
 no new combined badge.** A [retrospective component report](docs/RECORDER_COMPONENT_REPORT_20261016.md)

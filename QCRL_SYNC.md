@@ -3345,3 +3345,30 @@ and all methods/results in docs/RECORDER_COMPONENT_REPORT_20261016.md; draft in
 No frozen auditor rerun under current sources, evidence/threshold/production
 change, native execution, extra cohort, observer redesign, public/infrastructure
 change, QC sync or orders. Incremental overhead and continuous RSS remain unknown.
+
+## October 16 — small prospective public-feed descriptive study draft
+
+Draft qcrl.public_feed_interval_counts.study_draft.v1, no adoption/execution or
+capture authority. One proposed BTC five-minute Up/Down condition with exact
+2026-10-17 16:00-16:05 UTC terms (noon EDT), both outcome tokens. Availability /
+IDs unverified; one bounded public discovery attempt at 15:55, approval/freeze
+cutoff 15:59, no replacement or rollover. Nominal counting minute 16:01-16:02;
+primary 60 bins use one fixed monotonic epoch derived by the declared bracketed
+host-clock anchor, not a claim of true UTC alignment. Exact interval L/U counts,
+all ambiguity/unplaced/pre/tail denominators, original precision labels retained.
+
+One connection attempt, zero reconnects; first disconnect/fault/cap stops and
+censors dependent coverage. Five-second tail, 90-s acquisition/60,000-frame cap,
+existing segmented/durability bounds and 512-MiB/75%-CPU/32-task/240-s private
+unit envelope. Public collectors untouched. Public transport is not ready: current
+isolated worker is offline/loopback and legacy public lifecycle defaults differ.
+Separate public integration/fault review, actual IDs, source/runtime/host freeze
+and explicit one-case approval needed; no observer optimization or new timing run.
+
+Official market-stream transport/heartbeat documentation reviewed read-only; no
+live market discovery, metadata acquisition or feed connection. Full scientific
+plan: docs/PUBLIC_FEED_INTERVAL_COUNT_STUDY_DRAFT_V1.md. Original application
+verdict remains FAIL; no combined badge, trading or execution/latency claims.
+Synthetic report establishes the method on those recordings, not real-market
+performance or venue completeness. HANDOFF/status maintained. No code/threshold,
+evidence, infrastructure, credential, native/public collector or QC change.

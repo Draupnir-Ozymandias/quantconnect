@@ -5,6 +5,34 @@ Updated October 16, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 16 — One public-feed descriptive study drafted; no capture authority
+
+[Prospective study draft](PUBLIC_FEED_INTERVAL_COUNT_STUDY_DRAFT_V1.md), identity
+`qcrl.public_feed_interval_counts.study_draft.v1`. Proposed one BTC five-minute
+Up/Down market with exact terms October 17, 2026, 16:00–16:05 UTC (noon EDT), both
+outcome tokens; existence/IDs not verified. Nominal counting minute 16:01–16:02 UTC,
+with one fixed recorded monotonic epoch and 60 interval-aware local bins. One
+metadata attempt / fixed approval cutoff; absent readiness/approval means not run,
+never automatic rollover or substitution. This is a draft, not an adopted packet.
+
+Counts include every returned supported text occurrence; preserve ambiguous-bin,
+unplaced, pre/tail and censored denominators. UTC labels are nominal without an
+independent accuracy bound. One connection attempt, zero reconnects; first gap /
+fault / cap stops, retains prefix and leaves dependent bins unknown. Five-second
+tail, 90-s acquisition cap, 60,000-frame limit, existing bounded segmented storage
+and 512-MiB/75%-CPU/32-task/240-s private-unit ceiling; no public resource changes.
+
+Public transport readiness is outstanding: isolated completion worker currently
+requires offline/loopback transport and legacy public lifecycle has incompatible
+defaults. No guard bypass or implementation here. Need separately reviewed public
+integration, offline fault verification, exact IDs/source/runtime/host freeze and
+explicit one-case approval before any capture. Stop observer optimization.
+
+Original application verdict remains FAIL; no combined badge. Synthetic interval
+results describe those recordings, not venue completeness or real-market performance.
+No metadata/feed capture, remote access, native run, credentials, infrastructure,
+QC sync, rollout or trading authorized. Following sections are history.
+
 ## October 16 — Component contract drafted; retained-evidence question answered
 
 **Original application-budget verdict remains FAIL. No new combined badge.**
