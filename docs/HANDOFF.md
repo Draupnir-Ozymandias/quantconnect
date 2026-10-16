@@ -5,6 +5,25 @@ Updated October 15, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 16 UTC — Linux readiness passed; declared cohort in progress
+
+The single Cohort02 controller PID 1516839 remains the only submitted attempt.
+Native readiness **passed 1,177 total tests in 201.118 s, one declared skip**
+(1,176 pass), successful exit under actual MemoryMax=1,073,741,824 bytes and
+240-s ceiling. Test PID 1516872; whole-unit CPU 142.162724 s, lifetime 202.476770 s.
+MemoryPeak unavailable; no continuous RSS peak or incremental-overhead claim.
+This is new v2 readiness evidence, not a repair of the original 512-MiB OOM.
+
+At 03:13:35 UTC the controller had completed steady-0 and mixed-0 runtime/closure
+checks and started mixed-1, exactly in declared order. The cohort remains live;
+no case/application budget pass is claimed before independent audit. Observe only
+this existing controller, retain final evidence after it stops, then independently
+verify all known results and unknowns. Do not replay, restart or add cases/runs.
+Private live progress: `.qcrl/reviews/recorder-cohort-native-20261015LupusCohort02/`.
+Operator packaging/transport scripts there are **not executed yet** and require
+a stopped controller, sealed inventory and no running scoped units. Native stage:
+`/var/lib/qcrl-stream/recorder-persistence-20261015LupusCohort02`.
+
 ## October 16 UTC — Revised cohort approved and submitted once
 
 The user's “please continue” approved the exact revised packet dcce731d... /
