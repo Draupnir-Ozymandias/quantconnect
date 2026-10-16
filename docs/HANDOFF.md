@@ -44,6 +44,31 @@ parsing passes and does not constitute native execution. The complete local suit
 passed all 1,223 tests in 135.465 seconds, including existing localhost fixtures.
 Source freeze and staging receipt will be recorded below after completion.
 
+Exact execution source is `3ec2f92b16b6d1334770acc25c4869f18868ea63`, pushed to
+the development branch; 542 selected source files match its clean inventory.
+Full prospective freeze:
+`02942f3bfbbf45d78ed818fe3c574546ded4fdf7d49fe4720107aefc240d18a8`.
+Packet transport SHA:
+`e8b2909a13d5db8aec4fec4bd4c7c18904275818f568c021133baca0e2533ac3`.
+Staged only in `/var/lib/qcrl-stream/public-feed-20261017T160000Z` on the existing
+host. At 23:28:45 UTC, observed installed-interpreter verification matched source,
+runtime, TLS/CA and public baseline, and confirmed no controller claim, evidence
+directory or matching native unit. Staging receipt payload SHA:
+`c2faba03efa97cdc1f785f9a0a9867adb52b4b57b7b973f9294c25516170edff`.
+An incomplete browser packet transfer was retained as a partial file; a subsequent
+transfer matched the transport hash before extraction. This was staging, not a
+metadata/capture retry. No historical file or public service was changed.
+
+The app follow-up is bound to this exact freeze and staged checkout. Later
+documentation commits do not replace the execution candidate. Refresh gates
+tomorrow before one controller start in the fixed preparation window; use the
+installed interpreter with normal signal dispositions, `start_new_session=True`
+and a retained log, not `nohup`. Root claim publication prevents resumption.
+Native public-path compatibility remains unestablished until this single
+descriptive acquisition; no extra standalone test is inserted. Missing gates or
+deadline leave the target not run. After acquisition, stop and independently
+copy/hash/audit; never infer origin from producer flags alone.
+
 One app follow-up is scheduled for October 17 at 11:45 EDT (15:45 UTC), before
 the fixed metadata slot. It depends on app/access availability. Controller rejects
 early starts outside 15:45–15:55 UTC. No controller, metadata GET, feed subscription
