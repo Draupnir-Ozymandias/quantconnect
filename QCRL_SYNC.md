@@ -3155,3 +3155,17 @@ docs/RECORDER_COHORT_V2_RESULT_20261016.md. Private raw evidence remains outside
 Original OOM evidence/verdict and all thresholds unchanged. Stop: no replay,
 replacement, extra smoke/cohort, tuning/resource/public/IAM change, merge, QC sync
 or orders; execution authorization is spent.
+
+## October 16 — offline UTC/RSS bracket attribution
+
+Mapped all nine UTC and 39 RSS violations to case/relative time/duration, matching
+sends, wait-to-read scheduling, surrounding cgroup counters and sync overlaps.
+All RSS starts are timely; excess wall time lies inside the reader bracket,
+without an active-work versus GIL/OS/blocking split. 24/30 burst observations
+versus 15/552 other observations fail width; 18 bad RSS brackets overlap sync,
+21 do not. Throttle increments in surrounding windows accompany 20 RSS and
+three UTC events, without event-local attribution. No cause is established.
+Recommend one prospective paired RSS thread-CPU delta only; not implemented.
+Full mapping: docs/RECORDER_COHORT_BRACKET_ANALYSIS_20261016.md. Original outcome
+and frozen audit byte anchors and all 24 analysis inputs verify. Documentation
+only; no tests/native rerun/framework/threshold or failed-verdict change.

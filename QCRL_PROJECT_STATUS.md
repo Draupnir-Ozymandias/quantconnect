@@ -8,6 +8,12 @@
 
 ## October 16 recorder cohort result
 
+Offline follow-up maps [all 48 UTC/RSS bracket violations](docs/RECORDER_COHORT_BRACKET_ANALYSIS_20261016.md).
+RSS starts are timely; excess wall time is inside the reader bracket, with active
+work versus scheduling/blocking still unresolved. Burst concentration, surrounding
+throttle counters and sync overlaps are context, not causal proof. One prospective
+RSS thread-CPU measurement is recommended only; no code or native rerun.
+
 The one approved Cohort02 completed six cases / **360,000 ordered frames**. Full
 archive/completion/closure/native unit binding and all 208 origin-file byte checks
 pass. All 13 units exited successfully; installed Linux readiness passed 1,177

@@ -5,6 +5,28 @@ Updated October 16, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 16 — Offline bracket mapping complete; failed verdict preserved
+
+[Every UTC/RSS violation and contention context](RECORDER_COHORT_BRACKET_ANALYSIS_20261016.md)
+is mapped from retained bytes: nine UTC rows and 39 RSS reads, with case-relative
+timing, duration, matching send context, wait/handoff latency, enclosing cgroup
+counter windows and persistence-barrier overlaps. All 39 RSS starts are inside
+50 ms; excess elapsed time is inside the reader bracket, without evidence to
+split active work from GIL/OS scheduling or blocking inside that operation.
+The UTC clock/formatting bracket has the same attribution limitation.
+
+24/30 burst-slot RSS reads exceed 5 ms versus 15/552 other reads. Eighteen bad
+RSS brackets overlap recorded persistence barriers; 21 do not. Enclosing counter
+windows show throttle increments for 20/39 RSS and 3/9 UTC events, but cannot
+locate those increments within a particular violation. No causal mechanism is
+established; host/credit snapshots are not event-local contention evidence.
+
+One prospective recommendation only: paired observer-thread CPU time around the
+existing RSS read, retaining monotonic gates and explicitly identifying the added
+cost/scope in any future freeze. Not implemented. No new framework, test suite,
+native observation or rerun. Original source, thresholds, OOM evidence, cohort
+audit and failed verdict remain unchanged. Execution authorization remains spent.
+
 ## October 16 — Cohort02 audit complete: acceptance fails; stop
 
 The single approved 4926d62 / freeze 6428a09a... cohort completed all six cases
