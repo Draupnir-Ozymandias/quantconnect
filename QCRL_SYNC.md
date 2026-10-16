@@ -3122,3 +3122,36 @@ No staging/native/remote inspection this revision; retained host/runtime context
 is dated and fresh read-only checks are required before execution after new
 approval. Proposed Cohort02 only; no extra smoke/replay/retry/cohort now, public/
 VM/IAM changes, merge or QC sync. Prior execution approval is spent.
+
+## 2026-10-16 — Cohort02 collected once; independent acceptance audit fails
+
+Approved candidate 4926d62 / freeze 6428a09a... ran once, controller 1516839.
+Readiness passed on installed Linux: 1,177 total / 1,176 pass + one declared skip,
+201.118 s, 1-GiB readiness only. All twelve case units stayed at 512 MiB; all 13
+units exited successfully. Six cases in declared order, 360,000 exact ordered
+frames and full completion/closure/unit bindings verify. Sealed origin inventory:
+208 files / 218,570,554 bytes. Source/runtime/public state matched at stop;
+no scoped unit running, no runtime or preservation error.
+
+Frozen independent audit complete=true, verdict=fail, application_budget_pass=false:
+nine UTC row brackets exceed 1 ms (worst 5.210600 ms), 22 failure entries including
+13 aggregate phase/case duplicates. Five cases fail; steady-1 unknown. All 39
+resource-sample unknowns are RSS read brackets >5 ms (worst 19.535399 ms); read
+starts are inside 50 ms. All 597 wait receipts observed and no explicit slot
+errors; empty missed_slots does not pass RSS coverage. All nine CPU windows pass
+(maximum 35.582940% effective quota), as do every case/phase append/durability gate
+(worst durable 144.319336 ms). MemoryPeak unavailable for all 13 units; continuous
+peaks, incremental observer overhead, producer internal retries and continuous
+credit/shared-host effects remain unknown. No new gates or minimums invented.
+
+Read-only host/credit context and exact source/runtime/lineage freeze retained.
+The existing Session Manager client copied sealed evidence into CloudShell;
+browser interruption delayed only its download. Exact native/CloudShell/local
+archive hashes and all 208 origin files verify; no measurement replay. Outcome:
+65,739,818 bytes, SHA 51609e2ecca1b155d0ea3a631b3961ee46b207489be49504dc0840782ce71b64.
+Independent audit SHA c9296f31e5c89efb3071f883cdf15ff54f3ae1bbace64e70c01f2f1488f67618.
+Every UTC violation/resource unknown and full anchors:
+docs/RECORDER_COHORT_V2_RESULT_20261016.md. Private raw evidence remains outside Git.
+Original OOM evidence/verdict and all thresholds unchanged. Stop: no replay,
+replacement, extra smoke/cohort, tuning/resource/public/IAM change, merge, QC sync
+or orders; execution authorization is spent.

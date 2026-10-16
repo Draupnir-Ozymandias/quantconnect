@@ -1,12 +1,35 @@
 # QCRL Project Status
 
-**As of:** 2026-10-15 (engineering update; historical inventory below is September 23)
+**As of:** 2026-10-16 (engineering update; historical inventory below is September 23)
 **Repository:** `Draupnir-Ozymandias/quantconnect` / `polymarket-martingale`  
 **QuantConnect project:** 33239307  
 **Current research decision:** Hold feature optimization; preserve the locked
 2026Q4 prospective baseline while building execution infrastructure separately.
 
-## October 15 recorder engineering status
+## October 16 recorder cohort result
+
+The one approved Cohort02 completed six cases / **360,000 ordered frames**. Full
+archive/completion/closure/native unit binding and all 208 origin-file byte checks
+pass. All 13 units exited successfully; installed Linux readiness passed 1,177
+(total: 1,176 pass plus one declared skip) in 201.118 s under 1-GiB readiness only.
+Producer/recorder limits remained 512 MiB; all other budgets/thresholds unchanged.
+
+**Application acceptance fails:** nine UTC brackets exceed 1 ms (worst 5.210600 ms).
+Five cases fail and steady-1 is unknown. **39 RSS read brackets >5 ms** leave
+resource coverage unknown, despite no explicit wait-target misses among 597 wait
+receipts. All nine CPU windows and append/durability gates pass; worst durable
+144.319336 ms. Inclusive CPU/sampled RSS do not establish incremental observer
+cost or continuous/high-water RSS peaks (MemoryPeak absent for all 13 units).
+
+[Full result, every unknown and evidence anchors](docs/RECORDER_COHORT_V2_RESULT_20261016.md).
+Exact candidate 4926d62 / freeze 6428a09a...; independent audit complete=true,
+verdict=fail. Public/source/runtime state matched at stop; no scoped unit running.
+Original OOM/historical evidence and failed verdicts remain unchanged. Stop after
+this approved cohort/audit: no replay, extra smoke/cohort, tuning, rollout, merge,
+QC sync or orders. The preparation/historical chronology below is superseded by
+this result; no unused native approval remains.
+
+## October 15 recorder engineering history
 
 Offline memory diagnosis/revision is complete. The 60,000-frame audit fixture
 peaks above 512 MiB even alone; final suite RSS remains elevated after GC.
@@ -27,7 +50,7 @@ stopped test unit retains its failed state. Exact active test/allocation and mem
 peak are unknown. Local 1,169-test success does not substitute for native readiness.
 Incremental overhead/continuous peak remain unknown; no new credit gate was added.
 See [result](docs/RECORDER_PERSISTENCE_COHORT_RESULT_20261015.md) and [handoff](docs/HANDOFF.md).
-Prior native approval is spent; the revised packet awaits new approval.
+Both native attempts and the revised packet execution are now recorded; see October 16 result above.
 
 The prospectively frozen successor Linux recorder smoke **passes bounded
 compatibility** after 1,156 readiness tests (1,155 pass, one declared version skip).

@@ -1,9 +1,50 @@
 # Development handoff
 
-Updated October 15, 2026. Continue in
+Updated October 16, 2026. Continue in
 `/Users/eric/Projects/quantconnect/polymarket-martingale` on
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
+
+## October 16 — Cohort02 audit complete: acceptance fails; stop
+
+The single approved 4926d62 / freeze 6428a09a... cohort completed all six cases
+in order, 360,000 ordered frames, all completion/closure/native unit bindings
+verified. All 13 units exited successfully; Linux readiness passed 1,177 total /
+1,176 pass + one declared skip in 201.118 s, under the prospective 1-GiB allowance.
+All 12 producer/recorder units retained 512 MiB and the unchanged budgets.
+
+**Frozen independent audit: complete=true, verdict=fail,
+application_budget_pass=false.** Nine UTC brackets exceed the unchanged 1-ms gate
+(worst 5.210600 ms); five cases fail and steady-1 is unknown. There are **39** RSS
+resource-sample unknowns, all read brackets >5 ms (worst 19.535399 ms), with starts
+inside 50 ms. All 597 wait receipts were observed/no explicit target misses, but
+an empty frozen missed_slots list does not establish valid RSS coverage. Every
+unknown slot and each UTC violation is listed in the [full result](RECORDER_COHORT_V2_RESULT_20261016.md).
+
+Append/durability gates pass for every case/phase; worst durable 144.319336 ms.
+All nine complete CPU windows pass, maximum upper 35.582940% effective quota;
+max admissible timed RSS 93,057,024 bytes. These do not pass unknown resource
+coverage or incremental-overhead/continuous-peak claims. MemoryPeak unavailable
+for all 13 units; producer internal retries/shared-host/continuous-credit effects
+remain unknown. No causal attribution or tuning is claimed.
+
+All 208 originating files (218,570,554 bytes), frozen controls and the native /
+CloudShell / downloaded archive byte anchors verify. Outcome SHA-256:
+`51609e2ecca1b155d0ea3a631b3961ee46b207489be49504dc0840782ce71b64`.
+Independent frozen audit file SHA-256:
+`c9296f31e5c89efb3071f883cdf15ff54f3ae1bbace64e70c01f2f1488f67618`.
+Separate observed-origin review payload:
+`91924019f6e8d4686aa0e5c90409ec5a633b6ce5f6734a7f39c604abfadba816`.
+Private evidence: `.qcrl/reviews/recorder-cohort-native-20261015LupusCohort02/`.
+Browser interruption delayed only the same sealed evidence download; no experiment
+was repeated. Original OOM evidence/verdict remains unchanged. Dated post-stop
+source/runtime/public checks match, with no running scoped units.
+
+**Stop after the approved cohort/audit.** Authorization is spent. Preserve all
+failures/unknowns and frozen thresholds. No replay/replacement/extra smoke/cohort,
+parameter/resource change, public rollout, merge, QC sync or orders. Any future
+execution needs a separately reviewed prospective identity/approval. Earlier
+sections below preserve chronology, not current state or unused authorization.
 
 ## October 16 UTC — Six-case collection complete; sealed evidence retrieval/audit pending
 
