@@ -5,7 +5,53 @@ Updated October 16, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
-## October 16 — One public-feed descriptive study drafted; no capture authority
+## October 16 — Fixed public-feed target implementation and preparation
+
+**Historical application-budget verdict remains FAIL; no combined badge.**
+The user subsequently authorized regular commit/push and proceeding with the
+proposed target. [Prospective execution contract](PUBLIC_FEED_COUNTS_EXECUTION_V1.md)
+implements only `btc5m-20261017T160000Z-local-counts-01`, subject to its exact
+source/runtime/public/disk/market readiness gates. The original draft below is
+preserved. No observer optimization or additional smoke/cohort is authorized.
+
+New separate public transport, controller and independent interval report retain
+the original timestamp operation, measurement semantics, thresholds and failed
+evidence. Fixed policy SHA:
+`90fe9a6a7fc6fd0ba78b1a1d6218188cfd7399dd06cbd5bae02de870e2f56d32`.
+One metadata attempt October 17 at 15:55 UTC, 30 seconds maximum; exact market
+lock before 15:59; unit arm 16:00:40; nominal counting 16:01–16:02 UTC (12:01–12:02
+EDT). Market existence/IDs remain unknown until that opportunity. No substitute,
+retry or rollover if any required gate fails. Retain partial evidence and stop.
+
+Private preparation receipts:
+`.qcrl/reviews/public-feed-20261017T160000Z/`. Read-only Linux inspection October
+16 at 22:49 UTC found boot `c2c6dde4-9394-4b65-a1aa-87389cbf3538`, 6,316,806,144
+free disk bytes and unchanged historical source/runtime/public collectors.
+Installed runtime payload SHA:
+`4dac9c24b3ec1350a627f3316e50060a97e58d57139b4d816a9dc22b1d801f0c`.
+At 22:58 UTC the socket/TLS modules, OpenSSL 3.5.8 libraries and system CA bundle
+were independently hashed through Session Manager. At 23:12 UTC the proposed
+new stage and unit namespace were absent; NTP reported synchronized, which is
+context rather than an independent UTC accuracy bound. These are provenance
+inspections, not native public-adapter validation. Historical credit context is
+not refreshed by them; no new credit minimum or acceptance gate is invented.
+
+Twenty-two focused local tests pass, including actual writer/completion paths,
+stop-race closure, blocked socket/subprocess faults, clock failure and missing
+receipts. A separate local verified-TLS blocked-write check passed; local OpenSSL
+3.5.7/Python 3.14.6 differs from Linux OpenSSL 3.5.8/Python 3.9.25. Python 3.9 syntax
+parsing passes and does not constitute native execution. The complete local suite
+passed all 1,223 tests in 135.465 seconds, including existing localhost fixtures.
+Source freeze and staging receipt will be recorded below after completion.
+
+One app follow-up is scheduled for October 17 at 11:45 EDT (15:45 UTC), before
+the fixed metadata slot. It depends on app/access availability. Controller rejects
+early starts outside 15:45–15:55 UTC. No controller, metadata GET, feed subscription
+or native unit has started during this preparation. Preserve public collectors,
+historical stages, quotas and all original unknowns, including incremental
+observer overhead and continuous RSS peak. Following sections are history.
+
+## October 16 — Historical draft checkpoint; no authority at that checkpoint
 
 [Prospective study draft](PUBLIC_FEED_INTERVAL_COUNT_STUDY_DRAFT_V1.md), identity
 `qcrl.public_feed_interval_counts.study_draft.v1`. Proposed one BTC five-minute
