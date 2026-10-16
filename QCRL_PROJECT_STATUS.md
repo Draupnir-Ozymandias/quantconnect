@@ -6,6 +6,24 @@
 **Current research decision:** Hold feature optimization; preserve the locked
 2026Q4 prospective baseline while building execution infrastructure separately.
 
+## October 16 RSS CPU validation result
+
+The separately approved RssCpu01 completed one mixed case / 60,000 ordered frames,
+with full archive/completion/closure/native binding and all 43 origin-file byte
+checks verified. Linux readiness passed 1,194 total (1,193 pass + one skip) in
+204.935 s under 1-GiB readiness only; the two measurement units remained 512 MiB.
+
+**Auxiliary measurement useful; application acceptance fails.** All 73 RSS CPU /
+wall pairs link correctly. Eight wide reads show 6.532–19.520 ms wall alongside
+3.013–5.581 ms observer-thread CPU, supporting an execution-versus-elapsed
+distinction without identifying GIL/OS/I/O or exact off-CPU time. Four UTC rows
+exceed 1 ms; eight RSS widths >5 ms leave resource acceptance unknown. All required
+slots/waits are present; append/durability and one complete CPU window pass.
+No subtraction or threshold change. Incremental overhead and continuous RSS
+peaks remain unknown. [Full result and evidence anchors](docs/RECORDER_RSS_CPU_VALIDATION_RESULT_20261016.md).
+Source/runtime/public checks match after stop; authorization is spent. No extra
+run or six-case cohort. Original failed cohort/OOM evidence remains unchanged.
+
 ## October 16 recorder cohort result
 
 Optional [RSS thread CPU v1](docs/RECORDER_RSS_THREAD_CPU_V1.md) is now implemented

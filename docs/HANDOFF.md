@@ -5,6 +5,48 @@ Updated October 16, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 16 — RssCpu01 audited: useful measurement, application fails; stop
+
+[Full single-case result, every UTC failure and RSS CPU/wall pair](RECORDER_RSS_CPU_VALIDATION_RESULT_20261016.md).
+The approved eb13a51 / freeze babeeced... attempt completed exactly one mixed-0
+case, 60,000 ordered frames, with archive/completion/closure and native bindings
+verified. Exactly three units exited 0. Installed Linux readiness passed 1,194
+total / 1,193 pass + one declared skip in 204.935 s, under 1-GiB readiness only;
+measurement units retained 512 MiB and all original limits. No extra run.
+
+Frozen independent audit: **complete=true, verdict=fail,
+application_budget_pass=false**. Four UTC rows exceed 1 ms (worst 1.943665 ms).
+Eight RSS widths exceed 5 ms, leaving resource acceptance unknown; every required
+slot 0–71 is present, all 74 waits observed, all RSS starts inside 50 ms. Empty
+missed_slots is not a resource pass. Append/durability and one complete CPU window
+pass (36.100538% effective quota); admissible sampled RSS max 92,704,768 bytes.
+
+Auxiliary coverage is complete: **73 linked RSS CPU/wall pairs**, no CPU unknown
+or CPU-greater-than-wall anomaly. The eight wide reads span 6.531977–19.519640 ms
+wall with 3.012961–5.580687 ms thread CPU. This is useful evidence of reader-thread
+execution within a larger elapsed interval, supporting scheduling/blocking as
+well; it does not identify GIL/OS/I/O or exact off-CPU time. Slot 15's measured
+CPU alone is 5.580687 ms; active work also matters in that observation. Nothing
+is subtracted, excused, tuned or extrapolated into an intrinsic cost guarantee.
+Incremental observer overhead, continuous/high-water RSS, producer internal retry
+count and event-local host/credit attribution remain unknown. MemoryPeak is
+unavailable for all three units. Seven surrounding bad-read counter windows have
+throttle increments, slot 24 does not; four overlap sync barriers and four do not.
+
+All 43 originating files / 36,788,158 bytes verify. Outcome 10,933,856 bytes,
+SHA-256 `1b077a9745ada5742ac4962e7bc1d5653c0f08faa4b58ea5ac7151a11e560b18`.
+Frozen independent audit file SHA-256:
+`c115ad33d1c95cfc1f9eb215d7ee882a99a0ad23cea5b3d73d0f63cd8ec8ffb8`.
+Separate observed-origin receipt payload:
+`4e0b275662ae8e6b8665f72ddbc50b3ee631a70b8e3e4f6d37ea1b1cb8ea6432`.
+Native/CloudShell/downloaded byte anchors match. Post-stop source/runtime/public
+checks pass, no scoped units remain. Historical Cohort02/OOM evidence and failed
+verdicts are unchanged. Private RssCpu01 directory is listed below.
+
+**Stop. Authorization is spent.** No retry/replay/replacement, extra validation,
+six-case cohort, resource/public change, new diagnostic framework, merge, QC sync
+or orders. Earlier sections preserve chronology, not pending authorization.
+
 ## October 16 — RssCpu01 staged; one controller submitted, readiness pending
 
 Candidate `eb13a5136ae5a4f88a2987706cf46a5d874f2054` (528 selected files) is frozen:

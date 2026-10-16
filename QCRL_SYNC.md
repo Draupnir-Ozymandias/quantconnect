@@ -3212,3 +3212,34 @@ Single controller PID 1588005 submitted 15:36:48.252682 UTC. Readiness pending;
 1,194 tests / one declared skip required before the sole mixed-0 pair. Stop after
 this attempt/audit. No additional controller, retry or six-case cohort. HANDOFF
 retains exact identity/checkpoint; historical failed verdicts remain unchanged.
+
+## October 16 — RssCpu01 independent audit complete; stop
+
+One controller 1588005, one readiness plus one mixed-0 pair, all successful exits.
+Linux readiness: 1,194 total / 1,193 pass + one declared skip, 204.935 s, 1-GiB
+readiness only. Measurement limits unchanged. All 60,000 ordered frames and
+archive/completion/closure/native command/unit bindings verify. All 43 origin
+files (36,788,158 bytes), native/CloudShell/downloaded archive anchors verify.
+
+Independent audit complete=true, verdict=fail, application_budget_pass=false:
+four UTC rows >1 ms (worst 1.943665 ms), eight RSS width unknowns >5 ms. All required
+slots 0–71 present; 74 observed waits, no explicit target miss, starts <50 ms.
+Append/durability and one 60-s CPU window pass (36.100538% quota upper), valid
+sampled RSS max 92,704,768 bytes. Empty missed_slots does not pass RSS coverage.
+All 73 auxiliary RSS CPU/wall pairs verify, no CPU unknown/anomaly. Eight wide
+reads: wall 6.531977–19.519640 ms, thread CPU 3.012961–5.580687 ms. Measurement is
+useful, supports execution plus a larger elapsed interval; no exact off-CPU or
+GIL/OS/I/O attribution. No subtraction. CPU alone at slot 15 exceeds 5 ms in this
+observation; no intrinsic minimum or guarantee claimed. Four wide reads overlap
+sync and four do not; slot 24's surrounding throttle delta is zero. Incremental
+observer overhead, continuous/high-water RSS, producer retries and event-local
+credit/shared-host cause remain unknown. MemoryPeak unavailable for all 3 units.
+
+Outcome 10,933,856 bytes, SHA 1b077a9745ada5742ac4962e7bc1d5653c0f08faa4b58ea5ac7151a11e560b18.
+Frozen audit SHA c115ad33d1c95cfc1f9eb215d7ee882a99a0ad23cea5b3d73d0f63cd8ec8ffb8.
+Observed-origin receipt payload 4e0b275662ae8e6b8665f72ddbc50b3ee631a70b8e3e4f6d37ea1b1cb8ea6432.
+Full result: docs/RECORDER_RSS_CPU_VALIDATION_RESULT_20261016.md. Post-stop source /
+runtime/public checks match, no scoped units. Historical OOM/Cohort02 hashes,
+failed verdicts and thresholds preserved. Authorization spent: no replay, extra
+case/validation/cohort, resource/public change, diagnostic framework, merge,
+QuantConnect sync or orders. HANDOFF updated.
