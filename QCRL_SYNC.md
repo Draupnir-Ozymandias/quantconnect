@@ -3260,3 +3260,34 @@ The four UTC rows 7236/11693/12410/24142 remain failed separately; RSS optimizat
 does not establish UTC coverage. All historical failures/evidence unchanged.
 Details: docs/RECORDER_RSS_PATH_REVIEW_20261016.md; HANDOFF maintained. No rerun,
 new diagnostic framework or six-case cohort; native authorization remains spent.
+
+## October 16 — quota reuse v1 implemented and benchmarked offline
+
+Prospective identity qcrl.resource_quota_reuse.v1. Complete ordered snapshot
+comparison includes all quota/cpuset/controller/path values and key presence,
+list depth/order/parent relationships, plus memory.max. First validation remains
+inside the bracket; its result is local to this read. Closing mismatch still
+runs original validation before ancestry-race rejection. Stable calls 2 inside /
+1 after become 1 inside / 0 after. Both snapshots retain all fresh I/O, identity /
+membership/path guards, VmRSS definition, original clock placement and thresholds.
+No added production timing call, source substitution or diagnostic framework.
+
+Offline tests: discovery 1,200 pass in 153.739 s; final quota module 7/7 pass
+including additional boundary coverage; Python 3.9 syntax only, no native claim.
+Actual reader faults cover changed/malformed first/closing data, ancestry order /
+depth, membership/PID/directory/missing-file races and fresh subsequent readings.
+Local old/new readers produce equal samples and the same ordered 48 text attempts.
+Intel Python 3.14.6 benchmark, 20 alternating rounds: native-shaped validation
+inside median 118.237 -> 59.784 us, paired saving 59.655 us (0.059655 ms).
+This is only 0.306-0.913% of retained 6.532-19.520-ms native widths, not a Linux
+speedup prediction. Total validation paired saving 116.527 us includes outside
+work; full-reader paired savings range -389.956 to +347.860 us. No standalone
+Linux experiment justified by this optimization alone. All raw batches and exact
+old/new source copies retained privately, hashes/method in
+ docs/RECORDER_QUOTA_REUSE_V1_20261016.md.
+
+Four UTC failures 7236/11693/12410/24142 remain a separate blocker. Eight RSS
+unknowns and all failed verdicts remain; no retroactive adjusted bracket. RssCpu01
+and Cohort02 archive/audit anchors and Cohort01 OOM archive reverify unchanged.
+HANDOFF/status maintained. No native rerun, cohort, remote access, resource/public
+collector change, QuantConnect sync or merge.

@@ -257,9 +257,9 @@ class LinuxReader:
                     memory_max=limit(path, 'memory.max'),
                     controllers=text(path / 'cgroup.controllers').strip(),
                     subtree_control=text(path / 'cgroup.subtree_control').strip()))
-            quota(rows)
             return rows
         ancestry = ancestry_snapshot()
+        effective_quota = quota(ancestry)
         first = self.members()
         actors = []
         for pid in first:
@@ -283,7 +283,11 @@ class LinuxReader:
         current = int(text(self.group / 'memory.current').strip())
         if self.members() != first or self.identity(self.pid) != self.expected:
             raise ContractError('actor membership raced')
-        if ancestry_snapshot() != ancestry:
+        closing_ancestry = ancestry_snapshot()
+        # Compare the complete ordered snapshots, including every quota input.
+        # Reuse only within this read; changed snapshots retain validation faults.
+        if closing_ancestry != ancestry:
+            quota(closing_ancestry)
             raise ContractError('resource controller/limit ancestry raced')
         self.check_paths()
         if instrument:
@@ -292,7 +296,7 @@ class LinuxReader:
         if not math.isfinite(begin) or not math.isfinite(end) or not 0 <= begin <= end:
             raise ContractError('invalid resource clock')
         result = dict(before=begin, after=end, owner=self.expected, ancestry=ancestry,
-                    effective_quota=quota(ancestry), cpu=cpu, memory_events=events,
+                    effective_quota=effective_quota, cpu=cpu, memory_events=events,
                     memory_current=current, actors=actors,
                     rss_bytes=sum(r['rss_bytes'] for r in actors) if rss else None)
         if instrument:

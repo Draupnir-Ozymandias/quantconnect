@@ -5,6 +5,34 @@ Updated October 16, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 16 — Quota reuse v1 implemented offline; no Linux run justified alone
+
+[Implementation, complete-input review, tests and benchmark](RECORDER_QUOTA_REUSE_V1_20261016.md).
+Prospective identity `qcrl.resource_quota_reuse.v1`; reader source SHA-256
+`8cf1450a19a3d0ff95d3d878f4aaed435151ec259baebd2c275e8bbec3c2d7f3`.
+Full ordered dictionary/list equality covers every quota/controller/CPU-set/path
+input and ancestor structure, plus memory limits. Validate first fresh snapshot
+once inside the original bracket; reuse only within this read. Changed closing
+snapshots still undergo validation before the original race error. All fresh
+I/O, measurement semantics, clocks, publication and thresholds stay unchanged.
+
+Local discovery: 1,200 passed in 153.739 s; final quota module 7/7 passed,
+including the added boundary test. Changed/malformed ancestry, structural/cap
+boundaries, membership/PID/path/I/O races and publication linkage are covered.
+Python 3.9 syntax passes locally; no installed Linux/native validation claim.
+
+Offline paired benchmark, original vs successor: three-ancestor in-bracket
+validation 118.237 → 59.784 microseconds; median paired saving **0.059655 ms**.
+This is only 0.306–0.913% of retained 6.532–19.520-ms native wall widths, with no
+cross-machine speedup guarantee. Total validation saves 0.116527 ms including
+after-bracket work; full-reader paired measurements are noisier. **Do not spend
+a standalone native run on this alone.** No new timing layer or native rerun.
+
+The four UTC failures (7236, 11693, 12410, 24142) remain a separate blocker.
+All eight RSS unknowns, failed verdicts and historical thresholds/evidence remain
+unchanged; prior archive/audit anchors match. Incremental overhead/continuous RSS
+peak remain unknown. No six-case cohort. The following sections are chronology.
+
 ## October 16 — Offline RSS path review; one optimization proposed only
 
 [Parsing, allocation, file access, locking and repeated-work review](RECORDER_RSS_PATH_REVIEW_20261016.md).

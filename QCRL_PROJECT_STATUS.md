@@ -8,12 +8,15 @@
 
 ## October 16 RSS CPU validation result
 
-[Offline reader review](docs/RECORDER_RSS_PATH_REVIEW_20261016.md) proposes one
-minimal change: reuse a per-read validated quota after matching fresh ancestry
-snapshots, retaining every I/O/race check and original wall gate. It removes
-redundant pure validation, with no measured saving or implementation yet.
-Four UTC failures remain a distinct unresolved requirement; RSS work cannot
-establish their repair. No native rerun or new framework.
+[Quota reuse v1](docs/RECORDER_QUOTA_REUSE_V1_20261016.md) is implemented offline:
+full fresh ancestry equality covers all validation inputs and structure, with
+closing validation faults preserved on mismatch. All reads, measurement sources,
+brackets and thresholds remain. Local discovery passed 1,200 tests; final quota
+module 7/7 passes including the added boundary test. Intel offline in-bracket
+median paired saving is 0.059655 ms, only 0.306–0.913% of retained native wide
+brackets. This does **not justify a standalone Linux experiment**. Four UTC
+failures remain a separate unresolved blocker; RSS work cannot establish their
+repair. Historical evidence/verdicts stay unchanged. No native rerun/framework.
 
 The separately approved RssCpu01 completed one mixed case / 60,000 ordered frames,
 with full archive/completion/closure/native binding and all 43 origin-file byte
