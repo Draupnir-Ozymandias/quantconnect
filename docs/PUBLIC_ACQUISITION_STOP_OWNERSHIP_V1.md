@@ -146,3 +146,29 @@ Exact source, expected-runtime envelope, freeze and packet hashes are recorded
 in HANDOFF after offline regression. They are conditional expectations until
 fresh read-only native gates pass. Native staging and execution require the user's
 separate approval; none occurred during this implementation.
+
+## Sealed conditional validation packet
+
+Execution candidate: `db25a2db79c53af28e38ba6531f0bba21ebd224b`, 550 selected files.
+Freeze: `6861db15528c43baa1d4a0cd3c8b4350dc6c3b8ab6ae240d9a888cc48c4c3c57`.
+Packet: 91,690 bytes, SHA-256
+`e994325057570d33836183781bf72a84f032238ce0de21ecca7ac597da0d93a6`.
+All five packet members and selected source hashes verify offline; the Git bundle
+verifies and requires the already-retained de4c10b base. Private controls:
+`.qcrl/reviews/public-stop-validation-StopOwn01/`.
+
+Expected runtime payload:
+`4dac9c24b3ec1350a627f3316e50060a97e58d57139b4d816a9dc22b1d801f0c`.
+This is the retained expected installed envelope, **not fresh native verification**.
+The packet separately binds installed socket/context bytes and public baseline
+for read-only verification before submission; it does not claim a TLS test.
+Fresh matching native gates, exact unit/isolation checks and a separate direct
+one-case execution confirmation remain mandatory. No staging, unit, native test,
+public request or schedule has occurred. The frozen authorization flag remains
+false; packet hashes supply integrity, not a signature or execution permission.
+
+Approval would cover staging this exact new namespace and **one** StopOwn01
+unit only, subject to those gates, followed by independent copy/hash/completion/
+ownership/fault review. Missing gates or any failure stops with retained evidence.
+Later documentation HEAD must not replace this candidate. No follow-on public
+capture, repair of v3, timing campaign or cohort is included.

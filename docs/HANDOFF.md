@@ -35,9 +35,15 @@ bounded setup/close/publication. Peer holds open; must finish by normal ownershi
 not frame cap. Plan SHA
 `9702f4e923b99873dd4d4a7d641e9be634dbadd3d81f6991dc1b70230c35d808`.
 Only the existing completion verifier is used; no new observer/auditor framework.
-No TLS/public-feed or resource-budget claim. Exact candidate/conditional runtime
-packet follows after local regression; fresh native gates and explicit one-case
-approval are required before staging/execution. No SSH/native run or automation
+No TLS/public-feed or resource-budget claim. Execution candidate
+`db25a2db79c53af28e38ba6531f0bba21ebd224b`, 550 selected files; conditional freeze
+`6861db15528c43baa1d4a0cd3c8b4350dc6c3b8ab6ae240d9a888cc48c4c3c57`.
+Packet SHA `e994325057570d33836183781bf72a84f032238ce0de21ecca7ac597da0d93a6`,
+91,690 bytes, five members and all source hashes verified offline. Expected
+installed runtime is retained historical context, **not newly verified**; fresh
+native gates and explicit one-case approval are required before staging/execution.
+Private packet: `.qcrl/reviews/public-stop-validation-StopOwn01/`. Later docs HEAD
+does not replace this candidate. No SSH/native run or automation
 was started during this offline implementation. Historical v3 closure fault,
 all original FAIL/unknown/not-run outcomes and thresholds remain untouched.
 
