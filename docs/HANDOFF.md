@@ -5,6 +5,32 @@ Updated October 17, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 17 — Local CLI/SSO access established; remote access unverified
+
+At the user's request, prepared [AWS operator access](AWS_OPERATOR_ACCESS.md).
+Official signed Intel packages supplied user-local AWS CLI 2.38.1 and Session
+Manager plugin 1.2.896.0 without Homebrew, sudo or replacing the existing CLI.
+The new `qcrl-ohio` profile uses the existing account/AdministratorAccess role;
+the user confirmed the Identity Center region as Ohio and completed device login.
+A bounded STS identity API call succeeded and verified the expected account and
+role. Default profile settings and the existing credentials file remain unchanged.
+No tokens, private keys or device codes are included in tracked documentation.
+
+Prepared the local `qcrl-ohio` SSH alias with the existing key and strict host-key
+checking. No pinned host key exists for the documented IP; current IP binding and
+remote public-key authorization remain unverified. No SSH connection, SSM session,
+Run Command, instance command, IAM/network change or experiment was attempted by
+this setup. Effective local SSH configuration, wrapper shell syntax and tool
+versions verify; these are local checks, not Linux runtime validation.
+
+Browser enforcement still denied the console origin after the user's removal of
+site exceptions. API authentication does not resolve that browser gate, and no
+alternate transport was used to perform the blocked host actions. Both fixed
+public-feed targets remain **not_run**; historical application **FAIL**, thresholds,
+frozen evidence and all measurement unknowns stand. Neither expired packet may
+be revived. Private installation and identity receipts are under
+`.qcrl/access-setup/20261017/`.
+
 ## October 17 — Approved successor missed access/readiness cutoff: not run
 
 [Successor v2 outcome](PUBLIC_FEED_COUNTS_SUCCESSOR_OUTCOME_20261017.md).
