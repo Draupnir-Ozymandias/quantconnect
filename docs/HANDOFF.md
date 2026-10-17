@@ -1,11 +1,48 @@
 # Development handoff
 
-Updated October 16, 2026. Continue in
+Updated October 17, 2026. Continue in
 `/Users/eric/Projects/quantconnect/polymarket-martingale` on
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
-## October 16 — Fixed public-feed target implementation and preparation
+## October 17 — Fixed public-feed target stopped before HTTP: not run
+
+**Historical application-budget verdict remains FAIL; no combined badge.**
+[Outcome and independent retained-evidence audit](PUBLIC_FEED_COUNTS_OUTCOME_20261017.md).
+The one controller began at 11:50:47 EDT after renewed AWS sign-in and matching
+fresh source/runtime/TLS-byte/public/namespace/disk gates. At 11:55:00.575922 EDT
+the single metadata opportunity failed constructing the pinned CA context:
+ASCII decoding encountered byte 0xc5 at offset 129802. This happened before any
+HTTP request. Retained traceback identifies the exact frozen adapter call;
+the outer controller error is a nonzero helper exit.
+
+Disposition is **not_run**, not a zero-count recording. No market identity was
+locked; zero HTTP requests, feed connections and recorder units. Controller
+exited; post-checks at 11:56:55 EDT match source/runtime/TLS/public baseline and
+confirm no matching study unit. No retry, substitute, rollover or extra experiment.
+Public collectors, resources and original evidence remain unchanged.
+
+All 21 retained files / 619,691 file-content bytes copied independently and match
+their complete selected inventory. Sealed archive SHA:
+`8e19d8939e2cf028b8534a58ab68686055dfe6299ac683753fb8fdab48fb17fc`.
+Not-run audit payload SHA:
+`93d216ca9b73f9c2f8004f366b74f16511605d51b3be1c89fb3ce05ca8f721f5`.
+Private directory remains `.qcrl/reviews/public-feed-20261017T160000Z/`.
+Exact 3ec2f92 source is retained and all 542 frozen entries independently verify.
+No observer timing/resource sample population exists for this target; every one
+of the 60 relative report slots has null counts and not-run coverage, without an
+invented epoch. Market availability/IDs, incremental overhead, continuous RSS
+peak, independent UTC accuracy and real-market completeness remain unknown.
+
+Offline reproduction with the actual frozen TLS function and a valid synthetic
+CA fixture confirms the ASCII assumption is too restrictive; OpenSSL's verified
+file loader accepts the non-ASCII-comment fixture. Provenance checks did not
+exercise context construction. Recommended next work is a prospective binary-safe
+same-bundle TLS load and offline readiness/fault tests; no production patch or
+new window is adopted here. The scheduled one-case attempt is over. Following
+sections are historical checkpoints, not permission to resume this used stage.
+
+## October 16 — Historical fixed public-feed implementation and preparation
 
 **Historical application-budget verdict remains FAIL; no combined badge.**
 The user subsequently authorized regular commit/push and proceeding with the
