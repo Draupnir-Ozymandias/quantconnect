@@ -5,7 +5,34 @@ Updated October 17, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
-## October 17 — CA repair and newly identified successor proposal
+## October 17 — Successor approved; browser-origin access blocks execution
+
+The user directly approved staging and one bounded 1-PM EDT target under freeze
+`4c25a8b5dcf31b55abbfecb3faff7adb46c57f8abe021523908e6fad6804d79d`.
+Direct confirmation is retained privately in the successor review directory as
+`execution-confirmation.json`; it is separate from the immutable proposal receipt
+that originally marked exact-window approval pending. No further study approval
+is required for this exact packet, subject to all declared gates and deadlines.
+
+At 12:42 PM EDT the browser independently denied permission to observe the AWS
+console origin. After the user's permission-setting attempts, access checks still
+reported a saved permission or managed-policy deny at 12:47 and 12:51 PM EDT.
+The local configuration already contains an allow for the exact HTTPS origin;
+that does not override the browser's separate saved/managed decision. No policy
+file, browser database, alternate browser surface, SSH/CLI path or other workaround
+was used to bypass the denial. Only local read-only configuration diagnosis and
+official permission guidance were consulted.
+
+Checkpoint: uploaded inert packet only; no staging script or successor launcher
+executed, no controller claim, HTTP request, feed connection or native recorder
+unit started by this agent. Exact-checkout staging/readiness remains outstanding.
+Prepared launch wrapper requires the direct confirmation's literal hash and the
+unchanged freeze. If access/readiness is not restored before the fixed 12:55 PM
+EDT opportunity, retain this target as not run; no rollover/retry or adoption of
+a later epoch. Earlier approvals remain historical, not permission for another
+window. Original target not-run and historical application FAIL remain unchanged.
+
+## October 17 — Historical CA repair and successor proposal checkpoint
 
 In response to “can you retry now?”, implemented the targeted offline CA fix and
 prepared [one prospective successor proposal](PUBLIC_FEED_COUNTS_SUCCESSOR_V2.md),
