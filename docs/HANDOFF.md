@@ -5,7 +5,42 @@ Updated October 17, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
-## October 17 — New fixed public-feed capture staged and scheduler deployed
+## October 17 — Public-feed v3 audited; closure fault and coverage unknown
+
+One authorized capture ran and stopped. [Outcome and limits](PUBLIC_FEED_COUNTS_V3_OUTCOME_20261017.md)
+and [all 60 count rows](PUBLIC_FEED_COUNTS_V3_20261017.csv). Historical application
+**FAIL** and both earlier **not_run** outcomes remain unchanged; no combined badge.
+
+Independent copy/hash/source review verifies 59 files / 15,358,101 content bytes,
+all 35 producer evidence files and all 547 exact frozen source entries. Sealed
+copy SHA `ada4841cc5ead9c0e2bcb82e0376135e0f94c42f80f24ec33863044d7a03bcd6`;
+independent retained-audit payload
+`3d0d239508f51686bf5004176891f20f3ff1e2536806fa18c454d1799e951147`.
+Original producer flags/evidence are intact. Frozen source remains de4c10b;
+freeze `b4bb07c78cf5558fea2befe1b7611166678f00344ba6664d942fd6becbe8d7ed`.
+
+Full archive/completion/domain/case linkage verifies 31,434 returned texts:
+7,221 prewindow, 21,941 primary-minute, 2,272 tail. One occurrence straddles
+bins 20/21; bounds [325,326] and [243,244], other 58 bins exact for archived
+population. Zero unplaced; second exact-fraction calculation reproduced every row.
+All coverage remains **unverified**, and feed-activity upper bounds remain unknown.
+
+Retained fault: `transport already closing at stop; closure timing unknown`.
+The deadline watchdog fired, but its causal role is unproven. One gap record;
+the frozen normal-completion predicate fails. Neither final near-deadline frame
+nor successful unit exit repairs this. Original UTC bracket violation: one at
+4.763 ms. RSS: 23 of 67 brackets exceed 5 ms, no missed resource slots; resource
+qualification remains unknown. Qualified inclusive 60-second CPU upper fraction
+0.447429489 of effective quota; incremental overhead/continuous RSS peak unknown.
+No append/durability worst violation. Original thresholds remain authoritative.
+
+Independent post-check found scheduler/controller gone and unit inactive/dead;
+source/runtime/TLS/public baseline unchanged. No replay, restart, new target,
+extra experiment, observer optimization or resource change. The one-time audit
+follow-up has been deleted; future capture needs its own authorization.
+Private archive, controls and audit: `.qcrl/reviews/public-feed-20261017T183000Z/`.
+
+## October 17 — Historical new capture staging and deployment checkpoint
 
 Exact execution source `de4c10bf3f53bb4fd4ab3646c22a7d5e3fc1536c`, 547 selected
 files, freeze:
