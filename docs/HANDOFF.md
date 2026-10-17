@@ -5,6 +5,33 @@ Updated October 17, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 17 — New public-feed target v3 declared prospectively
+
+The user's “please proceed with setup and deployment of a new capture” authorizes
+one new conditional target. [Declaration](PUBLIC_FEED_COUNTS_SUCCESSOR_V3.md):
+`btc5m-20261017T183000Z-local-counts-03`, BTC five-minute 18:30–18:35 UTC
+(2:30–2:35 PM EDT), nominal counts 18:31–18:32 UTC. One metadata opportunity
+18:25 UTC, lock before 18:29, arm 18:30:40. Policy SHA:
+`6cdc0386787c0a6bd68ac0061e59c6f50b657dfac19f2ec27bd056f336488533`.
+Prior v1/v2 dictionaries and literal regression hashes remain intact. Only
+identity/window/namespace change; method, transport, observers, thresholds and
+resource/storage budgets are unchanged. Missing gates mean retained not-run or
+partial evidence and stop, with no substitute/retry/replay/rollover.
+
+Fresh read-only Linux checks at 17:57:11Z verified the historical source/runtime,
+current TLS modules/CA, actual mandatory-verification context (143 certificates),
+public state/source/environment and about 6.3 GB free disk. No metadata/feed
+request or unit ran. All 1,228 local tests passed in 153.665 seconds; all 27
+focused tests pass and changed files accept Python 3.9 syntax. Exact source/
+freeze/deployment receipts follow after completion. Local tests are not Linux
+public-adapter validation. Fresh AWS context reports standard credit mode and
+latest reported balance 576 at 17:54 UTC, with no credit acceptance minimum.
+NTP reports synchronized, without an independent accuracy bound. A finite,
+exclusive launch scheduler may wait
+for the fixed controller window without creating a unit or making data requests.
+Historical application **FAIL**, both expired **not_run** outcomes, evidence and
+all measurement unknowns remain intact. No combined acceptance badge.
+
 ## October 17 — SSH access independently verified
 
 The user installed the existing Mac public key through their own AWS session,
