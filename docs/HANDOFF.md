@@ -5,7 +5,33 @@ Updated October 17, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
-## October 17 — Successor approved; browser-origin access blocks execution
+## October 17 — Approved successor missed access/readiness cutoff: not run
+
+[Successor v2 outcome](PUBLIC_FEED_COUNTS_SUCCESSOR_OUTCOME_20261017.md).
+Direct study approval was received in time. Browser enforcement nevertheless
+denied the AWS origin despite an explicit local config allow and the user's
+visible Always allow setting. The cause of that mismatch remains unresolved.
+The fixed 12:55-PM EDT opportunity passed without completed staging/readiness.
+Successor v2 is **not_run**; original v1 remains not run and historical application
+verdict remains FAIL. No new combined acceptance badge.
+
+The agent launched no successor staging script, controller, HTTP request, feed
+connection or recorder unit, and made no public/infrastructure changes. Last
+observed remote state was an inert packet only; independent fresh remote state
+after the browser denial is unavailable. No policy workaround, late adoption,
+retry, rollover, new target or new automation. Resolve origin access read-only
+before proposing any other prospective window; do not execute this expired packet.
+
+Direct-confirmation payload SHA:
+`9848b52278396adc33446ab53f525864b3d087b174c2eb0d2339107dd42f21a3`.
+Local access-not-run receipt SHA:
+`638fdde4debdf77143548815ad4953d13666e7123d35d40917daf48ca715a958`.
+Both, the user permission screenshot and exact packet remain in the private v2
+review directory. All 60 relative slot counts are null/not-run, with no invented
+epoch or population. Every measurement/resource unknown remains unchanged.
+Following sections are historical checkpoints, not permission to resume.
+
+## October 17 — Historical direct approval and browser-origin access checkpoint
 
 The user directly approved staging and one bounded 1-PM EDT target under freeze
 `4c25a8b5dcf31b55abbfecb3faff7adb46c57f8abe021523908e6fad6804d79d`.
