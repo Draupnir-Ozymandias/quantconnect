@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import socket
+import ssl
 import subprocess
 import sys
 from tempfile import TemporaryDirectory
@@ -44,9 +45,11 @@ def frame(i, a, b):
 
 class CountsTests(unittest.TestCase):
     def test_plan_and_detached_copy(self):
-        self.assertEqual(payload_hash(counts.PLAN),
+        self.assertEqual(payload_hash(counts.ORIGINAL_PLAN),
             '90fe9a6a7fc6fd0ba78b1a1d6218188cfd7399dd06cbd5bae02de870e2f56d32')
-        self.assertEqual(counts.PLAN['case'], 'btc5m-20261017T160000Z-local-counts-01')
+        self.assertEqual(payload_hash(counts.PLAN),
+            '220e1b592365b33dd5e0e4c46ab53103735f4add634694aba4cb745a7fa0adff')
+        self.assertEqual(counts.PLAN['case'], 'btc5m-20261017T170000Z-local-counts-02')
         self.assertEqual(counts.PLAN['connection_attempts'], 1)
         self.assertEqual(counts.PLAN['reconnects'], 0)
         self.assertEqual(counts.PLAN['original_application_verdict'], 'fail')
@@ -55,7 +58,7 @@ class CountsTests(unittest.TestCase):
         self.assertEqual(counts.plan()['unit']['MemoryMax'], '512M')
 
     def test_exact_anchor_ceiling_and_no_past_adoption(self):
-        value = counts.epoch_ns(1., '2026-10-17T16:00:40.000001Z', 1.0000000001)
+        value = counts.epoch_ns(1., '2026-10-17T17:00:40.000001Z', 1.0000000001)
         exact = (Fraction(1.0000000001)+Fraction(19999999,1000000))*1000000000
         self.assertGreaterEqual(value, exact)
         self.assertLess(value-exact, 1)
@@ -339,7 +342,7 @@ class OperatorTests(unittest.TestCase):
             root=Path(d)
             with self.assertRaises(ContractError):operator.discover(root,{},execute=False)
             with self.assertRaises(ContractError):operator.discover(root,{},execute=True,
-                clock=lambda:counts.utc('2026-10-17T15:55:31Z'))
+                clock=lambda:counts.utc(counts.PLAN['discovery'])+timedelta(seconds=31))
             self.assertFalse(list(root.iterdir()))
             with patch.object(operator,'pinned_tls',return_value=None):
                 case=operator.discover(root,dict(freeze_sha256='0'*64),execute=True,
@@ -411,3 +414,82 @@ class OperatorTests(unittest.TestCase):
 
 
 if __name__=='__main__':unittest.main()
+
+
+class TLSBundleTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.der=ssl.create_default_context().get_ca_certs(binary_form=True)[0]
+        cls.bundle=('# Å non-ASCII fixture comment\n'+ssl.DER_cert_to_PEM_cert(cls.der)).encode('utf-8')
+
+    def fixture(self,root,data=None):
+        import hashlib
+        path=Path(root)/'ca.pem';data=self.bundle if data is None else data;path.write_bytes(data)
+        profile=dict(ca_file=str(path),ca_sha256=hashlib.sha256(data).hexdigest())
+        return path,profile,dict(tls=profile)
+
+    def test_non_ascii_bundle_real_loader_and_snapshot_cleanup(self):
+        with TemporaryDirectory() as d:
+            path,profile,frozen=self.fixture(d)
+            loader=ssl.create_default_context;seen=[]
+            def load(**kw):
+                self.assertEqual(set(kw),{'cafile'})
+                fd=int(kw['cafile'].split('/')[-1]);seen.append(fd)
+                self.assertEqual(os.fstat(fd).st_mode & 0o777,0o600)
+                self.assertNotEqual(kw['cafile'],str(path))
+                return loader(**kw)
+            with patch.object(operator,'tls_profile',return_value=profile),patch.object(ssl,'create_default_context',side_effect=load):
+                context=operator.pinned_tls(frozen)
+            self.assertEqual(context.get_ca_certs(binary_form=True),[self.der])
+            self.assertTrue(context.check_hostname)
+            self.assertEqual(context.verify_mode,ssl.CERT_REQUIRED)
+            self.assertEqual(len(seen),1)
+            with self.assertRaises(OSError):os.fstat(seen[0])
+
+    def test_malformed_empty_and_oversized_bundles_fail(self):
+        for data,expected in ((b'',ssl.SSLError),(b'not a certificate\n',ssl.SSLError),
+                               (b'x'*(4*1024**2+1),ContractError)):
+            with self.subTest(size=len(data)),TemporaryDirectory() as d:
+                _,profile,frozen=self.fixture(d,data)
+                with patch.object(operator,'tls_profile',return_value=profile),self.assertRaises(expected):
+                    operator.pinned_tls(frozen)
+
+    def test_profile_and_byte_drift_refused(self):
+        with TemporaryDirectory() as d:
+            path,profile,frozen=self.fixture(d)
+            with patch.object(operator,'tls_profile',return_value=dict(profile,changed=True)),self.assertRaises(ContractError):
+                operator.pinned_tls(frozen)
+            path.write_bytes(self.bundle+b'# changed\n')
+            with patch.object(operator,'tls_profile',return_value=profile),self.assertRaises(ContractError):
+                operator.pinned_tls(frozen)
+
+    def test_path_replacement_after_hash_cannot_change_loaded_snapshot(self):
+        with TemporaryDirectory() as d:
+            path,profile,frozen=self.fixture(d);loader=ssl.create_default_context
+            def replace(**kw):
+                path.write_bytes(b'not a certificate anymore')
+                return loader(**kw)
+            with patch.object(operator,'tls_profile',return_value=profile),patch.object(ssl,'create_default_context',side_effect=replace):
+                context=operator.pinned_tls(frozen)
+            self.assertEqual(context.get_ca_certs(binary_form=True),[self.der])
+
+    def test_actual_readiness_constructs_context_and_refuses_malformed_ca(self):
+        from contextlib import ExitStack
+        for data,expected_error in ((self.bundle,None),(b'malformed PEM',ssl.SSLError)):
+            with self.subTest(malformed=expected_error is not None),TemporaryDirectory() as d,ExitStack() as stack:
+                _,profile,_=self.fixture(d,data)
+                approval=dict(artifact_sha256='a'*64,case=counts.PLAN['case'],one_case_only=True)
+                value=dict(study_plan=counts.PLAN,study_plan_sha256=payload_hash(counts.PLAN),
+                    unit_properties=operator.properties(),sources={},source_commit='f'*40,runtime={},tls=profile,
+                    public_state={},operator_approval_sha256=approval['artifact_sha256'])
+                frozen=dict(value,freeze_sha256=payload_hash(value))
+                stack.enter_context(patch.object(operator,'inspect_source',return_value=({},'f'*40)))
+                stack.enter_context(patch('infra.stream.recorder_rss_thread_cpu_validation.runtime',return_value={}))
+                stack.enter_context(patch.object(operator,'tls_profile',return_value=profile))
+                stack.enter_context(patch.object(operator,'public_state',return_value={}))
+                stack.enter_context(patch.object(operator,'control',return_value=approval))
+                network=stack.enter_context(patch.object(operator,'build_opener',side_effect=AssertionError('no network')))
+                if expected_error:
+                    with self.assertRaises(expected_error):operator.verify_freeze(Path(d),frozen)
+                else:operator.verify_freeze(Path(d),frozen)
+                self.assertEqual(network.call_count,0)

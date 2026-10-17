@@ -5,6 +5,38 @@ Updated October 17, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 17 — CA repair and newly identified successor proposal
+
+In response to “can you retry now?”, implemented the targeted offline CA fix and
+prepared [one prospective successor proposal](PUBLIC_FEED_COUNTS_SUCCESSOR_V2.md),
+case `btc5m-20261017T170000Z-local-counts-02`. Exact new policy SHA:
+`220e1b592365b33dd5e0e4c46ab53103735f4add634694aba4cb745a7fa0adff`.
+Original v1 declaration remains verbatim in `ORIGINAL_PLAN` and its regression
+hash remains pinned. Original 16:00 target remains **not_run**, all historical
+application-budget verdicts remain FAIL, and every threshold/measurement limit is
+unchanged. This is a new proposal, not permission to resume the used stage.
+
+Proposed event October 17 at 1:00–1:05 PM EDT; metadata once at 12:55 PM, exact
+lock before 12:59 PM, nominal count minute 1:01–1:02 PM. New namespace only;
+one private unit/connection, unchanged caps, no reconnect/replay/substitution.
+Exact-window confirmation remains pending; no successor controller, HTTP request,
+subscription, recorder unit or new automation has started.
+
+The loader passes a byte-verified private anonymous CA snapshot to OpenSSL's file
+interface, preserving trust roots and mandatory hostname/certificate verification.
+Readiness now constructs the context before HTTP. Focused tests cover non-ASCII
+comments, malformed/empty/oversized PEM, hash/profile drift, original-path race,
+snapshot permissions/cleanup and the actual readiness path. Read-only Linux
+context preparation at 12:27:11 PM EDT loaded 143 CA certificates from the original
+pinned bundle with mandatory verification and no network connection/unit.
+This is limited context readiness, not native recorder compatibility or budget
+validation. Newly used installed `tempfile` module bytes are included in the
+successor runtime inventory. All 1,228 local tests passed in 179.786 seconds;
+27 focused tests also pass after the final module-inventory addition. Python 3.9
+syntax parsing passes, without claiming native test-suite validation. Private preparation:
+`.qcrl/reviews/public-feed-20261017T170000Z/`. Candidate/freeze and final regression
+receipts follow after sealing. Following sections are historical checkpoints.
+
 ## October 17 — Fixed public-feed target stopped before HTTP: not run
 
 **Historical application-budget verdict remains FAIL; no combined badge.**

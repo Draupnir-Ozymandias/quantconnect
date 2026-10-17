@@ -6,7 +6,7 @@ import math
 
 from execution_truth.contracts import ContractError, payload_hash
 
-PLAN = dict(schema_version='qcrl.public_feed_interval_counts.study.v1',
+ORIGINAL_PLAN = dict(schema_version='qcrl.public_feed_interval_counts.study.v1',
     case='btc5m-20261017T160000Z-local-counts-01',
     event_start='2026-10-17T16:00:00Z', event_end='2026-10-17T16:05:00Z',
     discovery='2026-10-17T15:55:00Z', freeze_cutoff='2026-10-17T15:59:00Z',
@@ -21,6 +21,16 @@ PLAN = dict(schema_version='qcrl.public_feed_interval_counts.study.v1',
     rss_thread_cpu=False, original_application_verdict='fail',
     aggregate_acceptance_defined=False, venue_completeness_proven=False,
     orders_authorized=False)
+
+# A prospective successor, never a repair/relabel of the 16:00 target's not-run.
+PLAN=deepcopy(ORIGINAL_PLAN)
+PLAN.update(schema_version='qcrl.public_feed_interval_counts.study.v2',
+    parent_plan_sha256=payload_hash(ORIGINAL_PLAN),
+    case='btc5m-20261017T170000Z-local-counts-02',
+    event_start='2026-10-17T17:00:00Z',event_end='2026-10-17T17:05:00Z',
+    discovery='2026-10-17T16:55:00Z',freeze_cutoff='2026-10-17T16:59:00Z',
+    arm='2026-10-17T17:00:40Z',nominal_epoch='2026-10-17T17:01:00Z',
+    tls_policy='qcrl.verified_ca_descriptor_snapshot.v1')
 
 
 def require(ok, message):

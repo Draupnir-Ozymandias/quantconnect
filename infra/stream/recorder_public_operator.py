@@ -11,6 +11,7 @@ import platform
 import re
 import shutil
 import sys
+import tempfile
 import time
 from urllib.parse import urlencode, urlsplit
 from urllib.request import build_opener, ProxyHandler, HTTPRedirectHandler, HTTPSHandler, Request
@@ -26,14 +27,14 @@ from infra.stream.recorder_public_capture import short_error
 from infra.stream.recorder_wait_production import command, digest, inspect_source, seconds
 from infra.stream.recorder_wait_lifecycle import BASE_PROPERTIES
 
-STAGE='/var/lib/qcrl-stream/public-feed-20261017T160000Z'
-UNIT='qcrl-public-counts-20261017T160000Z'
+STAGE='/var/lib/qcrl-stream/public-feed-20261017T170000Z'
+UNIT='qcrl-public-counts-20261017T170000Z'
 
 
 def tls_profile():
     import ssl
     modules={}
-    for name in ('_socket','_ssl','http.client','selectors','socket','ssl','threading','urllib.request'):
+    for name in ('_socket','_ssl','http.client','selectors','socket','ssl','tempfile','threading','urllib.request'):
         module=importlib.import_module(name)
         modules[name]=dict(path=module.__file__,sha256=digest(module.__file__))
     paths={line.split()[-1] for line in Path('/proc/self/maps').read_text().splitlines()
@@ -50,11 +51,19 @@ def pinned_tls(frozen):
     import ssl
     require(tls_profile()==frozen['tls'],'installed socket/TLS bytes or CA snapshot changed')
     path=Path(frozen['tls']['ca_file'])
-    require(path.stat().st_size<=4*1024**2,'bounded system CA bundle required')
-    data=path.read_bytes()
+    with path.open('rb') as handle:
+        data=handle.read(4*1024**2+1)
+    require(len(data)<=4*1024**2,'bounded system CA bundle required')
     require(hashlib.sha256(data).hexdigest()==frozen['tls']['ca_sha256'],'system CA bytes changed')
-    # Explicit verified system-bundle bytes avoid unbound environment/capath roots.
-    context=ssl.create_default_context(cadata=data.decode('ascii'))
+    # OpenSSL's file loader accepts bundle comments without a Python ASCII decode.
+    # Feed it only the verified bytes in a private anonymous snapshot, so replacing
+    # the original CA pathname after hashing cannot change the loaded trust roots.
+    require(platform.system() in ('Linux','Darwin'),'CA descriptor interface unavailable')
+    with tempfile.TemporaryFile(mode='w+b') as snapshot:
+        require(snapshot.write(data)==len(data),'incomplete private CA snapshot')
+        snapshot.flush();snapshot.seek(0)
+        descriptor=('/proc/self/fd/' if platform.system()=='Linux' else '/dev/fd/')+str(snapshot.fileno())
+        context=ssl.create_default_context(cafile=descriptor)
     require(context.check_hostname and context.verify_mode==ssl.CERT_REQUIRED,'verified TLS context required')
     return context
 
@@ -112,7 +121,8 @@ def verify_freeze(root, frozen):
     sources,commit=inspect_source(ROOT)
     require(sources==frozen['sources'] and commit==frozen['source_commit'],'public study source drift')
     from infra.stream.recorder_rss_thread_cpu_validation import runtime
-    require(runtime(root)==frozen['runtime'] and tls_profile()==frozen['tls'],'installed runtime/TLS drift')
+    require(runtime(root)==frozen['runtime'],'installed runtime drift')
+    pinned_tls(frozen)  # Read-only context construction is a readiness requirement.
     require(public_state()==frozen['public_state'],'public collector source/environment/state drift')
     approval=control(Path(root)/'operator-approval.json')
     require(approval['artifact_sha256']==frozen['operator_approval_sha256']
