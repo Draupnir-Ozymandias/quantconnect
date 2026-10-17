@@ -31,6 +31,14 @@ review directory. All 60 relative slot counts are null/not-run, with no invented
 epoch or population. Every measurement/resource unknown remains unchanged.
 Following sections are historical checkpoints, not permission to resume.
 
+After the user's Codex update/restart and Chrome update/restart, a read-only
+access retry at approximately 1 PM EDT could observe the AWS sign-in page but
+was still denied navigation to the Ohio console origin by the saved-permission /
+managed-policy gate. Restart did not resolve the observed enforcement mismatch.
+No alternate browser surface, policy bypass, remote command, new staging or
+capture was attempted. The origin blocker remains unresolved; both outcomes and
+all frozen evidence remain unchanged.
+
 ## October 17 — Historical direct approval and browser-origin access checkpoint
 
 The user directly approved staging and one bounded 1-PM EDT target under freeze
