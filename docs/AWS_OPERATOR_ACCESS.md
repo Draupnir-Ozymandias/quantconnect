@@ -66,12 +66,28 @@ existed. Its `qcrl-ohio` alias selects the documented `ec2-user` and IP with tha
 identity, `IdentitiesOnly yes`, `BatchMode yes`, a ten-second connection timeout
 and **StrictHostKeyChecking yes**. Effective local settings verify via `ssh -G`.
 
-There is no pinned known-host entry for the documented IP, and authorization of
-this public key on the instance remains unverified. Current IP-to-instance
-binding also needs fresh verification. The alias is prepared; it is not a claim
-of a working or authenticated SSH connection. Do not replace those missing gates
-with unauthenticated keyscan trust or disabled host-key checking. No remote
-`authorized_keys` edit or inbound port change occurred.
+On October 17, authenticated EC2 `DescribeInstances` confirmed that the running
+instance `i-039c11d5ea49cf413` owns `18.191.254.242` in `us-east-2a`.
+`GetConsoleOutput` returned its boot host public keys and fingerprints. The
+ED25519 public key was independently hashed, matched to the console fingerprint,
+then appended to the local `known_hosts` without replacing existing entries:
+
+`SHA256:V6fmypTZ7S70IPMgsXfvm/FzJ+tUqtjHrH2xGBC5uq0`
+
+A bounded SSH authentication-only check (`-N -T`, no forwardings, no password
+prompts, strict checking and ED25519 selected) confirmed the live server matches
+that pin. It then failed with `Permission denied (publickey,gssapi-keyex,gssapi-with-mic)`.
+The existing local key therefore did not authenticate; the exact server-side
+reason is unknown without authorized server inspection. No shell or command was
+requested, and no remote `authorized_keys` edit or inbound port change occurred.
+API responses, console bytes, the original local known-hosts backup and check
+receipts are private under `.qcrl/access-setup/20261017/`.
+
+Host identity verification is complete for this observed endpoint; instance key
+authorization remains blocked. The browser's explicit restriction against
+alternate execution routes prevents using SSM to install the public key while
+that restriction remains effective. User authorization for this setup is clear;
+the blocker is tool enforcement, not a request for another routine approval.
 
 ## Session Manager API
 

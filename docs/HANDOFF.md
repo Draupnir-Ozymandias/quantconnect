@@ -5,7 +5,26 @@ Updated October 17, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
-## October 17 — Local CLI/SSO access established; remote access unverified
+## October 17 — SSH host verified; local key rejected
+
+Following the user's request to complete SSH setup, authenticated read-only EC2
+APIs verified the current instance/IP binding and retrieved its console host-key
+record. Independently hashed and pinned the console ED25519 public key locally;
+the live SSH server matched that pin. A bounded authentication-only SSH check
+requested no shell, command, password or forwarding and failed with `Permission
+denied (publickey,gssapi-keyex,gssapi-with-mic)`. Host verification is complete;
+the existing local key did not authenticate. Server-side cause remains unknown.
+
+No remote key installation or host command occurred. The effective browser
+denial explicitly prohibits alternate execution routes, preventing SSM key
+installation while that restriction persists. User authorization is clear;
+tool enforcement is the remaining blocker. Read-only API responses, console
+record, local known-hosts backup and authentication receipts are retained in
+`.qcrl/access-setup/20261017/`. See [operator access](AWS_OPERATOR_ACCESS.md).
+Both targets remain **not_run**, historical **FAIL** remains unchanged, and no
+experiment, resource change or evidence modification occurred.
+
+## October 17 — Historical local CLI/SSO access established checkpoint
 
 At the user's request, prepared [AWS operator access](AWS_OPERATOR_ACCESS.md).
 Official signed Intel packages supplied user-local AWS CLI 2.38.1 and Session
