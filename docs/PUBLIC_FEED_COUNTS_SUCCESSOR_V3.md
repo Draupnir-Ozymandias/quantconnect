@@ -87,3 +87,34 @@ during the future capture. No credit minimum is an acceptance gate.
 
 Exact source, freeze, fresh readiness and deployment receipts will be recorded
 in HANDOFF and the new private review directory before execution.
+
+## Sealed and deployed before the fixed window
+
+Exact execution source: `de4c10bf3f53bb4fd4ab3646c22a7d5e3fc1536c`, 547 selected
+files. Full freeze:
+`b4bb07c78cf5558fea2befe1b7611166678f00344ba6664d942fd6becbe8d7ed`.
+Transport: 91,476 bytes, SHA-256
+`91db072bcf16bf82c65a00fd72a1ff3f30aaff33ca76cc8d9c81b8e6c282e621`.
+The authorization receipt records the user's new-capture instruction and one-case
+scope; it does not claim the user inspected a subsequently generated freeze hash.
+
+All 1,228 tests passed locally in 153.665 seconds, with 27 focused tests passing
+and changed Python files accepting Python 3.9 syntax. These are Intel macOS checks,
+not Linux recorder validation. Staging at 18:00:31Z verified the exact source,
+installed runtime/TLS context, public baseline and fresh namespace on Linux.
+
+The exclusive scheduler was deployed at **18:01:25Z / 2:01:25 PM EDT**, PID 1720744.
+Scheduler SHA-256:
+`6d588b5035df9da3949d042abb22cf449290f96c6aed3f9bf1b26e02f776f25a`.
+Independent readback matched the local source-freeze, authorization and scheduler
+bytes; the live PID command line matched the installed interpreter and scheduler.
+Signal masks showed neither SIGHUP nor SIGTERM ignored. At readback there was no
+controller claim, evidence directory or launch-failure receipt and its log was
+empty. This is deployment readiness, not a capture result or public-path validation.
+
+The existing app follow-up was moved to October 17 at **2:34 PM EDT** to inspect
+and independently audit this already-deployed attempt. It cannot restart the
+scheduler/controller or create another run. Local private controls and readbacks:
+`.qcrl/reviews/public-feed-20261017T183000Z/`. Subsequent documentation commits do
+not replace the exact execution source above. All declared timing/readiness gates
+still apply at the future controller and metadata opportunities.

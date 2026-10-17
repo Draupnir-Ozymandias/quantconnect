@@ -5,6 +5,35 @@ Updated October 17, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 17 — New fixed public-feed capture staged and scheduler deployed
+
+Exact execution source `de4c10bf3f53bb4fd4ab3646c22a7d5e3fc1536c`, 547 selected
+files, freeze:
+`b4bb07c78cf5558fea2befe1b7611166678f00344ba6664d942fd6becbe8d7ed`.
+The new stage `/var/lib/qcrl-stream/public-feed-20261017T183000Z` verified source/
+runtime/TLS/public/namespace gates at 18:00:31Z. Transport SHA:
+`91db072bcf16bf82c65a00fd72a1ff3f30aaff33ca76cc8d9c81b8e6c282e621`.
+
+One exclusive finite scheduler deployed at 18:01:25Z (2:01:25 PM EDT), PID
+1720744; exact bytes/hash and root launch receipt retained privately. Independent
+readback matched freeze/authorization/scheduler bytes and live PID command line;
+neither SIGHUP nor SIGTERM is ignored. Scheduler SHA:
+`6d588b5035df9da3949d042abb22cf449290f96c6aed3f9bf1b26e02f776f25a`.
+No controller claim, evidence directory, launch failure or recorder unit existed
+at deployment/readback; metadata GETs were zero. It waits until 18:15Z and performs
+fresh gates before at most one controller submission inside 18:15–18:25Z. Metadata
+once at 18:25, lock before 18:29, arm 18:30:40; count nominally 18:31–18:32 with
+five-second tail. Missing gates mean stop, never another epoch or attempt.
+
+The existing follow-up now runs October 17 at 2:34 PM EDT to inspect and audit
+only this already-deployed attempt; it must not relaunch anything. Do not restart
+the scheduler if it fails. Independent copy/hash/archive/population/count/resource/
+clock/coverage review remains pending. The native public adapter remains unvalidated
+until evidence supports a bounded conclusion. All historical FAIL/not-run outcomes,
+thresholds and unknowns stand. [Full declaration](PUBLIC_FEED_COUNTS_SUCCESSOR_V3.md).
+Private packet/readbacks: `.qcrl/reviews/public-feed-20261017T183000Z/`. Later doc
+HEAD is not execution source. Public collectors and historical stages are untouched.
+
 ## October 17 — New public-feed target v3 declared prospectively
 
 The user's “please proceed with setup and deployment of a new capture” authorizes
