@@ -5,6 +5,42 @@ Updated October 17, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 17 — Stop ownership implemented offline; one validation proposed
+
+Implemented [prospective stop ownership v1](PUBLIC_ACQUISITION_STOP_OWNERSHIP_V1.md).
+The acquisition thread claims normal completion and disarms the socket interrupt
+under the same lock before local close. Emergency callback/cancellation ordering
+is exclusive; fired/peer/receive/send/close faults never become success. Fresh
+claim time must precede the emergency cutoff, even if the callback was delayed.
+
+Policy SHA `dde0e19b05f04cc802432520d1dc6e30a3294eaaeb2e21ddb8d2f026adc8e9b3`.
+Normal stop target remains unchanged. Emergency separation is prospectively
+250 ms, capped at the existing 90-second acquisition deadline. Default-SIGTERM
+acquisition and five-second close guards preserve bounds; the native unit still
+has its 240-second ceiling. No call or lock is added inside original measurement
+brackets. Added control work/guard threads are uncalibrated, never subtracted.
+New coverage reports require linked, ordered, policy-bound ownership receipts.
+
+Offline tests cover actual writer/witness/WebSocket normal timeout, real blocked
+receive/subscription/heartbeat writes, peer closure, deadline equality/stale clock,
+callback-first/cancel-first/normal-first races, invalid claim clock, receipt
+linkage and a subprocess killed during blocked close with retained partial data.
+All 1,240 offline tests passed in 134.043 seconds on Intel macOS/Python 3.14.6,
+including 39 focused public-runtime/stop tests. Changed files accept Python 3.9
+syntax locally; none of this is Linux validation.
+
+One proposed **StopOwn01** loopback validation: 60 frozen synthetic texts plus
+eight PONG replies, expected 68 linked texts, real clocks, about 85 seconds plus
+bounded setup/close/publication. Peer holds open; must finish by normal ownership,
+not frame cap. Plan SHA
+`9702f4e923b99873dd4d4a7d641e9be634dbadd3d81f6991dc1b70230c35d808`.
+Only the existing completion verifier is used; no new observer/auditor framework.
+No TLS/public-feed or resource-budget claim. Exact candidate/conditional runtime
+packet follows after local regression; fresh native gates and explicit one-case
+approval are required before staging/execution. No SSH/native run or automation
+was started during this offline implementation. Historical v3 closure fault,
+all original FAIL/unknown/not-run outcomes and thresholds remain untouched.
+
 ## October 17 — Public-feed v3 audited; closure fault and coverage unknown
 
 One authorized capture ran and stopped. [Outcome and limits](PUBLIC_FEED_COUNTS_V3_OUTCOME_20261017.md)

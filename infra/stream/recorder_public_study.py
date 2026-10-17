@@ -23,7 +23,7 @@ from infra.stream.recorder_application_resources import LinuxReader
 from infra.stream.recorder_completion import CompletionWitnesses, verify_completion
 from infra.stream.recorder_persistence_worker import publish, control
 from infra.stream.recorder_application_worker import load
-from infra.stream.recorder_public_capture import collect, short_error, StorageGuard
+from infra.stream.recorder_public_capture import collect, short_error, StorageGuard, normal_completion_proven
 from infra.stream.recorder_public_counts import PLAN, require, utc, epoch_ns, bins
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -171,7 +171,8 @@ def report(root):
     # Full primary local coverage requires normal scheduled end plus observed
     # subscription before the original epoch and all receipts. This is not feed
     # completeness and is never used as an aggregate application badge.
-    complete=(result['summary']['status']=='scheduled_stop' and result['error'] is None
+    complete=(normal_completion_proven(result)
+        and result['summary']['status']=='scheduled_stop' and result['error'] is None
         and not result['close_errors'] and consumer['error'] is None
         and consumer['observer_thread_alive'] is False
         and result['ready']<consumer['epoch_ns']/1e9-1

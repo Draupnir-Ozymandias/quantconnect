@@ -25,8 +25,16 @@ def short_error(exc):
     return (type(exc).__name__+':'+str(exc))[:160]
 
 
+STOP_POLICY = dict(schema_version='qcrl.public_acquisition_stop_ownership.v1',
+    normal_owner='acquisition_thread', emergency_owner='socket_deadline_thread',
+    emergency_grace_seconds=.25, acquisition_hard_seconds=90,
+    close_hard_seconds=5, normal_requires='deadline_reached_open_transport_no_emergency',
+    ordering='claim_and_disarm_before_local_close', faults='never_clear_on_timer_fire',
+    process_guard='unchanged_default_SIGTERM', unit_hard_seconds=240)
+
+
 class ConnectDeadline:
-    """A blocked resolver has no socket FD yet: stop this worker, never retry.
+    """Last-resort process bound for blocked connect, acquisition or close.
 
     Default SIGTERM is required, never installed or replaced. Abrupt exit may
     leave only the synced archive prefix and missing in-memory witness tails.
@@ -34,42 +42,107 @@ class ConnectDeadline:
     def __init__(self, deadline, *, clock=time.monotonic):
         require(signal.getsignal(signal.SIGTERM)==signal.SIG_DFL,
                 'connection deadline requires unchanged default SIGTERM')
+        self.lock, self.armed = threading.Lock(), True
         self.timer=threading.Timer(max(0,deadline-clock()),self.interrupt)
         self.timer.daemon=True
         self.timer.start()
 
-    @staticmethod
-    def interrupt():
-        os.kill(os.getpid(),signal.SIGTERM)
+    def interrupt(self):
+        with self.lock:
+            if self.armed:
+                self.armed=False
+                os.kill(os.getpid(),signal.SIGTERM)
 
     def cancel(self):
+        with self.lock:
+            self.armed=False
         self.timer.cancel();self.timer.join(timeout=1)
 
 
 class DeadlineInterrupt:
-    """Control deadline interrupts blocked socket I/O; no timing subtraction.
+    """Emergency interruption and normal completion have exclusive owners.
 
-    A raced receive exception is always retained, even when this interrupt fired.
-    Timer scheduling has no real-time guarantee; actual overruns remain evidence.
+    Normal completion claims/disarms under the same lock used by the callback,
+    before local close. A callback that already won cannot become normal success.
+    No lock, timer or I/O is added inside the application-return clock brackets.
     """
-    def __init__(self, raw_socket, deadline, *, clock=time.monotonic):
+    def __init__(self, raw_socket, deadline, *, clock=time.monotonic,
+                 normal_deadline=None, phase='socket', timer_factory=None):
         self.socket, self.fired, self.error = raw_socket, threading.Event(), None
-        self.timer = threading.Timer(max(0, deadline-clock()), self.interrupt)
+        self.lock, self.armed, self.owner = threading.Lock(), True, 'pending'
+        self.clock=clock
+        self.deadline, self.normal_deadline, self.phase = deadline, normal_deadline, phase
+        self.completed_at = None
+        self.timer = (threading.Timer if timer_factory is None else timer_factory)(
+            max(0, deadline-clock()), self.interrupt)
         self.timer.daemon = True
         self.timer.start()
 
     def interrupt(self):
-        self.fired.set()
-        try:
-            # Bypass SSLSocket.shutdown's Python _sslobj mutation while another
-            # thread can be inside SSL_write. Interrupt the underlying FD only.
-            socket.socket.shutdown(self.socket, socket.SHUT_RDWR)
-        except OSError as exc:
-            self.error = short_error(exc)
+        with self.lock:
+            if not self.armed:
+                return
+            self.armed, self.owner = False, 'emergency'
+            self.fired.set()
+            try:
+                # Do not mutate SSLSocket's Python _sslobj during SSL_write.
+                socket.socket.shutdown(self.socket, socket.SHUT_RDWR)
+            except OSError as exc:
+                self.error = short_error(exc)
+
+    def claim_normal(self, connection, at):
+        with self.lock:
+            require(self.armed and self.owner=='pending' and not self.fired.is_set(),
+                    'emergency interruption cannot establish normal completion')
+            require(self.normal_deadline is not None
+                    and number(self.normal_deadline)<=number(at)<number(self.deadline),
+                    'normal completion outside declared stop interval')
+            require(connection.state==State.OPEN,
+                    'transport already closing at stop; closure timing unknown')
+            completed=self.clock()
+            require(number(at)<=number(completed)<number(self.deadline),
+                    'normal completion missed emergency cutoff or clock regressed')
+            self.armed, self.owner, self.completed_at = False, 'acquisition_thread', completed
+            self.timer.cancel()
+            return completed
 
     def cancel(self):
+        with self.lock:
+            self.armed=False
+            if self.owner=='pending':
+                self.owner='cancelled'
         self.timer.cancel()
         self.timer.join(timeout=1)
+
+    def receipt(self):
+        with self.lock:
+            return dict(phase=self.phase,owner=self.owner,fired=self.fired.is_set(),
+                error=self.error,normal_deadline=self.normal_deadline,
+                emergency_deadline=self.deadline,completed_at=self.completed_at)
+
+
+def normal_completion_proven(result):
+    """Prospective linkage only; never reinterpret an older recording."""
+    try:
+        value=result['normal_completion']
+        receipts=result['deadline_interrupts']
+        number(result['attempted'])
+        return (result['stop_policy_sha256']==payload_hash(STOP_POLICY)
+            and isinstance(receipts,list) and len(receipts)==2 and value==receipts[1]
+            and receipts[0]['phase']=='subscription'
+            and all(x['fired'] is False and x['error'] is None for x in receipts)
+            and value['phase']=='acquisition'
+            and value['owner']=='acquisition_thread' and value['fired'] is False
+            and value['error'] is None
+            and value['normal_deadline']==result['acquisition_deadline']
+            and value['completed_at']==result['acquisition_ended']
+            and number(value['normal_deadline'])<=number(value['completed_at'])
+                <number(value['emergency_deadline'])
+            and value['emergency_deadline']==min(result['acquisition_deadline']
+                +STOP_POLICY['emergency_grace_seconds'],
+                result['attempted']+STOP_POLICY['acquisition_hard_seconds']))
+    except (ContractError, KeyError, TypeError, ValueError):
+        return False
 
 
 class StorageGuard:
@@ -155,7 +228,8 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
         connect_factory = connect
     log = StudyLog(root, clock, monotonic, spec['storage'],
                    completion_observer=observer, guard=guard)
-    conn, interrupt = None, None
+    conn, interrupt, hard_stop = None, None, None
+    normal_completion = None
     frames, ready, attempted, closed, acquisition_ended, deadline = 0, None, None, None, None, None
     status, error, last_safe = 'before_connect', None, None
     terminal, interrupt_receipts, close_errors = [], [], []
@@ -165,13 +239,17 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
         nonlocal interrupt
         if interrupt is not None:
             interrupt.cancel()
-            interrupt_receipts.append(dict(fired=interrupt.fired.is_set(), error=interrupt.error))
+            receipt=interrupt.receipt()
+            interrupt_receipts.append(receipt)
             interrupt = None
+            return receipt
 
     try:
         log.append('session_start', dict(spec=spec, spec_sha256=payload_hash(spec)))
         log.append('connect_attempt', dict(connection=1))
         attempted = monotonic()
+        hard_stop=connect_guard_factory(attempted+STOP_POLICY['acquisition_hard_seconds'],
+                                       clock=monotonic)
         readiness = min(epoch-1, attempted+10)
         require(readiness > attempted, 'connection readiness missed')
         # connect() enforces its own handshake timeout; after return the control
@@ -183,17 +261,23 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
                 ping_interval=None, proxy=None, **({'ssl':tls_context} if tls_context is not None else {}))
         finally:
             connecting.cancel()
-        interrupt = interrupt_factory(conn.socket, readiness, clock=monotonic)
+        interrupt = interrupt_factory(conn.socket, readiness, clock=monotonic,phase='subscription')
         conn.send(json.dumps(spec['subscription']))
         ready = monotonic()
-        require(ready < epoch-1, 'subscription readiness missed')
-        finish_interrupt()
+        require(ready < readiness, 'subscription readiness missed')
+        subscription=finish_interrupt()
+        require(not subscription['fired'] and subscription['error'] is None,
+                'emergency interruption during subscription')
         deadline = min(epoch+65, attempted+90)
-        interrupt = interrupt_factory(conn.socket, deadline, clock=monotonic)
+        emergency=min(deadline+STOP_POLICY['emergency_grace_seconds'],
+                      attempted+STOP_POLICY['acquisition_hard_seconds'])
+        interrupt = interrupt_factory(conn.socket, emergency, clock=monotonic,
+                                      normal_deadline=deadline,phase='acquisition')
         log.append('subscribed', dict(connection=1))
         last_ping = last_pong = ready
         status = 'scheduled_stop'
         while True:
+            require(not interrupt.fired.is_set(),'emergency acquisition interruption')
             now = monotonic()
             if now >= deadline:
                 break
@@ -249,10 +333,9 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
             close_errors.append(short_error(log_exc))
     finally:
         acquisition_ended = monotonic()
-        finish_interrupt()
         if conn is not None and status=='scheduled_stop' and error is None:
             try:
-                require(conn.state==State.OPEN,'transport already closing at stop; closure timing unknown')
+                acquisition_ended=interrupt.claim_normal(conn,acquisition_ended)
             except BaseException as exc:
                 status,error='interrupted',short_error(exc)
                 terminal.append(dict(type=type(exc).__name__,error=error))
@@ -260,11 +343,26 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
                     log.append('connection_gap',dict(connection=1,reason=error[:120]))
                 except BaseException as log_exc:
                     close_errors.append(short_error(log_exc))
+        receipt=finish_interrupt()
+        if receipt is not None and receipt['fired'] and error is None:
+            status,error='interrupted','ContractError:emergency socket interruption'
+            terminal.append(dict(type='ContractError',error=error))
+            try:
+                log.append('connection_gap',dict(connection=1,reason=error))
+            except BaseException as log_exc:
+                close_errors.append(short_error(log_exc))
+        if receipt is not None and receipt['owner']=='acquisition_thread':
+            normal_completion=receipt
+        if hard_stop is not None:
+            hard_stop.cancel()
         if conn is not None:
+            closing=connect_guard_factory(monotonic()+STOP_POLICY['close_hard_seconds'],clock=monotonic)
             try:
                 conn.close()
             except BaseException as exc:
                 close_errors.append(short_error(exc))
+            finally:
+                closing.cancel()
         closed = monotonic()
         if close_errors and error is None:
             error = close_errors[0]
@@ -281,6 +379,7 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
             close_errors.append(short_error(exc))
     return dict(summary=summary, error=error, close_errors=close_errors,
         terminal_receive=terminal, deadline_interrupts=interrupt_receipts,
+        stop_policy_sha256=payload_hash(STOP_POLICY),normal_completion=normal_completion,
         ready=ready, attempted=attempted, closed=closed, last_safe=last_safe,
         acquisition_ended=acquisition_ended, acquisition_deadline=deadline,
         epoch_ns=epoch_ns, original_application_verdict='fail', orders_authorized=False)

@@ -108,10 +108,18 @@ class CountsTests(unittest.TestCase):
                 and Fraction(f['returned']['before'])<hi for f in frames))
 
 
-class DummyInterrupt:
+class ManualTimer:
+    def __init__(self,delay,callback):
+        self.delay,self.callback=delay,callback
+    def start(self):pass
+    def cancel(self):pass
+    def join(self,timeout=None):pass
+
+
+class DummyInterrupt(capture.DeadlineInterrupt):
     def __init__(self,*args,**kwargs):
-        self.fired,self.error=threading.Event(),None
-    def cancel(self): pass
+        if len(args)==1:args=(None,args[0])
+        super().__init__(*args,**kwargs,timer_factory=ManualTimer)
 
 
 class PublicRuntimeTests(unittest.TestCase):
@@ -159,6 +167,8 @@ class PublicRuntimeTests(unittest.TestCase):
             self.assertEqual(result['summary']['connections'],1)
             self.assertEqual(clock.seconds,85)
             self.assertEqual(verified['frames'],result['summary']['frames'])
+            self.assertTrue(capture.normal_completion_proven(result))
+            self.assertEqual(result['normal_completion']['owner'],'acquisition_thread')
             self.assertEqual(json.loads(conn.outgoing[0]),spec['subscription'])
             self.assertTrue(all(t=='PING' for t in conn.outgoing[1:]))
 
@@ -182,7 +192,7 @@ class PublicRuntimeTests(unittest.TestCase):
             clock,_,_,conn,invoke=self.setup_case(Path(d)/'a')
             alarms=[]
             def alarm(*a,**k):
-                value=DummyInterrupt();alarms.append(value);return value
+                value=DummyInterrupt(*a,**k);alarms.append(value);return value
             def fail(timeout):
                 alarms[-1].fired.set()
                 raise ConnectionClosedOK(Close(1000,''),Close(1000,''),True)
@@ -302,7 +312,7 @@ class PublicRuntimeTests(unittest.TestCase):
             with self.subTest(mutation=mutation),self.assertRaises(ContractError):study.validate_case(seal(value))
 
     def test_independent_report_broken_receipts_and_missing_archive_never_badge(self):
-        for mutation in ('none','receipt','archive','early','consumer'):
+        for mutation in ('none','receipt','archive','early','consumer','stop_receipt'):
             with self.subTest(mutation=mutation),TemporaryDirectory() as d:
                 root=Path(d);raw=public_fixture()
                 clock,spec,witness,conn,invoke=self.setup_case(root/'archive',raw)
@@ -318,6 +328,7 @@ class PublicRuntimeTests(unittest.TestCase):
                     # Closing time alone cannot repair an acquisition ending early.
                     result['acquisition_ended']=70
                     result['closed']=90
+                if mutation=='stop_receipt':result['normal_completion']=None
                 publish(root/'consumer.json',dict(case_sha256=case['artifact_sha256'],
                     result=result,epoch_ns=20000000000,domain='test.boot',
                     identity=dict(pid=os.getpid()),error=None,observer_thread_alive=False))
@@ -333,6 +344,7 @@ class PublicRuntimeTests(unittest.TestCase):
                     self.assertIsNone(value['epoch_ns'])
                     self.assertTrue(all(r['lower'] is None for r in value['rows']))
                 if mutation=='early':self.assertTrue(any(r['coverage']!='recorded' for r in value['rows']))
+                if mutation=='stop_receipt':self.assertTrue(all(r['coverage']!='recorded' for r in value['rows']))
 
 
 class OperatorTests(unittest.TestCase):
