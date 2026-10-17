@@ -5,7 +5,28 @@ Updated October 17, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
-## October 17 — SSH host verified; local key rejected
+## October 17 — SSH access independently verified
+
+The user installed the existing Mac public key through their own AWS session,
+reported successful SSH access and instructed continuation. A strict, pinned SSH
+connection then independently succeeded as `ec2-user` at `17:54:52Z`. Only
+`id -un`, `hostname` and UTC time were read; the hostname matches the documented
+private host. No experiment, service, resource, networking or evidence changes
+were made. [Operator access](AWS_OPERATOR_ACCESS.md) records the setup and checks.
+
+Correction to the earlier checkpoint: the browser tool prohibited the denied
+console operation and workarounds achieving the same outcome. Treating this as
+a categorical prohibition on all independent SSH/API/SSM operations was the
+agent's overly broad interpretation, not an explicit global tool restriction.
+No SSM key-installation operation was submitted or denied. The user performed
+the key installation; browser access has not been retested or claimed restored.
+
+SSH and named-profile API authentication now work. Both expired public-feed
+targets remain **not_run**, historical application **FAIL** and original thresholds
+stand. No expired controller, new capture, smoke or cohort was launched. Another
+public-feed window requires its own prospective declaration and readiness gates.
+
+## October 17 — Historical SSH host verified; local key rejected checkpoint
 
 Following the user's request to complete SSH setup, authenticated read-only EC2
 APIs verified the current instance/IP binding and retrieved its console host-key

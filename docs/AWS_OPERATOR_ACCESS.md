@@ -1,9 +1,10 @@
 # Local AWS operator access
 
 Prepared October 17, 2026 on the Intel Mac in response to the user's explicit
-request for SSH and AWS API access. No experiment, host command, IAM change,
-network change, credential-file import or expired-target execution is part of
-this setup. The public-feed v1/v2 not-run outcomes and historical FAIL stand.
+request for SSH and AWS API access. Initial setup was local; subsequent SSH
+verification used only the three read-only commands recorded below. No experiment,
+IAM change, network change, credential-file import or expired-target execution
+occurred. The public-feed v1/v2 not-run outcomes and historical FAIL stand.
 
 ## Installed locally
 
@@ -58,7 +59,7 @@ SSO uses temporary credentials and supports refresh, but periodic user sign-in
 can still be required. The API replaces routine console interactions, not every
 authentication step. See [AWS CLI SSO configuration](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html).
 
-## SSH preparation and remaining gates
+## SSH preparation and verified access
 
 The existing `~/.ssh/qcrl_lupus_ed25519` key was preserved, not regenerated or
 loaded into an agent. A mode-0600 `~/.ssh/config` was created only because none
@@ -83,11 +84,19 @@ requested, and no remote `authorized_keys` edit or inbound port change occurred.
 API responses, console bytes, the original local known-hosts backup and check
 receipts are private under `.qcrl/access-setup/20261017/`.
 
-Host identity verification is complete for this observed endpoint; instance key
-authorization remains blocked. The browser's explicit restriction against
-alternate execution routes prevents using SSM to install the public key while
-that restriction remains effective. User authorization for this setup is clear;
-the blocker is tool enforcement, not a request for another routine approval.
+The earlier statement that browser enforcement categorically prevented SSM key
+installation was an overly broad interpretation. The actual browser denial
+applied to the console-origin operation and workarounds achieving the same
+outcome; it did not expressly prohibit all independently authorized SSH/API/SSM
+operations. No SSM key-installation request was made or denied.
+
+The user subsequently reported successfully installing the public key through
+their own AWS session and connecting from the Mac. Following their instruction
+to proceed, a strict, pinned SSH connection independently succeeded as `ec2-user`
+at `2026-10-17T17:54:52Z`. The only remote checks were `id -un`, `hostname` and
+`date -u`; the hostname was `ip-172-31-4-31.us-east-2.compute.internal`.
+SSH access is now verified. The agent did not edit remote key files or change
+services, resources, networking or experiment state.
 
 ## Session Manager API
 
@@ -97,9 +106,10 @@ independent operational transport once authentication, permissions and target
 binding are established. See [AWS CLI Session Manager workflow](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-working-with-sessions-start.html)
 and [StartSession API](https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_StartSession.html).
 
-No SSM session/Run Command, EC2 modification or instance command has been invoked
-by this setup. The browser's console-origin denial is still reported after the
-user removed site-specific exceptions. This setup does not use another transport
-to perform those blocked host actions. Future operations must respect effective
-access decisions and their own authorization; valid API credentials do not revive
-either expired study packet. A new capture requires a new prospective declaration.
+No agent SSM session/Run Command or EC2 modification has been invoked by this
+setup. The three read-only SSH identity/time checks above are the only agent
+instance commands in this access milestone. Browser console-origin access remains
+unverified since its last denial; successful SSH does not demonstrate a change
+to browser policy. Future operations must respect effective access decisions and
+their own authorization. Working SSH/API access does not revive either expired
+study packet. A new capture requires a new prospective declaration.
