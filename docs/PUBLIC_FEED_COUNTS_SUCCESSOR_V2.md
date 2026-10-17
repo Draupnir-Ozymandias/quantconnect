@@ -85,3 +85,53 @@ all 60 bin rows, gaps/missed slots, original precision labels and separate resou
 components. Incremental observer overhead, continuous RSS peak, independent UTC
 accuracy and venue completeness remain unknown unless separately supported;
 historical credit context stays stale, with no new credit minimum.
+
+## Sealed approval packet and remaining staging gate
+
+Exact candidate: `33cba4a4b38b0b9f0f77e00199f5cc0631b8726b`, 544 selected files.
+Full prospective freeze:
+`4c25a8b5dcf31b55abbfecb3faff7adb46c57f8abe021523908e6fad6804d79d`.
+All 1,228 local tests passed in 179.786 seconds; 27 focused tests also passed
+after the final installed-module-inventory addition. Python 3.9 syntax accepted.
+These are local tests, separate from the limited Linux context check above.
+
+Packet transport: 73,219 bytes, SHA-256
+`17324ee17c94e9a4f0af253e442a31dfbfb51324304e272dc6ef556991e8c147`.
+The inert base64 packet is present in the new stage and independently matches
+that hash. No source has been extracted there; no controller claim/evidence
+directory exists. The proposed authorization receipt explicitly marks exact new
+window approval pending. It does not claim the user inspected this new hash.
+
+Reviewed staging script SHA-256:
+`4c41f2cbb21e40d48e59e008f2819cf5a59f5ad54a2f3fa4293a55fb894af0c8`.
+Private script: `.qcrl/reviews/public-feed-20261017T170000Z/staging-command.py`.
+It checks the transport and six explicit members, refuses overwrites/nonregular
+or oversized entries, unpacks only into this new private stage, clones the old
+source as a read-only Git input into the new checkout, checks out exactly 33cba4a,
+and verifies all source/runtime/TLS/public/namespace gates including actual context
+construction. It writes a staging receipt, starts no controller/unit and performs
+no market GET. Root privileges are used for private file ownership and staging;
+historical files, public services, IAM, networking and instance limits are untouched.
+
+Automatic approval review rejected the upload/execution of that script because
+the retry request did not clearly authorize the exact successor deployment and
+the generated script had not been inspected. It has since been inspected locally;
+no workaround or repeated execution was attempted. Exact staging and one-case
+execution approval are requested together. After approval, record the direct
+confirmation separately, finish staging, refresh gates and start one controller
+only during 12:45–12:55 PM EDT. If confirmation/readiness misses the deadline,
+retain this proposal as not run; do not move it to another window.
+
+Controller argv after those gates, with working directory the new stage's
+`source`, installed interpreter and normal signal dispositions:
+
+```text
+/opt/qcrl-stream/venv/bin/python -m infra.stream.recorder_public_operator controller --root /var/lib/qcrl-stream/public-feed-20261017T170000Z --freeze-sha256 4c25a8b5dcf31b55abbfecb3faff7adb46c57f8abe021523908e6fad6804d79d --execute
+```
+
+Use one exclusive start receipt, retained log, DEVNULL stdin and
+`start_new_session=True`, without `nohup`. The controller enforces the fixed
+metadata and arm schedule. No additional smoke, diagnostics, cohort or automatic
+attempt is part of this packet. Approval is conditional on successful fresh
+staging/readiness; a failure retains evidence and stops rather than granting an
+exception. Later documentation HEAD does not replace the frozen candidate.

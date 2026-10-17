@@ -37,6 +37,23 @@ syntax parsing passes, without claiming native test-suite validation. Private pr
 `.qcrl/reviews/public-feed-20261017T170000Z/`. Candidate/freeze and final regression
 receipts follow after sealing. Following sections are historical checkpoints.
 
+Sealed candidate `33cba4a4b38b0b9f0f77e00199f5cc0631b8726b` (544 selected files),
+pushed; full freeze
+`4c25a8b5dcf31b55abbfecb3faff7adb46c57f8abe021523908e6fad6804d79d`.
+The 73,219-byte packet is uploaded inertly and matches transport SHA
+`17324ee17c94e9a4f0af253e442a31dfbfb51324304e272dc6ef556991e8c147`.
+Automatic approval review rejected executing its root staging script, saying the
+retry request did not clearly authorize this exact successor deployment and the
+generated script was uninspected. The script has now been inspected locally; no
+workaround/repeated execution occurred. Its SHA is
+`4c41f2cbb21e40d48e59e008f2819cf5a59f5ad54a2f3fa4293a55fb894af0c8`.
+Observed new stage contains only `stage-packet.b64`: source is not unpacked, no
+controller claim/evidence exists. Fresh exact-checkout readiness is outstanding.
+The successor document is the executable approval packet: request direct approval
+for that bounded staging and the single 1-PM EDT target together, conditional on
+all fresh gates, before 12:55 PM EDT. No timing has rolled forward automatically.
+Later doc commits do not replace 33cba4a. Preserve both old stage and outcome.
+
 ## October 17 — Fixed public-feed target stopped before HTTP: not run
 
 **Historical application-budget verdict remains FAIL; no combined badge.**
