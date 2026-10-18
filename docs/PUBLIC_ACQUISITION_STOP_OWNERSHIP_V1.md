@@ -172,3 +172,9 @@ unit only, subject to those gates, followed by independent copy/hash/completion/
 ownership/fault review. Missing gates or any failure stops with retained evidence.
 Later documentation HEAD must not replace this candidate. No follow-on public
 capture, repair of v3, timing campaign or cohort is included.
+
+## Subsequent outcome (October 18)
+
+The original proposal and sealed declaration above are unchanged. Separate user
+approval authorized its single native case; see the [independently audited
+StopOwn01 outcome](PUBLIC_STOP_OWNERSHIP_OUTCOME_20261018.md) for evidence and limits.

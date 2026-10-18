@@ -1,11 +1,41 @@
 # Development handoff
 
-Updated October 17, 2026. Continue in
+Updated October 18, 2026. Continue in
 `/Users/eric/Projects/quantconnect/polymarket-martingale` on
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
-## October 17 — Stop ownership implemented offline; one validation proposed
+## October 18 — StopOwn01 native functional validation independently audited
+
+One authorized Linux loopback case ran once and stopped; [outcome and limits](PUBLIC_STOP_OWNERSHIP_OUTCOME_20261018.md).
+All 68 planned texts match peer, ordered archive and verified completion witnesses,
+including 22 durable barriers, matching footer and zero gaps. Normal ownership is
+`acquisition_thread`; neither emergency interrupt fired, and no acquisition,
+terminal receive or close fault was retained. One native test completed in
+85.202 seconds, exit 0; unit is inactive/dead and native PID absent.
+
+Exact source `db25a2db79c53af28e38ba6531f0bba21ebd224b`, 550 selected files;
+freeze `6861db15528c43baa1d4a0cd3c8b4350dc6c3b8ab6ae240d9a888cc48c4c3c57`.
+Fresh read-only gates passed October 18 at 13:29Z; one exclusive unit submission
+at 13:31:16Z. Original 512 MiB / 75% / 32 tasks / 240-second limits and public
+collectors preserved; no public feed or metadata request. No retry or extra run.
+Fresh credit context unavailable (expired SSO refresh), not inferred or a new gate.
+
+Independent copy verifies 23 files / 436,091 content bytes, all 22 producer entries
+and all 550 frozen sources. Sealed SHA
+`fcfdccbe7ffc57c5ee04046a4215cce0bd6972d89661d1a5eb2a8e75446024d1`;
+independent functional-review payload
+`249d7baaa063d6f0c2b4dffca98297cde267e3d010d6552a8ddd30ddf6a84ded`.
+Private packet/evidence: `.qcrl/reviews/public-stop-validation-StopOwn01/`.
+
+This demonstrates the declared normal-stop functional case on Linux. Offline
+fault tests remain offline; no TLS/public-feed/resource-budget acceptance follows.
+Historical application **FAIL**, prior public v3 closure fault/unverified coverage,
+both earlier not-run outcomes, every threshold and unknown remain unchanged.
+No combined acceptance badge. Nothing further is running or scheduled; a future
+public target requires its own prospective identity and authorization.
+
+## October 17 — Historical offline implementation and validation proposal
 
 Implemented [prospective stop ownership v1](PUBLIC_ACQUISITION_STOP_OWNERSHIP_V1.md).
 The acquisition thread claims normal completion and disarms the socket interrupt
