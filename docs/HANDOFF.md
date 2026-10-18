@@ -29,6 +29,14 @@ All 1,240 individual tests passed offline across discovery plus the omitted
 12-test import-path recovery; initial loader error is retained in the packet.
 The 39 focused tests passed. Python 3.9 syntax accepted locally; no new Linux run.
 
+Execution source `706ebed052945235dd44e7a5c5ef6a231059576c`, 552 selected files;
+freeze `59c54d22966b2da993e5437aa8a7c7c39baf9002b7e0f475533eed892da8efea`.
+Seven-member packet 109,850 bytes, SHA
+`4526f4ef04481d05f6bdff2bc5154b8848dc072e23bcc969057ed290bee0142e`.
+Member population, committed source hashes and bundle verified independently.
+Later doc HEAD must not replace frozen source. Only a proposed approval template
+exists; active operator approval is absent. See v4 doc for exact controller argv.
+
 Exact packet approval is pending. No native staging/controller/scheduler or
 follow-up automation is installed. The original application FAIL, public v3
 closure fault/unverified coverage and earlier not-run outcomes stay unchanged.

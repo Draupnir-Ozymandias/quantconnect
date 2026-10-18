@@ -145,3 +145,38 @@ clean full-suite invocation. Correct-path discovery independently enumerated
 1,240 tests with no loader errors. The 39 focused public/stop tests passed in
 6.870 seconds. Changed Python accepts Python 3.9 syntax locally. These are offline
 checks, not new Linux execution. No implementation change was made for the loader.
+
+## Sealed approval packet — not deployed
+
+Exact execution source: `706ebed052945235dd44e7a5c5ef6a231059576c`, **552 selected
+files**. Full freeze SHA-256:
+`59c54d22966b2da993e5437aa8a7c7c39baf9002b7e0f475533eed892da8efea`.
+Seven-member transport: **109,850 bytes**, SHA-256
+`4526f4ef04481d05f6bdff2bc5154b8848dc072e23bcc969057ed290bee0142e`.
+Private packet: `.qcrl/reviews/public-feed-20261019T160000Z/stage-packet.tar.gz`.
+The bundle requires retained ancestor `de4c10bf3f53bb4fd4ab3646c22a7d5e3fc1536c`.
+All member hashes and all exact committed source files were independently checked;
+bundle verification passed. Later documentation commits do not replace this source.
+
+The packet contains source bundle, execution freeze, proposed operator receipt,
+installed runtime review and reviewed select source, historical host context and
+fresh read-only readiness. Runtime verification retains historical host context
+as such; fresh readiness does not claim refreshed credit measurements. The active
+approval filename is absent. Receipt-template flags deliberately say that those
+bytes alone grant no execution authority. Explicit approval of this freeze is
+required before activation, staging and launch; no future human approval is claimed.
+
+After approval and successful staging/readiness, the exact controller argv is:
+
+```text
+/opt/qcrl-stream/venv/bin/python -m infra.stream.recorder_public_operator controller --root /var/lib/qcrl-stream/public-feed-20261019T160000Z --freeze-sha256 59c54d22966b2da993e5437aa8a7c7c39baf9002b7e0f475533eed892da8efea --execute
+```
+
+Invoke once as root from the exact staged `source/`, only inside the declared
+controller window, with the normal `Popen`/session/log settings above. Do not run
+`metadata` separately or submit a unit manually: the controller owns those single
+opportunities and verifies independent release. No direct discovery or feed
+operation is part of packet preparation. Exact-packet approval would cover staging,
+one conditional attempt and its independent audit/commit/push; a failed gate stops
+without rollover. Public collectors, historical evidence and resource settings stay
+unchanged. No separate smoke, cohort or other target is included.
