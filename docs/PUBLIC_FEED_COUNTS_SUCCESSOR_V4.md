@@ -180,3 +180,38 @@ operation is part of packet preparation. Exact-packet approval would cover stagi
 one conditional attempt and its independent audit/commit/push; a failed gate stops
 without rollover. Public collectors, historical evidence and resource settings stay
 unchanged. No separate smoke, cohort or other target is included.
+
+
+## Subsequent approval and staging — October 18
+
+The user directly approved the exact freeze above: “i absolutely approve”.
+Separate confirmation payload SHA
+`0482dc084662b488fd7edac8e41a2f0e1bc10207c11b34e60805e7a3233dcb19`
+records that authorization; the frozen declaration and receipt template are
+unchanged. Exact template bytes were installed under the active approval filename
+after confirmation. Their flags still say that the file alone grants no authority;
+the separate user approval governs activation and the one-case scope.
+
+Staging completed once at 16:58:03Z. Independent 17:00:02Z readback matched all
+552 selected source files, runtime/TLS/CA/public baseline and exact local control
+bytes, verified root ownership and permissions, and found no controller, evidence
+directory or unit. Metadata GETs and native unit starts remain zero. No feed data
+was requested. Fresh readiness is still required at launch; this checkpoint is
+not a future readiness guarantee or a capture result.
+
+The prepared `launch-once.py` control transport has SHA
+`e375f771fc64cb84a23c15845d907e7a816fc94be1f75cdf7a4d3c872ce0a98c`.
+It is outside the frozen measurement source and has not executed. It accepts only
+15:44–15:55 UTC October 19, waits at most 90 seconds for the fixed controller
+window, checks direct confirmation and fresh gates, and durably claims one launch
+before starting the exact controller argv. A claim forbids another invocation.
+Original signal dispositions and control logging/session settings are preserved.
+No remote scheduler or native unit is currently running for this target.
+
+One local thread follow-up, `run-and-audit-the-approved-btc-v4-capture`, is set for
+October 19 at 11:44 AM EDT / 15:44 UTC. It will refresh gates, invoke the prepared
+helper once if eligible, observe only this attempt and independently audit it.
+It must stop without rollover if access, readiness or the declared deadline fails,
+and delete itself after final audit or definitive not-run. No further routine
+approval is required within the user's exact one-case authorization. No additional
+capture, loopback test, cohort or infrastructure/resource change is authorized.

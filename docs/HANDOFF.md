@@ -5,7 +5,43 @@ Updated October 18, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
-## October 18 — Public BTC successor v4 prepared for exact packet approval
+## October 18 — Exact v4 approved and staged; one October 19 follow-up scheduled
+
+User directly approved the exact packet: “i absolutely approve”. Separate
+confirmation payload `0482dc084662b488fd7edac8e41a2f0e1bc10207c11b34e60805e7a3233dcb19`
+binds one conditional case to freeze
+`59c54d22966b2da993e5437aa8a7c7c39baf9002b7e0f475533eed892da8efea`.
+Exact source remains `706ebed052945235dd44e7a5c5ef6a231059576c` (552 files),
+not later docs HEAD. No further routine approval is required within that scope.
+
+Staged once at `/var/lib/qcrl-stream/public-feed-20261019T160000Z` on Ohio at
+16:58:03Z October 18; source/runtime/TLS/CA/public/namespace verification passed,
+6,179,475,456 free bytes. The proposed receipt's exact bytes were activated at
+`operator-approval.json` only after separate direct confirmation; its template
+flags remain unchanged and do not themselves establish authorization. Independent
+17:00:02Z readback matches local freeze, approval/confirmation, packet and launcher
+bytes; root ownership/permissions verified. Controller absent, metadata GETs zero,
+unit absent, evidence directory absent; no feed subscription or launcher execution.
+
+Prepared `launch-once.py` SHA
+`e375f771fc64cb84a23c15845d907e7a816fc94be1f75cdf7a4d3c872ce0a98c`.
+This control transport accepts only October 19 15:44–15:55 UTC, waits at most
+90 seconds for 15:45, refreshes all gates, verifies separate exact approval and
+exclusively records launch before one default-signal/session/log `Popen`. It is
+prepared, not executed; no remote scheduler is running. Do not reinstall/relaunch
+if any launch claim exists. No source or measurement change was made this turn.
+
+One-time thread follow-up `run-and-audit-the-approved-btc-v4-capture` is scheduled
+for **October 19, 11:44 AM EDT / 15:44 UTC** to verify fresh gates, invoke that
+helper once, observe only the approved attempt, then independently audit retained
+evidence and commit/push. Quiet on unchanged polling; notify meaningful outcome,
+failure/blocker or necessary action. Delete it after final audit or definitive
+not-run. Missing access/readiness/deadline means stop without retry or rollover.
+Controller 15:45–15:55; metadata15:55; lock before15:59; arm16:00:40;
+nominal counts16:01–16:02 UTC. All original limits/thresholds and historical
+FAIL/not-run/unverified evidence remain unchanged. No extra run, smoke or cohort.
+
+## October 18 — Historical v4 preparation checkpoint before approval
 
 [Prospective target v4](PUBLIC_FEED_COUNTS_SUCCESSOR_V4.md): October 19 BTC
 five-minute market at 16:00 UTC / noon EDT, nominal count minute 16:01–16:02 UTC.
