@@ -5,6 +5,34 @@ Updated October 18, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 18 — Public BTC successor v4 prepared for exact packet approval
+
+[Prospective target v4](PUBLIC_FEED_COUNTS_SUCCESSOR_V4.md): October 19 BTC
+five-minute market at 16:00 UTC / noon EDT, nominal count minute 16:01–16:02 UTC.
+One metadata opportunity 15:55 UTC, lock before 15:59; controller once within
+15:45–15:55, private unit arm 16:00:40. Market existence/IDs unknown until that
+opportunity; no substitution, retry, replay, reconnect or rollover.
+
+Plan SHA `359488dc8de8d90508f905411cc3734d5ce78acf763d951813b606fd71354d73`.
+The v3 dictionary/hash and all prior evidence remain intact. New plan binds the
+StopOwn01-tested ownership policy at the production worker gate. No observer,
+measurement, counting or budget change. Existing UTC/RSS/resource unknowns persist.
+
+Read-only pinned SSH at 15:55:56Z October 18 verified installed runtime/TLS/CA,
+public baseline, unchanged boot, 6,209,163,264 free bytes and unused new namespace/
+unit. Fresh credit mode/balance unavailable after earlier expired SSO refresh;
+no inferred balance/minimum gate. This is preparation context, refreshed again
+before any future execution. No metadata GET, feed subscription or native unit.
+Private packet: `.qcrl/reviews/public-feed-20261019T160000Z/`.
+
+All 1,240 individual tests passed offline across discovery plus the omitted
+12-test import-path recovery; initial loader error is retained in the packet.
+The 39 focused tests passed. Python 3.9 syntax accepted locally; no new Linux run.
+
+Exact packet approval is pending. No native staging/controller/scheduler or
+follow-up automation is installed. The original application FAIL, public v3
+closure fault/unverified coverage and earlier not-run outcomes stay unchanged.
+
 ## October 18 — StopOwn01 native functional validation independently audited
 
 One authorized Linux loopback case ran once and stopped; [outcome and limits](PUBLIC_STOP_OWNERSHIP_OUTCOME_20261018.md).

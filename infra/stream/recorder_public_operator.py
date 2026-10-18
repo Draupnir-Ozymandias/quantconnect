@@ -27,8 +27,8 @@ from infra.stream.recorder_public_capture import short_error
 from infra.stream.recorder_wait_production import command, digest, inspect_source, seconds
 from infra.stream.recorder_wait_lifecycle import BASE_PROPERTIES
 
-STAGE='/var/lib/qcrl-stream/public-feed-20261017T183000Z'
-UNIT='qcrl-public-counts-20261017T183000Z'
+STAGE='/var/lib/qcrl-stream/public-feed-20261019T160000Z'
+UNIT='qcrl-public-counts-20261019T160000Z'
 
 
 def tls_profile():

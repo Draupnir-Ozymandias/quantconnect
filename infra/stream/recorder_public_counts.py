@@ -33,13 +33,25 @@ SUCCESSOR_V2_PLAN.update(schema_version='qcrl.public_feed_interval_counts.study.
     tls_policy='qcrl.verified_ca_descriptor_snapshot.v1')
 
 # New authorization and fixed window; both expired declarations remain intact.
-PLAN=deepcopy(SUCCESSOR_V2_PLAN)
-PLAN.update(schema_version='qcrl.public_feed_interval_counts.study.v3',
+SUCCESSOR_V3_PLAN=deepcopy(SUCCESSOR_V2_PLAN)
+SUCCESSOR_V3_PLAN.update(schema_version='qcrl.public_feed_interval_counts.study.v3',
     parent_plan_sha256=payload_hash(SUCCESSOR_V2_PLAN),
     case='btc5m-20261017T183000Z-local-counts-03',
     event_start='2026-10-17T18:30:00Z',event_end='2026-10-17T18:35:00Z',
     discovery='2026-10-17T18:25:00Z',freeze_cutoff='2026-10-17T18:29:00Z',
     arm='2026-10-17T18:30:40Z',nominal_epoch='2026-10-17T18:31:00Z')
+
+
+# A new prospective public target uses the independently validated stop owner.
+# Prior plans and their evidence remain immutable; all measurement limits persist.
+PLAN=deepcopy(SUCCESSOR_V3_PLAN)
+PLAN.update(schema_version='qcrl.public_feed_interval_counts.study.v4',
+    parent_plan_sha256=payload_hash(SUCCESSOR_V3_PLAN),
+    case='btc5m-20261019T160000Z-local-counts-04',
+    event_start='2026-10-19T16:00:00Z',event_end='2026-10-19T16:05:00Z',
+    discovery='2026-10-19T15:55:00Z',freeze_cutoff='2026-10-19T15:59:00Z',
+    arm='2026-10-19T16:00:40Z',nominal_epoch='2026-10-19T16:01:00Z',
+    stop_policy_sha256='dde0e19b05f04cc802432520d1dc6e30a3294eaaeb2e21ddb8d2f026adc8e9b3')
 
 
 def require(ok, message):

@@ -23,7 +23,7 @@ from infra.stream.recorder_application_resources import LinuxReader
 from infra.stream.recorder_completion import CompletionWitnesses, verify_completion
 from infra.stream.recorder_persistence_worker import publish, control
 from infra.stream.recorder_application_worker import load
-from infra.stream.recorder_public_capture import collect, short_error, StorageGuard, normal_completion_proven
+from infra.stream.recorder_public_capture import collect, short_error, StorageGuard, normal_completion_proven, STOP_POLICY
 from infra.stream.recorder_public_counts import PLAN, require, utc, epoch_ns, bins
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -56,7 +56,8 @@ def consume(root, frozen, *, execute=False):
     require(root.is_absolute() and root.resolve(strict=True)==root and not root.is_symlink(),
             'canonical private study root required')
     verify_artifact_hash(frozen,'freeze_sha256','public study freeze')
-    require(frozen['study_plan']==PLAN and frozen['study_plan_sha256']==payload_hash(PLAN),
+    require(frozen['study_plan']==PLAN and frozen['study_plan_sha256']==payload_hash(PLAN)
+            and PLAN['stop_policy_sha256']==payload_hash(STOP_POLICY),
             'public study source/plan freeze differs')
     # Byte checks do not grant execution authority: the external approval receipt
     # is bound literally by the operator freeze, with independent unit release.
