@@ -188,3 +188,42 @@ V1/v2/v3/v4 plan dictionaries retain their literal hash regressions. The actual
 retained v4 event was separately checked: its frozen source still rejects it,
 while this prospective notice recognizer accepts it. No historical count report
 was regenerated under the new source to repair an old outcome.
+
+## Sealed conditional approval packet — offline, not staged
+
+Exact execution source: `f89ada8cb43036464cd77c08fe4ca7829fbc634a`, **555 selected
+files**. Freeze SHA-256:
+`7cd0b049ff9380aa405d5368bc197205363654244862c2f328d50a58e236f12f`.
+Seven-member transport: **94,642 bytes**, SHA-256:
+`0c1fd7a4db9edb05ceb8007a2ccb7da91ea897431c15025ae9ab6c7ec06c91c0`.
+Private packet: `.qcrl/reviews/public-feed-20261020T160000Z/stage-packet.tar.gz`.
+The bundle requires retained ancestor `706ebed052945235dd44e7a5c5ef6a231059576c`.
+All member hashes, complete member population, all 555 committed source files,
+policy bindings, unchanged limits and bundle verification independently passed.
+Later documentation HEAD does not replace this source.
+
+Contents: candidate bundle, freeze, proposed operator receipt, installed select
+review/source, historical host context, and explicit expected-runtime context.
+The latter records the previous native observation at October 19 16:01:07Z and
+says fresh verification has **not** happened this turn. It supplies no fresh clock,
+credit or host-readiness guarantee. The active operator approval is absent.
+
+Approval of this exact freeze would authorize fresh read-only Linux gates, staging
+once if those gates pass, one conditional October 20 capture and independent
+retention/audit/commit/push afterward. It would not authorize a replacement window,
+replay, retry, extra native validation, observer tuning or cohort. A failed/missed
+gate stops this target without rollover. A separate direct confirmation must
+activate the proposed receipt; the file template alone grants no authority.
+
+Only after approval, staging and successful fresh gates, the exact controller argv
+would be:
+
+```text
+/opt/qcrl-stream/venv/bin/python -m infra.stream.recorder_public_operator controller --root /var/lib/qcrl-stream/public-feed-20261020T160000Z --freeze-sha256 7cd0b049ff9380aa405d5368bc197205363654244862c2f328d50a58e236f12f --execute
+```
+
+Invoke once as root from the exact staged source, only in the controller window,
+using the declared session/log/signal settings. The controller owns the sole
+metadata opportunity, case lock, unit submission and independent release; do not
+invoke those separately. No stage, launcher, controller, unit, subscription or
+follow-up automation has been created for v5.

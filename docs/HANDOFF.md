@@ -5,33 +5,48 @@ Updated October 19, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
-## October 19 — Prospective notification/publication fix implemented offline
+## October 19 — V5 offline fix tested and packet sealed; execution approval pending
 
-[Successor v5 proposal](PUBLIC_FEED_COUNTS_SUCCESSOR_V5.md) for October20 BTC noon
-EDT market, count12:01–12:02PM. The original v4 partial verdict/all60null rows and
-retained bytes remain unchanged. No SSH/native action or automation this turn.
+[Prospective v5 packet](PUBLIC_FEED_COUNTS_SUCCESSOR_V5.md): October 20 BTC market
+at noon EDT, count 12:01–12:02 PM. User authorized offline review/implementation
+and proposal preparation. No SSH/native action or automation this turn. V4's
+partial verdict, all 60 null rows and retained bytes remain unchanged.
 
-Creation notices get a narrow structural exception; every text is still counted
-once, never converted to selected-market book state. Foreign book/trade and other
-explicit bindings remain fatal. Retained v4 event qualifies under the new rule;
-its exact frozen source still rejects it. This contrast is prospective only.
+A narrow structural exception accepts well-formed `new_market` creation metadata.
+It remains a counted text, classified unconfirmed/other-market when appropriate,
+never selected-market book state. Foreign book/trade/other bindings remain fatal.
+The retained v4 event qualifies prospectively; its frozen source still rejects it.
+This is not a repaired historical result or a venue routing guarantee.
 
-Actual production worker now seals acquisition and publishes existing completion
-plus a durable close-unverified acquisition checkpoint before potentially blocked
-close. Final consumer remains after close; a checkpoint alone cannot yield full
-coverage. Acquisition guard stays armed through publication at attempt+90 seconds;
-separate five-second close guard and240-second unit ceiling preserved. Fired guard
-state survives cancellation. Ordinary observer schedule/brackets and every original
-threshold/limit remain unchanged; added publication work is not subtracted and
-publication margin is not guaranteed. No new diagnostic/observer framework.
+The actual production worker seals acquisition and publishes existing completion
+plus one durable, close-unverified acquisition checkpoint before socket close.
+Final consumer remains after close. Checkpoint-only reports retain linked prefix
+counts with censored/unverified coverage; they cannot establish full coverage.
+Acquisition guard remains armed through publication at attempt+90 seconds;
+separate five-second close guard and 240-second unit ceiling remain. Fired guards
+survive cancellation. The underlying native close stall remains unproven, and a
+future close-guard exit is still possible. No observer/bracket/threshold/resource
+change, subtraction, guaranteed publication margin or diagnostic framework.
 
-All1,250offline tests pass in166.923sec on IntelmacOS/Python3.14.6;49focused
-checks pass in12.627sec, including production consume wiring, real SIGTERM
-blocked-close publication retention, notification/batch/schema boundaries, write
-failures, mutated checkpoint linkage and guard callback/cancel races. Packet seal is being completed. ChangedPython3.9syntax accepted locally; none
-of this is newLinuxvalidation. Expected Linux envelope is historical;
-fresh native verification and exact new-target execution approval remain required.
-No additional smoke/cohort is proposed or authorized.
+All 1,250 offline tests passed in 166.923 seconds on Intel macOS/Python 3.14.6;
+49 focused checks passed in 12.627 seconds after additional boundary cases.
+Actual production consume wiring, real SIGTERM blocked-close evidence retention,
+notification/batch/ASCII/size/schema boundaries, failed publication, corrupt linkage
+and guard callback/cancel races are covered. Python 3.9 syntax accepts changed
+files locally. None of this is new Linux validation.
+
+Exact source `f89ada8cb43036464cd77c08fe4ca7829fbc634a`, 555 selected files;
+freeze `7cd0b049ff9380aa405d5368bc197205363654244862c2f328d50a58e236f12f`.
+Seven-member packet 94,642 bytes, SHA
+`0c1fd7a4db9edb05ceb8007a2ccb7da91ea897431c15025ae9ab6c7ec06c91c0`.
+Member population, committed source hashes, policy bindings, original limits and
+bundle independently verify. Expected runtime/TLS/public/host bytes are historical;
+fresh Linux readiness is outstanding, with no invented credit minimum. Private
+packet `.qcrl/reviews/public-feed-20261020T160000Z/`. Later doc HEAD cannot replace
+that exact source. Active operator approval is absent; no native stage, capture
+or follow-up automation is installed. Conditional exact-packet approval is required.
+No additional smoke, cohort or rollover. Historical application FAIL and all
+previous not-run/partial/unverified outcomes and thresholds remain unchanged.
 
 ## October 19 — Public v4 stopped on foreign notification; primary counts unresolved
 
