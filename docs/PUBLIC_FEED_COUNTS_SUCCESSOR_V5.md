@@ -227,3 +227,41 @@ using the declared session/log/signal settings. The controller owns the sole
 metadata opportunity, case lock, unit submission and independent release; do not
 invoke those separately. No stage, launcher, controller, unit, subscription or
 follow-up automation has been created for v5.
+
+
+## Subsequent direct approval and staging — October 19
+
+The user directly approved this exact freeze: “absolutely”. Separate confirmation
+payload SHA `6a13886dc3011b1c4151686695d6cd7eb2bd58128b907a9cf63fb82f60e6ae26`
+records that authorization. The frozen declaration, runtime-context checkpoint and
+proposed receipt bytes remain unchanged; the latter were installed under the active
+operator-approval filename only after separate direct approval. Their template-only
+flags do not themselves establish authorization. No future human approval is claimed.
+
+Fresh read-only Linux verification passed at 21:52:01Z, including unchanged runtime,
+TLS/CA/public/boot, free disk and unused namespace. Staging completed once at
+21:52:12Z, verifying all 555 source files and expected installed bytes; free disk
+was 6,144,364,544 bytes. Independent 21:53:24Z readback matched local packet/freeze/
+confirmation/receipt/launcher hashes, root permissions and source/runtime/TLS/public
+checks. No controller, evidence directory or unit exists, metadata GETs and native
+unit starts are zero, and no feed subscription was started. This is staging
+readiness; the new ordering has not been exercised by a Linux capture. Fresh gates
+still apply at launch. Credits were not refreshed or converted into a minimum gate.
+
+Prepared, unexecuted `launch-once.py` SHA:
+`b94e1b7a2866eb7c6eac897c15d5a3aaede8c641c7eda1382c3555fac82cb822`.
+It is control transport outside the frozen measurement source. It accepts only
+October 20 15:44–15:55 UTC, waits at most 90 seconds for the controller window,
+refreshes gates and the direct confirmation, and durably claims one launch before
+Popen with original signal/session/log settings. An existing claim prevents a
+second launch. No remote scheduler or native unit is running for v5.
+
+One local thread follow-up, `run-and-audit-the-approved-btc-v5-capture`, is scheduled
+for **October 20 at 11:44 AM EDT / 15:44 UTC**. It will refresh gates, invoke that
+helper once if eligible, obtain live unit binding promptly at arm time, observe
+only the declared attempt and independently audit final or partial evidence using
+the exact frozen report. Missing live observation must remain unknown. A checkpoint
+alone never proves close or full coverage. Failed access/readiness/deadline stops
+without rollover. The follow-up deletes itself after final audit or definitive
+not-run. No further routine approval is required within this exact one-case scope;
+no extra smoke, cohort, retry, infrastructure/resource or public-collector change.

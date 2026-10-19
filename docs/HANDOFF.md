@@ -5,7 +5,56 @@ Updated October 19, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
-## October 19 — V5 offline fix tested and packet sealed; execution approval pending
+## October 19 — Exact v5 approved and staged; October 20 follow-up scheduled
+
+User directly approved the exact v5 packet: “absolutely”. Separate confirmation
+payload `6a13886dc3011b1c4151686695d6cd7eb2bd58128b907a9cf63fb82f60e6ae26`
+binds one conditional capture to freeze
+`7cd0b049ff9380aa405d5368bc197205363654244862c2f328d50a58e236f12f`.
+Execution source remains `f89ada8cb43036464cd77c08fe4ca7829fbc634a`, 555 selected
+files; later documentation HEAD must not substitute for it. No further routine
+approval is required within the exact one-case scope.
+
+Fresh read-only SSH at 21:52:01Z verified expected runtime/TLS/CA/public/boot,
+6,174,232,576 free bytes and unused new namespace/unit. Staging completed once at
+21:52:12Z at `/var/lib/qcrl-stream/public-feed-20261020T160000Z`, with all source
+and readiness checks passing and 6,144,364,544 free bytes. The exact proposed
+operator-receipt bytes were activated only after separate direct approval; their
+template flags remain unchanged and do not themselves grant execution authority.
+The frozen historical runtime-context record remains intact; these are separate
+fresh receipts. Credit mode/balance were not refreshed; no minimum is inferred.
+
+Independent 21:53:24Z readback matched local freeze, packet, confirmation, active
+receipt and launcher bytes, root ownership/permissions, all 555 sources and native
+runtime/TLS/public baseline. Controller absent, evidence directory absent, unit
+not found; metadata GETs and native unit starts zero. No feed subscription or
+launcher execution. These are native staging gates, not Linux validation of the
+new notification/publication behavior or a resource/coverage acceptance result.
+
+Prepared `launch-once.py` SHA
+`b94e1b7a2866eb7c6eac897c15d5a3aaede8c641c7eda1382c3555fac82cb822`.
+This transport accepts only October 20 15:44–15:55 UTC, waits at most 90 seconds
+for 15:45, refreshes gates and exact confirmation, then durably/exclusively claims
+one controller launch before default-signal/session/log Popen. It is not executed;
+no remote scheduler is running. A prior launch/controller/evidence claim forbids
+another launch. The controller owns the sole metadata and unit opportunities.
+
+One-time follow-up `run-and-audit-the-approved-btc-v5-capture` is scheduled for
+**October 20, 11:44 AM EDT / 15:44 UTC** to refresh gates, invoke the helper once,
+observe only that attempt and independently audit/commit/push afterward. Arrange
+required live unit binding promptly at arm time; a missed observation stays unknown.
+Use exact frozen report code, including its close-unverified checkpoint path;
+checkpoint-only evidence never becomes full coverage or verified close. The new
+close stall is not claimed solved. Quiet on unchanged polling; notify meaningful
+outcome/failure/blocker or necessary action, then delete the follow-up after final
+audit or definitive not-run. Missing access/readiness/deadline means no rollover.
+Controller 15:45–15:55; metadata 15:55; lock before 15:59; arm 16:00:40;
+nominal count minute 16:01–16:02 UTC. No retry, replay, substitution, smoke or cohort.
+All historical FAIL/not-run/partial/unverified evidence and original thresholds,
+resource limits and public collectors remain unchanged. Private controls:
+`.qcrl/reviews/public-feed-20261020T160000Z/`.
+
+## October 19 — Historical v5 offline preparation before approval
 
 [Prospective v5 packet](PUBLIC_FEED_COUNTS_SUCCESSOR_V5.md): October 20 BTC market
 at noon EDT, count 12:01–12:02 PM. User authorized offline review/implementation
