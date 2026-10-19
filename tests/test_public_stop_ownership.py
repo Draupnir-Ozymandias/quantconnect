@@ -355,7 +355,7 @@ class StopOwnershipTests(unittest.TestCase):
             result=subprocess.run([sys.executable,'-c',program],capture_output=True,timeout=8)
             self.assertEqual(result.returncode,-signal.SIGTERM)
             self.assertTrue(any(p.stat().st_size for p in (Path(d)/'archive').glob('segment-*.gz*')))
-            self.assertFalse((Path(d)/'archive/manifest.json').exists())
+            self.assertTrue((Path(d)/'archive/manifest.json').exists())
 
 
 if __name__=='__main__':unittest.main()

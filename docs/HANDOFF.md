@@ -5,6 +5,34 @@ Updated October 19, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 19 — Prospective notification/publication fix implemented offline
+
+[Successor v5 proposal](PUBLIC_FEED_COUNTS_SUCCESSOR_V5.md) for October20 BTC noon
+EDT market, count12:01–12:02PM. The original v4 partial verdict/all60null rows and
+retained bytes remain unchanged. No SSH/native action or automation this turn.
+
+Creation notices get a narrow structural exception; every text is still counted
+once, never converted to selected-market book state. Foreign book/trade and other
+explicit bindings remain fatal. Retained v4 event qualifies under the new rule;
+its exact frozen source still rejects it. This contrast is prospective only.
+
+Actual production worker now seals acquisition and publishes existing completion
+plus a durable close-unverified acquisition checkpoint before potentially blocked
+close. Final consumer remains after close; a checkpoint alone cannot yield full
+coverage. Acquisition guard stays armed through publication at attempt+90 seconds;
+separate five-second close guard and240-second unit ceiling preserved. Fired guard
+state survives cancellation. Ordinary observer schedule/brackets and every original
+threshold/limit remain unchanged; added publication work is not subtracted and
+publication margin is not guaranteed. No new diagnostic/observer framework.
+
+All1,250offline tests pass in166.923sec on IntelmacOS/Python3.14.6;49focused
+checks pass in12.627sec, including production consume wiring, real SIGTERM
+blocked-close publication retention, notification/batch/schema boundaries, write
+failures, mutated checkpoint linkage and guard callback/cancel races. Packet seal is being completed. ChangedPython3.9syntax accepted locally; none
+of this is newLinuxvalidation. Expected Linux envelope is historical;
+fresh native verification and exact new-target execution approval remain required.
+No additional smoke/cohort is proposed or authorized.
+
 ## October 19 — Public v4 stopped on foreign notification; primary counts unresolved
 
 The single approved attempt is **partial_or_unresolved**. [Audited outcome](PUBLIC_FEED_COUNTS_V4_OUTCOME_20261019.md)

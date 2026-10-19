@@ -23,7 +23,7 @@ from infra.stream.recorder_application_resources import LinuxReader
 from infra.stream.recorder_completion import CompletionWitnesses, verify_completion
 from infra.stream.recorder_persistence_worker import publish, control
 from infra.stream.recorder_application_worker import load
-from infra.stream.recorder_public_capture import collect, short_error, StorageGuard, normal_completion_proven, STOP_POLICY
+from infra.stream.recorder_public_capture import collect, short_error, StorageGuard, normal_completion_proven, STOP_POLICY, PUBLICATION_POLICY, NOTICE_POLICY
 from infra.stream.recorder_public_counts import PLAN, require, utc, epoch_ns, bins
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -47,6 +47,21 @@ def validate_case(case):
     return case
 
 
+def publish_acquisition_checkpoint(root,case,result,witness,identity,domain):
+    """Existing completion sideband plus a durable acquisition result, not a close receipt."""
+    root=Path(root)
+    require(result['closed'] is None and result['close_completed'] is False
+            and result['publication_policy_sha256']==payload_hash(PUBLICATION_POLICY),
+            'pre-close publication contract differs')
+    exclusive_json(root/'completion.json',witness.snapshot(root/'archive'))
+    return publish(root/'acquisition-checkpoint.json',dict(
+        schema_version='qcrl.public_acquisition_checkpoint.v1',
+        case_sha256=case['artifact_sha256'],result=result,error=None,
+        identity=identity,epoch_ns=result['epoch_ns'],domain=domain,
+        close_verified=False,observer_thread_alive=True,
+        original_application_verdict='fail',orders_authorized=False))
+
+
 def consume(root, frozen, *, execute=False):
     """Linux production entry: frozen approval + actual unit binding before I/O."""
     require(execute is True and platform.system()=='Linux'
@@ -57,7 +72,9 @@ def consume(root, frozen, *, execute=False):
             'canonical private study root required')
     verify_artifact_hash(frozen,'freeze_sha256','public study freeze')
     require(frozen['study_plan']==PLAN and frozen['study_plan_sha256']==payload_hash(PLAN)
-            and PLAN['stop_policy_sha256']==payload_hash(STOP_POLICY),
+            and PLAN['stop_policy_sha256']==payload_hash(STOP_POLICY)
+            and PLAN['notice_policy_sha256']==payload_hash(NOTICE_POLICY)
+            and PLAN['publication_policy_sha256']==payload_hash(PUBLICATION_POLICY),
             'public study source/plan freeze differs')
     # Byte checks do not grant execution authority: the external approval receipt
     # is bound literally by the operator freeze, with independent unit release.
@@ -100,15 +117,20 @@ def consume(root, frozen, *, execute=False):
     thread=threading.Thread(target=monitor,daemon=True)
     thread.start()
     result,error=None,None
+    def checkpoint(value):
+        publish_acquisition_checkpoint(root,case,value,witness,reader.expected,domain)
     try:
         result=collect(case['raw_bundle'],case['spec'],root/'archive',epoch_ns=epoch,
-            observer=witness,execute=True,guard=guard,tls_context=tls)
+            observer=witness,execute=True,guard=guard,tls_context=tls,before_close=checkpoint)
     except BaseException as exc:
         error=short_error(exc)
     finally:
         stop.set();thread.join(timeout=3)
         try:
-            exclusive_json(root/'completion.json',witness.snapshot(root/'archive'))
+            if not witness.closed:
+                exclusive_json(root/'completion.json',witness.snapshot(root/'archive'))
+            elif not (root/'completion.json').is_file():
+                raise ContractError('single-use completion snapshot was not published')
         except BaseException as exc:
             publish(root/'completion-error.json',dict(error=short_error(exc)))
         try:
@@ -125,8 +147,18 @@ def report(root):
     """Independent linkage prerequisite; no overall pass/acceptance output."""
     root=Path(root)
     case=validate_case(control(root/'case.json'))
+    final_path=root/'consumer.json'
+    final_consumer=final_path.exists() or final_path.is_symlink()
     try:
-        consumer=control(root/'consumer.json')
+        path=final_path if final_consumer else root/'acquisition-checkpoint.json'
+        require(path.is_file() and not path.is_symlink(),'regular final consumer or checkpoint required')
+        consumer=control(path)
+        if not final_consumer:
+            require(consumer['schema_version']=='qcrl.public_acquisition_checkpoint.v1'
+                and consumer['close_verified'] is False and consumer['observer_thread_alive'] is True
+                and consumer['result']['closed'] is None and consumer['result']['close_completed'] is False
+                and consumer['result']['publication_policy_sha256']==payload_hash(PUBLICATION_POLICY),
+                'unsupported pre-close checkpoint')
         require(consumer['case_sha256']==case['artifact_sha256'],'consumer/case differs')
         result=consumer['result']
         require(isinstance(result,dict) and result['epoch_ns']==consumer['epoch_ns'],
@@ -172,7 +204,8 @@ def report(root):
     # Full primary local coverage requires normal scheduled end plus observed
     # subscription before the original epoch and all receipts. This is not feed
     # completeness and is never used as an aggregate application badge.
-    complete=(normal_completion_proven(result)
+    complete=(final_consumer and result.get('close_completed') is True
+        and normal_completion_proven(result)
         and result['summary']['status']=='scheduled_stop' and result['error'] is None
         and not result['close_errors'] and consumer['error'] is None
         and consumer['observer_thread_alive'] is False
@@ -185,6 +218,7 @@ def report(root):
     value=bins(completion['frames'],consumer['epoch_ns'],censored_from=censor,
                coverage_complete=complete)
     value.update(case=PLAN['case'],archive_linkage=verified,
+                 final_consumer_present=final_consumer,close_verified=final_consumer and result.get('close_completed') is True,
                  capture_result=result,origin_attestation_required=True,
                  original_application_budget_pass=False)
     return value

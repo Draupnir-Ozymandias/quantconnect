@@ -50,13 +50,16 @@ class CountsTests(unittest.TestCase):
         self.assertEqual(payload_hash(counts.SUCCESSOR_V2_PLAN),
             '220e1b592365b33dd5e0e4c46ab53103735f4add634694aba4cb745a7fa0adff')
         self.assertEqual(payload_hash(counts.SUCCESSOR_V3_PLAN), '6cdc0386787c0a6bd68ac0061e59c6f50b657dfac19f2ec27bd056f336488533')
-        self.assertEqual(payload_hash(counts.PLAN), '359488dc8de8d90508f905411cc3734d5ce78acf763d951813b606fd71354d73')
+        self.assertEqual(payload_hash(counts.SUCCESSOR_V4_PLAN), '359488dc8de8d90508f905411cc3734d5ce78acf763d951813b606fd71354d73')
+        self.assertEqual(payload_hash(counts.PLAN), '8f36b9350255135ad18445fe602677d3fb6600844f2a546a6c9ecff2414568c9')
         self.assertEqual(counts.PLAN['stop_policy_sha256'], payload_hash(capture.STOP_POLICY))
-        self.assertEqual(counts.PLAN['case'], 'btc5m-20261019T160000Z-local-counts-04')
+        self.assertEqual(counts.PLAN['notice_policy_sha256'],payload_hash(capture.NOTICE_POLICY))
+        self.assertEqual(counts.PLAN['publication_policy_sha256'],payload_hash(capture.PUBLICATION_POLICY))
+        self.assertEqual(counts.PLAN['case'], 'btc5m-20261020T160000Z-local-counts-05')
         changed={'schema_version','parent_plan_sha256','case','event_start','event_end',
-                 'discovery','freeze_cutoff','arm','nominal_epoch','stop_policy_sha256'}
+                 'discovery','freeze_cutoff','arm','nominal_epoch','stop_policy_sha256','notice_policy_sha256','publication_policy_sha256'}
         self.assertEqual({k:v for k,v in counts.PLAN.items() if k not in changed},
-                         {k:v for k,v in counts.SUCCESSOR_V3_PLAN.items() if k not in changed})
+                         {k:v for k,v in counts.SUCCESSOR_V4_PLAN.items() if k not in changed})
         self.assertEqual(counts.PLAN['connection_attempts'], 1)
         self.assertEqual(counts.PLAN['reconnects'], 0)
         self.assertEqual(counts.PLAN['original_application_verdict'], 'fail')
@@ -65,7 +68,7 @@ class CountsTests(unittest.TestCase):
         self.assertEqual(counts.plan()['unit']['MemoryMax'], '512M')
 
     def test_exact_anchor_ceiling_and_no_past_adoption(self):
-        value = counts.epoch_ns(1., '2026-10-19T16:00:40.000001Z', 1.0000000001)
+        value = counts.epoch_ns(1., '2026-10-20T16:00:40.000001Z', 1.0000000001)
         exact = (Fraction(1.0000000001)+Fraction(19999999,1000000))*1000000000
         self.assertGreaterEqual(value, exact)
         self.assertLess(value-exact, 1)

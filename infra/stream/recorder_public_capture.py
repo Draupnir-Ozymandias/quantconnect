@@ -4,6 +4,7 @@ No CLI/default launch. Caller must supply a source/runtime-bound, approved case.
 """
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import signal
@@ -33,6 +34,17 @@ STOP_POLICY = dict(schema_version='qcrl.public_acquisition_stop_ownership.v1',
     process_guard='unchanged_default_SIGTERM', unit_hard_seconds=240)
 
 
+NOTICE_POLICY = dict(schema_version='qcrl.public_creation_notice.v1',
+    event_type='new_market', minimum_assets=2, maximum_assets=64,
+    foreign_creation_metadata='retain_count_unconfirmed_never_book_state',
+    other_foreign_bindings='fatal', ambiguous_or_mixed_envelope='no_exemption')
+PUBLICATION_POLICY = dict(schema_version='qcrl.public_acquisition_publication.v1',
+    order=['end_acquisition','seal_archive','publish_completion_and_checkpoint','close','publish_final_consumer'],
+    close_hard_seconds=5, checkpoint_close_verified=False,
+    guard_faults='fired_state_survives_cancel',
+    publication_margin_is_guarantee=False, original_thresholds_unchanged=True)
+
+
 class ConnectDeadline:
     """Last-resort process bound for blocked connect, acquisition or close.
 
@@ -43,6 +55,7 @@ class ConnectDeadline:
         require(signal.getsignal(signal.SIGTERM)==signal.SIG_DFL,
                 'connection deadline requires unchanged default SIGTERM')
         self.lock, self.armed = threading.Lock(), True
+        self.fired=threading.Event()
         self.timer=threading.Timer(max(0,deadline-clock()),self.interrupt)
         self.timer.daemon=True
         self.timer.start()
@@ -51,6 +64,7 @@ class ConnectDeadline:
         with self.lock:
             if self.armed:
                 self.armed=False
+                self.fired.set()
                 os.kill(os.getpid(),signal.SIGTERM)
 
     def cancel(self):
@@ -179,6 +193,25 @@ class StudyLog(DeadlineStreamLog):
         return super().append(kind, payload)
 
 
+def creation_notice(obj, spec):
+    """Narrow raw CTF creation metadata; never accept disguised book/trade data."""
+    if not isinstance(obj,dict) or obj.get('event_type')!='new_market':return False
+    condition=obj.get('market');assets=obj.get('assets_ids');outcomes=obj.get('outcomes')
+    if (not isinstance(condition,str) or not re.fullmatch(r'0x[0-9a-fA-F]{64}',condition)
+            or not isinstance(assets,list) or not 2<=len(assets)<=64
+            or any(not isinstance(v,str) or not v.isascii() or not v.isdecimal() for v in assets)
+            or len(set(assets))!=len(assets) or not isinstance(outcomes,list)
+            or len(outcomes)!=len(assets) or any(not isinstance(v,str) or not v for v in outcomes)):
+        return False
+    if any(k in obj for k in ('asset_id','price_changes','bids','asks','price','size','side','payload','type','winning_asset_id')):
+        return False
+    if 'condition_id' in obj and obj['condition_id']!=condition:return False
+    if 'clob_token_ids' in obj and obj['clob_token_ids']!=assets:return False
+    selected=set(spec['asset_ids'])
+    return (set(assets)==selected if condition==spec['condition_id']
+            else not selected.intersection(assets))
+
+
 def contamination(raw, spec):
     """Only explicit contradictions; malformed/unknown schema stays a raw frame."""
     try:
@@ -189,10 +222,14 @@ def contamination(raw, spec):
         return any(contamination(json.dumps(value), spec) for value in obj)
     if not isinstance(obj, dict):
         return False
-    if isinstance(obj.get('market'), str) and obj['market'] != spec['condition_id']:
-        return True
-    if isinstance(obj.get('asset_id'), str) and obj['asset_id'] not in spec['asset_ids']:
-        return True
+    if creation_notice(obj,spec):return False
+    for name in ('market','condition_id'):
+        if isinstance(obj.get(name),str) and obj[name]!=spec['condition_id']:return True
+    for name in ('asset_id','winning_asset_id'):
+        if isinstance(obj.get(name),str) and obj[name] not in spec['asset_ids']:return True
+    for name in ('assets_ids','clob_token_ids'):
+        values=obj.get(name)
+        if isinstance(values,list) and any(isinstance(v,str) and v not in spec['asset_ids'] for v in values):return True
     changes = obj.get('price_changes')
     if isinstance(changes, list):
         return any(isinstance(change, dict) and isinstance(change.get('asset_id'), str)
@@ -203,7 +240,7 @@ def contamination(raw, spec):
 def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
             clock=utc_now, monotonic=time.monotonic, connect_factory=None,
             guard=None, interrupt_factory=DeadlineInterrupt, connect_guard_factory=ConnectDeadline,
-            tls_context=None):
+            tls_context=None, before_close=None):
     """Actual public connection by default; tests explicitly inject local transport.
 
     Source/runtime/market approval is checked by the outer worker before this
@@ -353,22 +390,12 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
                 close_errors.append(short_error(log_exc))
         if receipt is not None and receipt['owner']=='acquisition_thread':
             normal_completion=receipt
-        if hard_stop is not None:
-            hard_stop.cancel()
-        if conn is not None:
-            closing=connect_guard_factory(monotonic()+STOP_POLICY['close_hard_seconds'],clock=monotonic)
-            try:
-                conn.close()
-            except BaseException as exc:
-                close_errors.append(short_error(exc))
-            finally:
-                closing.cancel()
-        closed = monotonic()
-        if close_errors and error is None:
-            error = close_errors[0]
         summary = dict(status=status, frames=frames, connections=int(attempted is not None),
             event_counts={}, book_snapshot_assets_by_connection={'1': snapshots},
             continuous_coverage_proven=False, orders_authorized=False)
+        # Seal the actual writer/watermarks before a potentially blocking close.
+        # The existing acquisition process guard still bounds this work; it is
+        # not a guarantee that finalization or publication can finish in time.
         try:
             log.append('session_end', summary)
         except BaseException as exc:
@@ -377,9 +404,40 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
             log.close()
         except BaseException as exc:
             close_errors.append(short_error(exc))
-    return dict(summary=summary, error=error, close_errors=close_errors,
-        terminal_receive=terminal, deadline_interrupts=interrupt_receipts,
-        stop_policy_sha256=payload_hash(STOP_POLICY),normal_completion=normal_completion,
-        ready=ready, attempted=attempted, closed=closed, last_safe=last_safe,
-        acquisition_ended=acquisition_ended, acquisition_deadline=deadline,
-        epoch_ns=epoch_ns, original_application_verdict='fail', orders_authorized=False)
+        if close_errors and error is None:error=close_errors[0]
+
+        def result_at(closed, close_completed):
+            return dict(summary=summary,error=error,close_errors=list(close_errors),
+                terminal_receive=list(terminal),deadline_interrupts=list(interrupt_receipts),
+                stop_policy_sha256=payload_hash(STOP_POLICY),normal_completion=normal_completion,
+                publication_policy_sha256=payload_hash(PUBLICATION_POLICY),
+                notice_policy_sha256=payload_hash(NOTICE_POLICY),close_completed=close_completed,
+                ready=ready,attempted=attempted,closed=closed,last_safe=last_safe,
+                acquisition_ended=acquisition_ended,acquisition_deadline=deadline,
+                epoch_ns=epoch_ns,original_application_verdict='fail',orders_authorized=False)
+
+        if before_close is not None:
+            try:before_close(result_at(None,False))
+            except BaseException as exc:
+                close_errors.append(short_error(exc))
+                if error is None:error=close_errors[0]
+        if hard_stop is not None:
+            hard_stop.cancel()
+            if hard_stop.fired.is_set():
+                close_errors.append('ContractError:acquisition process guard fired')
+        close_completed=False
+        if conn is not None:
+            closing=connect_guard_factory(monotonic()+STOP_POLICY['close_hard_seconds'],clock=monotonic)
+            try:
+                conn.close()
+                close_completed=True
+            except BaseException as exc:
+                close_errors.append(short_error(exc))
+            finally:
+                closing.cancel()
+                if closing.fired.is_set():
+                    close_completed=False
+                    close_errors.append('ContractError:close process guard fired')
+        closed=monotonic()
+        if close_errors and error is None:error=close_errors[0]
+    return result_at(closed,close_completed)

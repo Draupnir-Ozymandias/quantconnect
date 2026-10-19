@@ -44,14 +44,25 @@ SUCCESSOR_V3_PLAN.update(schema_version='qcrl.public_feed_interval_counts.study.
 
 # A new prospective public target uses the independently validated stop owner.
 # Prior plans and their evidence remain immutable; all measurement limits persist.
-PLAN=deepcopy(SUCCESSOR_V3_PLAN)
-PLAN.update(schema_version='qcrl.public_feed_interval_counts.study.v4',
+SUCCESSOR_V4_PLAN=deepcopy(SUCCESSOR_V3_PLAN)
+SUCCESSOR_V4_PLAN.update(schema_version='qcrl.public_feed_interval_counts.study.v4',
     parent_plan_sha256=payload_hash(SUCCESSOR_V3_PLAN),
     case='btc5m-20261019T160000Z-local-counts-04',
     event_start='2026-10-19T16:00:00Z',event_end='2026-10-19T16:05:00Z',
     discovery='2026-10-19T15:55:00Z',freeze_cutoff='2026-10-19T15:59:00Z',
     arm='2026-10-19T16:00:40Z',nominal_epoch='2026-10-19T16:01:00Z',
     stop_policy_sha256='dde0e19b05f04cc802432520d1dc6e30a3294eaaeb2e21ddb8d2f026adc8e9b3')
+
+
+PLAN=deepcopy(SUCCESSOR_V4_PLAN)
+PLAN.update(schema_version='qcrl.public_feed_interval_counts.study.v5',
+    parent_plan_sha256=payload_hash(SUCCESSOR_V4_PLAN),
+    case='btc5m-20261020T160000Z-local-counts-05',
+    event_start='2026-10-20T16:00:00Z',event_end='2026-10-20T16:05:00Z',
+    discovery='2026-10-20T15:55:00Z',freeze_cutoff='2026-10-20T15:59:00Z',
+    arm='2026-10-20T16:00:40Z',nominal_epoch='2026-10-20T16:01:00Z',
+    notice_policy_sha256='6dec039e13620846ed83b0850d0d36a83325cb5afbf87372742359b7cd70bceb',
+    publication_policy_sha256='9b07b4ecfa5c2c9a186e8f6a9bcb2e25fc2a890aeac98a65579de83a7d5a0f0e')
 
 
 def require(ok, message):
