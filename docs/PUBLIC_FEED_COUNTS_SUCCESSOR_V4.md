@@ -215,3 +215,12 @@ It must stop without rollover if access, readiness or the declared deadline fail
 and delete itself after final audit or definitive not-run. No further routine
 approval is required within the user's exact one-case authorization. No additional
 capture, loopback test, cohort or infrastructure/resource change is authorized.
+
+## Final audited outcome — October 19
+
+This one attempt is finished: [partial outcome and limits](PUBLIC_FEED_COUNTS_V4_OUTCOME_20261019.md),
+with [60 unresolved/null primary rows](PUBLIC_FEED_COUNTS_V4_20261019.csv).
+The declared foreign-binding rule stopped acquisition before the counting minute;
+consumer/completion publication did not survive. The one-time follow-up is deleted.
+Do not launch this target again. This declaration and every original threshold,
+failed verdict and retained byte remain unchanged by the outcome documentation.

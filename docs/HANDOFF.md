@@ -1,9 +1,45 @@
 # Development handoff
 
-Updated October 18, 2026. Continue in
+Updated October 19, 2026. Continue in
 `/Users/eric/Projects/quantconnect/polymarket-martingale` on
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
+
+## October 19 — Public v4 stopped on foreign notification; primary counts unresolved
+
+The single approved attempt is **partial_or_unresolved**. [Audited outcome](PUBLIC_FEED_COUNTS_V4_OUTCOME_20261019.md)
+and [all 60 null count rows](PUBLIC_FEED_COUNTS_V4_20261019.csv). Historical
+application **FAIL**, v1/v2 not-run and v3 closure fault/unverified coverage remain
+unchanged. No combined badge; no replay or new target.
+
+Fresh readiness passed 15:44:12Z; one exclusive controller launch at15:45:00Z.
+Five bounded metadata GETs, case lock15:55:01Z; one private unit arm16:00:40Z.
+Exact source `706ebed052945235dd44e7a5c5ef6a231059576c`,552 selected files;
+freeze `59c54d22966b2da993e5437aa8a7c7c39baf9002b7e0f475533eed892da8efea`.
+The retained prefix records a foreign-condition `new_market` text at16:00:41.662Z,
+then the declared fatal `explicit foreign asset/condition binding` gap. This is
+not proof that ordinary selected-market book/price data was misbound. The rule
+was preserved. SIGTERM exit5.005897sec later is consistent with the five-second
+close guard; signal sender/exact close progress are unknown. Consumer/completion/
+manifest/footer are absent. Public normal-stop ownership was not demonstrated.
+
+Independent copy:45files/527,514 content bytes, all21producer evidence files and
+552 frozen sources verified. Sealed363,917-byte copy SHA
+`6839a795d68b20eda0ebbaae5f1c637f6bba5cd3a8396242ff58cab25062a122`.
+Partial review payload `14e877392c33d93baa2062cc8a1e0ca7650d1699974f79d7aaa1f9dde3a84c1c`.
+599 complete prefix record hashes/ordinals verify, including595text-frame rows;
+gzip trailer and full completion linkage do not. Prefix bytes are not a full
+returned population. Exact frozen report returns population null and60unresolved
+rows; no zero filling or archive-time substitution. Inclusive primary resources,
+widths/missed slots/overhead/continuousRSS/independentUTCaccuracy remain unknown.
+
+Source/runtime/TLS/public baseline and original limits preserved. Retained unit
+binding verifies; separate live worker signal/PID inspection missed its early exit
+and is not marked passed. Unit inactive/dead, controller/worker PIDs absent; no
+extra run. One-time follow-up `run-and-audit-the-approved-btc-v4-capture` deleted.
+Private controls/evidence/audit `.qcrl/reviews/public-feed-20261019T160000Z/`.
+Only a future offline review of global notifications and early-fault publication
+is proposed; no implementation or native rerun is authorized by this outcome.
 
 ## October 18 — Exact v4 approved and staged; one October 19 follow-up scheduled
 
