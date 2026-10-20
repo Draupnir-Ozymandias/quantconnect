@@ -240,7 +240,8 @@ def contamination(raw, spec):
 def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
             clock=utc_now, monotonic=time.monotonic, connect_factory=None,
             guard=None, interrupt_factory=DeadlineInterrupt, connect_guard_factory=ConnectDeadline,
-            tls_context=None, before_close=None):
+            tls_context=None, before_close=None, recovery_policy=None,
+            pause=time.sleep, uniform=None):
     """Actual public connection by default; tests explicitly inject local transport.
 
     Source/runtime/market approval is checked by the outer worker before this
@@ -248,7 +249,10 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
     """
     require(execute is True, 'explicit public study acquisition required')
     require(type(epoch_ns) is int and epoch_ns >= 0, 'fixed integer study epoch required')
-    expected = stream_plan(raw_bundle, segmented=True, max_seconds=90, max_frames=60000)
+    from infra.stream.recorder_public_recovery import Epochs, POLICY as RECOVERY_POLICY, retry_delay
+    recovering = recovery_policy is not None
+    require(not recovering or recovery_policy == RECOVERY_POLICY, 'prospective recovery policy drift')
+    expected = stream_plan(raw_bundle, segmented=True, max_seconds=90, max_frames=60000, resilient=recovering)
     require(spec == expected, 'public study spec drift')
     require(isinstance(observer, CompletionWitnesses) and observer.clock == clock
             and observer.monotonic == monotonic, 'unchanged matching completion observer required')
@@ -270,7 +274,9 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
     frames, ready, attempted, closed, acquisition_ended, deadline = 0, None, None, None, None, None
     status, error, last_safe = 'before_connect', None, None
     terminal, interrupt_receipts, close_errors = [], [], []
-    snapshots = []
+    snapshots, connections, epochs = [], 0, Epochs(spec) if recovering else None
+    snapshots_by_connection = {}
+    transport_error = None
 
     def finish_interrupt():
         nonlocal interrupt
@@ -281,36 +287,43 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
             interrupt = None
             return receipt
 
-    try:
-        log.append('session_start', dict(spec=spec, spec_sha256=payload_hash(spec)))
-        log.append('connect_attempt', dict(connection=1))
-        attempted = monotonic()
-        hard_stop=connect_guard_factory(attempted+STOP_POLICY['acquisition_hard_seconds'],
-                                       clock=monotonic)
-        readiness = min(epoch-1, attempted+10)
-        require(readiness > attempted, 'connection readiness missed')
+    def transport(call, *args, **kwargs):
+        nonlocal transport_error
+        from websockets.exceptions import ConnectionClosed
+        try:
+            return call(*args, **kwargs)
+        except (OSError,ConnectionClosed) as exc:
+            transport_error=exc
+            raise
+
+    def run_connection():
+        nonlocal conn, interrupt, frames, ready, last_safe, status, snapshots
+        connection_started = monotonic()
+        readiness = min(epoch-1 if connections==1 else deadline, connection_started+10)
+        require(readiness > connection_started, 'connection readiness missed')
         # connect() enforces its own handshake timeout; after return the control
         # watchdog also bounds a blocked subscription write and later sends.
         connecting=connect_guard_factory(readiness,clock=monotonic)
         try:
-            conn = connect_factory(ENDPOINT, open_timeout=readiness-attempted,
+            conn = transport(connect_factory, ENDPOINT, open_timeout=readiness-connection_started,
                 close_timeout=5, max_size=262144, max_queue=16, compression=None,
                 ping_interval=None, proxy=None, **({'ssl':tls_context} if tls_context is not None else {}))
         finally:
             connecting.cancel()
+        require(not connecting.fired.is_set(),'connection process guard fired')
         interrupt = interrupt_factory(conn.socket, readiness, clock=monotonic,phase='subscription')
-        conn.send(json.dumps(spec['subscription']))
+        transport(conn.send,json.dumps(spec['subscription']))
         ready = monotonic()
         require(ready < readiness, 'subscription readiness missed')
         subscription=finish_interrupt()
         require(not subscription['fired'] and subscription['error'] is None,
                 'emergency interruption during subscription')
-        deadline = min(epoch+65, attempted+90)
         emergency=min(deadline+STOP_POLICY['emergency_grace_seconds'],
                       attempted+STOP_POLICY['acquisition_hard_seconds'])
         interrupt = interrupt_factory(conn.socket, emergency, clock=monotonic,
                                       normal_deadline=deadline,phase='acquisition')
-        log.append('subscribed', dict(connection=1))
+        log.append('subscribed', dict(connection=connections))
+        if recovering: epochs.subscribe(ready)
         last_ping = last_pong = ready
         status = 'scheduled_stop'
         while True:
@@ -321,12 +334,15 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
             if frames >= 60000:
                 status = 'frame_limit'
                 break
+            if recovering:
+                reason = epochs.reason(now)
+                if reason: raise ContractError(reason)
             if now-last_pong >= 30:
                 raise ContractError('pong_timeout')
             if now-last_ping >= 10:
-                conn.send('PING')
+                transport(conn.send,'PING')
                 last_ping = monotonic()
-                log.append('ping_sent', dict(connection=1))
+                log.append('ping_sent', dict(connection=connections))
             try:
                 remaining = deadline-monotonic()
                 if remaining <= 0:
@@ -335,18 +351,18 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
                 remaining = deadline-monotonic()  # A sync must not adopt a stale receive budget.
                 if remaining <= 0:
                     break
-                frame = conn.recv(timeout=min(timeout, remaining))
+                frame = transport(conn.recv,timeout=min(timeout, remaining))
             except TimeoutError:
                 log.sync_if_due()
                 continue
             # Placement is unchanged: no validation/classification before the
             # existing monotonic/UTC/monotonic application-return operation.
-            observer.application_return(frame, 1)
+            observer.application_return(frame, connections)
             timing_failure=observer.failure
             require(isinstance(frame, str) and len(frame.encode('utf-8')) <= 262144,
                     'binary_or_oversize_frame')
             classes = classify_frame(frame, spec)
-            log.append('frame', dict(connection=1, raw_text=frame, classification=classes))
+            log.append('frame', dict(connection=connections, raw_text=frame, classification=classes))
             frames += 1
             require(timing_failure is None and observer.failure is None and len(observer.frames) == frames,
                     'required occurrence linkage/clock fault: '+str(observer.failure))
@@ -357,20 +373,91 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
                 if event['scope'] == 'selected_market' and event['event_type'] == 'book':
                     snapshots = sorted(set(snapshots+event['asset_ids']))
             require(not contamination(frame, spec), 'explicit foreign asset/condition binding')
+            if recovering:
+                epochs.observe(frame, classes, observer.frames[-1]['returned'])
             if frames >= 60000:
                 status = 'frame_limit'
                 break
+        if recovering and status=='scheduled_stop':
+            at=interrupt.claim_normal(conn,monotonic())
+            return at
+        return monotonic()
+
+    def close_for_retry():
+        nonlocal conn
+        if conn is None:return
+        closing_conn,conn=conn,None
+        closing=connect_guard_factory(min(monotonic()+5,attempted+90),clock=monotonic)
+        try:
+            closing_conn.close()
+        except BaseException as exc:
+            close_errors.append(short_error(exc))
+            raise
+        finally:
+            closing.cancel()
+            if closing.fired.is_set():
+                close_errors.append('ContractError:retry close process guard fired')
+                raise ContractError('retry close process guard fired')
+
+    try:
+        header=dict(spec=spec, spec_sha256=payload_hash(spec))
+        if recovering:header['recovery_policy_sha256']=payload_hash(RECOVERY_POLICY)
+        log.append('session_start', header)
+        attempted = monotonic()
+        deadline = min(epoch+65, attempted+90)
+        hard_stop=connect_guard_factory(attempted+STOP_POLICY['acquisition_hard_seconds'],clock=monotonic)
+        while connections < (RECOVERY_POLICY['max_connections'] if recovering else 1):
+            connections += 1
+            snapshots=[]
+            if recovering:epochs.begin(monotonic())
+            log.append('connect_attempt', dict(connection=connections))
+            try:
+                ended=run_connection()
+                if recovering:
+                    log.append('connection_epoch',epochs.end(ended,None,normal=status=='scheduled_stop'))
+                break
+            except BaseException as exc:
+                if not recovering:raise
+                fault=short_error(exc)
+                terminal.append(dict(connection=connections,type=type(exc).__name__,error=fault))
+                if error is None:error=fault
+                row=epochs.end(monotonic(),fault)
+                log.append('connection_gap',dict(connection=connections,reason=fault[:120],
+                    unavailable_from=row['available_until']))
+                log.append('connection_epoch',row)
+                from websockets.exceptions import ConnectionClosed
+                recoverable=(exc is transport_error and isinstance(exc,(OSError,ConnectionClosed))
+                    and not isinstance(exc,ssl.SSLCertVerificationError)
+                    or type(exc) is ContractError and str(exc) in
+                        ('initial_books_timeout','selected_book_data_silence','stale_timestamped_book_flow','pong_timeout'))
+                receipt=finish_interrupt()
+                if receipt and (receipt['fired'] or receipt['error']):recoverable=False
+                if not recoverable:raise
+                status='connection_limit' if connections>=RECOVERY_POLICY['max_connections'] else 'interrupted'
+                if connections>=RECOVERY_POLICY['max_connections'] or monotonic()>=deadline:break
+                # Only the acquisition owner closes/retries, before another socket exists.
+                # Keep the original total process guard armed through close/backoff.
+                close_for_retry()
+                delay=retry_delay(connections,**({'uniform':uniform} if uniform is not None else {}))
+                until=min(monotonic()+delay,deadline)
+                log.append('retry_wait',dict(connection=connections,seconds=until-monotonic()))
+                while monotonic()<until:
+                    guard.check();log.sync_if_due()
+                    pause(min(.1,until-monotonic()))
+                if monotonic()>=deadline:break
+            finally:
+                snapshots_by_connection[str(connections)]=snapshots
     except BaseException as exc:
         # Never clear a receive/close fault just because the deadline fired.
         status, error = 'interrupted', short_error(exc)
         terminal.append(dict(type=type(exc).__name__, error=error))
         try:
-            log.append('connection_gap', dict(connection=1, reason=error[:120]))
+            if not recovering:log.append('connection_gap', dict(connection=connections, reason=error[:120]))
         except BaseException as log_exc:
             close_errors.append(short_error(log_exc))
     finally:
         acquisition_ended = monotonic()
-        if conn is not None and status=='scheduled_stop' and error is None:
+        if conn is not None and status=='scheduled_stop' and error is None and not recovering:
             try:
                 acquisition_ended=interrupt.claim_normal(conn,acquisition_ended)
             except BaseException as exc:
@@ -390,9 +477,15 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
                 close_errors.append(short_error(log_exc))
         if receipt is not None and receipt['owner']=='acquisition_thread':
             normal_completion=receipt
-        summary = dict(status=status, frames=frames, connections=int(attempted is not None),
-            event_counts={}, book_snapshot_assets_by_connection={'1': snapshots},
+        summary = dict(status=status, frames=frames, connections=connections,
+            event_counts={}, book_snapshot_assets_by_connection=snapshots_by_connection,
             continuous_coverage_proven=False, orders_authorized=False)
+        if recovering:
+            if epochs.current is not None and epochs.current['ended'] is None:
+                epochs.end(acquisition_ended,error or 'incomplete_epoch')
+            # Final linked marker includes failed attempts and preserves their faults.
+            try:log.append('recovery_end',dict(policy_sha256=payload_hash(RECOVERY_POLICY),epochs=epochs.rows))
+            except BaseException as exc:close_errors.append(short_error(exc))
         # Seal the actual writer/watermarks before a potentially blocking close.
         # The existing acquisition process guard still bounds this work; it is
         # not a guarantee that finalization or publication can finish in time.
@@ -407,7 +500,7 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
         if close_errors and error is None:error=close_errors[0]
 
         def result_at(closed, close_completed):
-            return dict(summary=summary,error=error,close_errors=list(close_errors),
+            value = dict(summary=summary,error=error,close_errors=list(close_errors),
                 terminal_receive=list(terminal),deadline_interrupts=list(interrupt_receipts),
                 stop_policy_sha256=payload_hash(STOP_POLICY),normal_completion=normal_completion,
                 publication_policy_sha256=payload_hash(PUBLICATION_POLICY),
@@ -415,6 +508,10 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
                 ready=ready,attempted=attempted,closed=closed,last_safe=last_safe,
                 acquisition_ended=acquisition_ended,acquisition_deadline=deadline,
                 epoch_ns=epoch_ns,original_application_verdict='fail',orders_authorized=False)
+            if recovering:
+                from copy import deepcopy
+                value.update(recovery_policy_sha256=payload_hash(RECOVERY_POLICY),connection_epochs=deepcopy(epochs.rows))
+            return value
 
         if before_close is not None:
             try:before_close(result_at(None,False))

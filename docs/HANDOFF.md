@@ -5,6 +5,47 @@ Updated October 20, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 20 — Prospective bounded recovery implemented offline
+
+[Recovery contract v1](PUBLIC_FEED_RECOVERY_CONTRACT_V1.md) defines explicit
+connection epochs/gaps, full resubscription, per-connection fresh-book bootstrap
+and separate raw/eligible interval populations. Policy SHA
+`437621e12790da88843eb418b649af6a00972566b21a86d94e11a43b266c6f04`
+is pinned literally in a regression test. This is not a new study plan, runtime
+freeze, capture authorization or repair of v5/historical FAIL.
+
+The opt-in recorder path reuses existing `DataWatchdog`, equal-jitter retry,
+book/timestamp validators, writer/completion/persistence/storage and stop guards.
+At most three attempts/two retries share one deadline, 90-second acquisition
+bound, 60,000-text population and all original resource/storage limits. A failed
+socket closes before any successor; close failure, emergency, clock/storage/
+linkage/foreign-binding faults stop recovery. Prior faults stay retained even if
+a later epoch reaches its normal stop. The final epoch's ownership and cleanup
+close are reported separately; neither grants whole-recording acceptance.
+
+Every new connection resubscribes and needs fresh valid full books for both
+selected assets. Old books/deltas/PONGs cannot bootstrap. All incoming texts count
+once, including duplicate deliveries and accepted creation notices; eligible
+counts are a separate explicitly bounded subset. Reports replay bootstrap from
+linked archive frames and compare lifecycle/footer/completion witnesses. Gaps
+include bootstrap/backoff/reconnect/terminal remainder; unavailable zero-text
+bins remain unknown, distinct from observed local silence. No reconnect claim
+of recovered missed messages, feed completeness or continuously valid book state.
+
+The v5 plan and operator remain one-attempt and do not enable this option. Local
+fake-clock, real loopback WebSocket and blocked-socket tests cover lifecycle,
+resubscription, retry bounds, book reset/invalidity, races and fatal paths. The
+full offline suite passed **1,271 tests in 172.800s**; after final report
+metadata/boundary-only additions, **22 focused tests passed in 4.099s**. Python
+3.9 grammar accepts changed sources locally. Validation receipts/logs remain in
+`.qcrl/reviews/public-recovery-offline/`.
+These are Intel macOS/Python 3.14.6 offline tests, not Linux/TLS/public-feed or
+budget validation. No SSH, native unit, infrastructure change or capture proposal
+was launched. Before proposing a public target, prepare a new explicit plan and
+source/runtime envelope for this contract; no rollover or reuse of old approval.
+Historical evidence/thresholds, unknown UTC accuracy/incremental overhead/
+continuous RSS/internal retries and v5 disconnect cause stay unchanged.
+
 ## October 20 — V5 interrupted; linked prefix retained and independently audited
 
 **Historical application FAIL remains unchanged. V5 did not establish full-minute
