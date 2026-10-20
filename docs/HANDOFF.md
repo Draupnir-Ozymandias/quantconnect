@@ -1,9 +1,50 @@
 # Development handoff
 
-Updated October 19, 2026. Continue in
+Updated October 20, 2026. Continue in
 `/Users/eric/Projects/quantconnect/polymarket-martingale` on
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
+
+## October 20 — V5 interrupted; linked prefix retained and independently audited
+
+**Historical application FAIL remains unchanged. V5 did not establish full-minute
+coverage or normal acquisition completion.** One approved attempt ran from exact
+source `f89ada8cb43036464cd77c08fe4ca7829fbc634a` (555 files), freeze
+`7cd0b049ff9380aa405d5368bc197205363654244862c2f328d50a58e236f12f`.
+[Outcome and integrity audit](PUBLIC_FEED_COUNTS_V5_OUTCOME_20261020.md);
+[all 60 interval rows](PUBLIC_FEED_COUNTS_V5_20261020.csv).
+
+Fresh gates passed; one controller, five metadata GETs and one private unit ran.
+Independent controller and prompt live unit bindings verified identity, signals,
+limits, ready/release linkage. Receive failed with
+`ConnectionClosedError:no close frame received or sent` at M0+28.779829488s;
+last-safe M0+28.710376203s. Cause unknown. Neither interrupt receipt fired and
+normal completion is absent. Cleanup close returned, preserving the genuine
+receive fault. Archive/completion/pre-close checkpoint/final consumer all survive
+and link; successful OS exit is not scientific success.
+
+32,722 linked texts: 17,070 prewindow, 15,652 primary-prefix, zero tail;
+zero ambiguous or unplaced. All 60 independently recomputed rows match frozen
+report: slots 0–27 unverified, 28–59 censored; feed-activity upper bounds null.
+104 accepted foreign creation notices count once as unconfirmed/other-market.
+No inference of zero missing activity, venue completeness or trading performance.
+
+Original thresholds stand: one 26.181905ms UTC bracket exceeds 1ms; ten RSS
+brackets exceed 5ms (maximum 255.716210ms). Resource qualification unknown;
+32 sampled rows and no full 60s CPU window. Sampled RSS 74,436,608 bytes is not
+continuous peak; whole-unit CPU is inclusive, not incremental overhead.
+
+Independent sealed copy: 60 files/15,841,820 content bytes; all 36 producer
+evidence files and 555 frozen source hashes match. Compressed SHA
+`808dbf901ef68ae0cc04fd2e224124cc75a1e54e6a5d489d3c7ca9ef95904eed`.
+Original archive witnesses/barriers verify. Public collectors/source/runtime/TLS
+unchanged; exact worker/controller gone and private unit inactive/dead at16:06:33Z.
+No retries, extra capture, resource or infrastructure changes. All historical
+FAIL/not-run/partial evidence stays intact. Independent UTC accuracy, incremental
+overhead, continuous RSS, internal retries and disconnect cause remain unknown;
+credits are context, not a new gate. Private evidence:
+`.qcrl/reviews/public-feed-20261020T160000Z/`.
+The one-time follow-up is removed after final audit. No pending capture or rollover.
 
 ## October 19 — Exact v5 approved and staged; October 20 follow-up scheduled
 

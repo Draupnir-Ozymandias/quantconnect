@@ -265,3 +265,14 @@ alone never proves close or full coverage. Failed access/readiness/deadline stop
 without rollover. The follow-up deletes itself after final audit or definitive
 not-run. No further routine approval is required within this exact one-case scope;
 no extra smoke, cohort, retry, infrastructure/resource or public-collector change.
+
+## Subsequent execution outcome — October 20
+
+The one approved attempt ran and stopped on an abnormal receive closure, without
+retry. Archive, completion, pre-close checkpoint and final consumer survived.
+[Independent outcome audit](PUBLIC_FEED_COUNTS_V5_OUTCOME_20261020.md) and
+[60 interval rows](PUBLIC_FEED_COUNTS_V5_20261020.csv) retain the censored prefix,
+original precision violations and unknown resource qualification. Cleanup close
+returned; normal acquisition and full-minute coverage are not established. This
+appendix does not amend the prospective declaration or historical failed verdicts.
+No further native run follows from this outcome; the one-time follow-up is removed.
