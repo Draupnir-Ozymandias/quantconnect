@@ -372,9 +372,9 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
             for event in classes:
                 if event['scope'] == 'selected_market' and event['event_type'] == 'book':
                     snapshots = sorted(set(snapshots+event['asset_ids']))
-            require(not contamination(frame, spec), 'explicit foreign asset/condition binding')
             if recovering:
                 epochs.observe(frame, classes, observer.frames[-1]['returned'])
+            require(not contamination(frame, spec), 'explicit foreign asset/condition binding')
             if frames >= 60000:
                 status = 'frame_limit'
                 break

@@ -65,6 +65,32 @@ PLAN.update(schema_version='qcrl.public_feed_interval_counts.study.v5',
     publication_policy_sha256='9b07b4ecfa5c2c9a186e8f6a9bcb2e25fc2a890aeac98a65579de83a7d5a0f0e')
 
 
+# V5 remains the default and is never retrospectively upgraded to recovery.
+SUCCESSOR_V5_PLAN=deepcopy(PLAN)
+SUCCESSOR_V6_PLAN=deepcopy(SUCCESSOR_V5_PLAN)
+SUCCESSOR_V6_PLAN.update(schema_version='qcrl.public_feed_interval_counts.study.v6',
+    parent_plan_sha256=payload_hash(SUCCESSOR_V5_PLAN),
+    case='btc5m-20261021T160000Z-local-counts-06',
+    event_start='2026-10-21T16:00:00Z',event_end='2026-10-21T16:05:00Z',
+    discovery='2026-10-21T15:55:00Z',freeze_cutoff='2026-10-21T15:59:00Z',
+    arm='2026-10-21T16:00:40Z',nominal_epoch='2026-10-21T16:01:00Z',
+    connection_attempts=3,reconnects=2,
+    recovery_policy_sha256='437621e12790da88843eb418b649af6a00972566b21a86d94e11a43b266c6f04',
+    reconnect_not_observed='inconclusive_no_automatic_extra_run',
+    population='all_incoming_texts_plus_separate_bootstrap_eligible_subset')
+
+
+def supported_plan(value):
+    require(any(value==v and payload_hash(value)==payload_hash(v)
+                for v in (PLAN,SUCCESSOR_V6_PLAN)), 'unsupported fixed study plan')
+    return deepcopy(value)
+
+
+def version_plan(version):
+    require(version in ('v5','v6'),'unsupported study version')
+    return deepcopy(SUCCESSOR_V6_PLAN if version=='v6' else PLAN)
+
+
 def require(ok, message):
     if not ok:
         raise ContractError(message)
@@ -83,11 +109,11 @@ def utc(value):
     return result
 
 
-def epoch_ns(before, observed_utc, after):
+def epoch_ns(before, observed_utc, after, *, study_plan=PLAN):
     """After-endpoint reference, exact represented inputs, one upward rounding."""
     a, b = number(before), number(after)
     require(a <= b, 'anchor clock regressed')
-    delta = utc(PLAN['nominal_epoch'])-utc(observed_utc)
+    delta = utc(supported_plan(study_plan)['nominal_epoch'])-utc(observed_utc)
     micros = (delta.days*86400+delta.seconds)*1000000+delta.microseconds
     reference = (b+Fraction(micros, 1000000))*1000000000
     result = -(-reference.numerator//reference.denominator)
@@ -95,12 +121,13 @@ def epoch_ns(before, observed_utc, after):
     return result
 
 
-def bins(frames, epoch, *, censored_from=None, coverage_complete=False):
+def bins(frames, epoch, *, censored_from=None, coverage_complete=False, study_plan=PLAN):
     """Count known archived occurrences; missing acquisition coverage stays unknown.
 
     Caller must independently establish archive/clock-domain linkage. This is
     descriptive arithmetic, never a combined application acceptance evaluator.
     """
+    PLAN = supported_plan(study_plan)
     require(type(epoch) is int and epoch >= 0, 'integer epoch nanoseconds required')
     require(isinstance(frames, list) and len(frames) <= PLAN['frame_cap'],
             'bounded archived occurrence list required')

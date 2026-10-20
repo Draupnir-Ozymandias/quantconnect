@@ -24,13 +24,14 @@ from infra.stream.recorder_completion import CompletionWitnesses, verify_complet
 from infra.stream.recorder_persistence_worker import publish, control
 from infra.stream.recorder_application_worker import load
 from infra.stream.recorder_public_capture import collect, short_error, StorageGuard, normal_completion_proven, STOP_POLICY, PUBLICATION_POLICY, NOTICE_POLICY
-from infra.stream.recorder_public_counts import PLAN, require, utc, epoch_ns, bins
+from infra.stream.recorder_public_counts import PLAN, require, utc, epoch_ns, bins, supported_plan, version_plan
 
 ROOT = Path(__file__).resolve().parents[2]
 PYTHON = '/opt/qcrl-stream/venv/bin/python'
 
 
-def validate_case(case):
+def validate_case(case, *, study_plan=PLAN):
+    PLAN=supported_plan(study_plan)
     verify_artifact_hash(case,'artifact_sha256','public study case')
     require(case['study_plan_sha256']==payload_hash(PLAN) and case['case']==PLAN['case'],
             'fixed public study case differs')
@@ -39,7 +40,8 @@ def validate_case(case):
     check_market(raw,start,dict(resolution_source=SOURCE,description_sha256=payload_hash(DESCRIPTION)))
     normalized=normalize_bundle(raw)['market_contract']
     require({o['label'] for o in normalized['outcomes']}=={'Up','Down'}, 'Up/Down outcome binding required')
-    require(case['spec']==stream_plan(raw,segmented=True,max_seconds=90,max_frames=60000),
+    require(case['spec']==stream_plan(raw,segmented=True,max_seconds=90,max_frames=60000,
+            resilient="recovery_policy_sha256" in PLAN),
             'public study transport/storage spec differs')
     require(utc(PLAN['discovery'])<=utc(case['discovered_at_utc'])
             <=utc(PLAN['discovery'])+timedelta(seconds=30),
@@ -67,6 +69,7 @@ def consume(root, frozen, *, execute=False):
     require(execute is True and platform.system()=='Linux'
             and os.path.abspath(__import__('sys').executable)==PYTHON,
             'explicit installed Linux study worker required')
+    PLAN=supported_plan(frozen['study_plan'])
     root=Path(root)
     require(root.is_absolute() and root.resolve(strict=True)==root and not root.is_symlink(),
             'canonical private study root required')
@@ -76,6 +79,9 @@ def consume(root, frozen, *, execute=False):
             and PLAN['notice_policy_sha256']==payload_hash(NOTICE_POLICY)
             and PLAN['publication_policy_sha256']==payload_hash(PUBLICATION_POLICY),
             'public study source/plan freeze differs')
+    if 'recovery_policy_sha256' in PLAN:
+        from infra.stream.recorder_public_recovery import policy as recovery_policy
+        require(PLAN['recovery_policy_sha256']==payload_hash(recovery_policy()),'recovery plan/source differs')
     # Byte checks do not grant execution authority: the external approval receipt
     # is bound literally by the operator freeze, with independent unit release.
     for name,want in frozen['sources'].items():
@@ -84,7 +90,7 @@ def consume(root, frozen, *, execute=False):
     require(approval['artifact_sha256']==frozen['operator_approval_sha256']
             and approval['case']==PLAN['case'] and approval['one_case_only'] is True,
             'one-case operator approval unavailable')
-    case=validate_case(control(root/'case.json'))
+    case=validate_case(control(root/'case.json'),study_plan=PLAN)
     require(case['freeze_sha256']==frozen['freeze_sha256'],'case/freeze binding differs')
     lock=control(root.parent/'case-lock.json')
     require(lock['case_sha256']==case['artifact_sha256'] and lock['freeze_sha256']==frozen['freeze_sha256']
@@ -97,7 +103,7 @@ def consume(root, frozen, *, execute=False):
     guard=StorageGuard(root)
     initial=reader.read(rss=True)
     before=time.monotonic();now=utc_text(utc_now());after=time.monotonic()
-    epoch=epoch_ns(before,now,after)
+    epoch=epoch_ns(before,now,after,study_plan=PLAN)
     publish(root/'worker-ready.json',dict(case_sha256=case['artifact_sha256'],identity=reader.expected,
         epoch_ns=epoch,anchor=dict(before=before,utc=now,after=after),initial_resource=initial))
     while not (root/'release.json').exists() and time.monotonic()<epoch/1e9-1:
@@ -121,7 +127,8 @@ def consume(root, frozen, *, execute=False):
         publish_acquisition_checkpoint(root,case,value,witness,reader.expected,domain)
     try:
         result=collect(case['raw_bundle'],case['spec'],root/'archive',epoch_ns=epoch,
-            observer=witness,execute=True,guard=guard,tls_context=tls,before_close=checkpoint)
+            observer=witness,execute=True,guard=guard,tls_context=tls,before_close=checkpoint,
+            **({'recovery_policy':recovery_policy()} if 'recovery_policy_sha256' in PLAN else {}))
     except BaseException as exc:
         error=short_error(exc)
     finally:
@@ -143,10 +150,23 @@ def consume(root, frozen, *, execute=False):
             original_application_verdict='fail',orders_authorized=False))
 
 
-def report(root):
+def report(root, *, study_plan=PLAN):
     """Independent linkage prerequisite; no overall pass/acceptance output."""
+    PLAN=supported_plan(study_plan)
+    def decorate(value):
+        if 'recovery_policy_sha256' in PLAN:
+            value.update(study_plan_sha256=payload_hash(PLAN))
+            value.setdefault('eligible_population',None)
+            value.setdefault('normal_acquisition_end_proven',None)
+            value.setdefault('full_minute_feed_population',None)
+            value.setdefault('coverage_complete',False)
+            for row in value['rows']:
+                for key in ('eligible_lower','eligible_upper_archived'):row.setdefault(key,None)
+                for key in ('acquisition','book_eligibility'):row.setdefault(key,'unresolved_linkage')
+                row.setdefault('silence','unknown')
+        return value
     root=Path(root)
-    case=validate_case(control(root/'case.json'))
+    case=validate_case(control(root/'case.json'),study_plan=PLAN)
     final_path=root/'consumer.json'
     final_consumer=final_path.exists() or final_path.is_symlink()
     try:
@@ -172,7 +192,7 @@ def report(root):
             origin_attestation_required=True,venue_completeness_proven=False,
             orders_authorized=False,rows=[dict(slot=k,coverage='unresolved_consumer',
                 lower=None,upper_archived=None,feed_activity_upper=None) for k in range(60)])
-        return value
+        return decorate(value)
     try:
         archive=verify_stream_log(root/'archive')
         require(archive['header_spec']==case['spec'] and 0<=archive['frames']<=60000,
@@ -180,12 +200,12 @@ def report(root):
         require(archive['terminal_summary'] is None or archive['terminal_summary']==result['summary'],
                 'public consumer/archive footer differs')
     except (ContractError, OSError, ValueError, KeyError, TypeError) as exc:
-        value=bins([],consumer['epoch_ns'])
+        value=bins([],consumer['epoch_ns'],study_plan=PLAN)
         value.update(population=None,archive_linkage=dict(error=short_error(exc)),
                      case=PLAN['case'],origin_attestation_required=True)
         for row in value['rows']:
-            row.update(coverage='unresolved_archive',upper_archived=None,possible_unplaced=None)
-        return value
+            row.update(coverage='unresolved_archive',lower=None,upper_linked=None,upper_archived=None,possible_unplaced=None)
+        return decorate(value)
     try:
         completion_path=root/'completion.json'
         require(not completion_path.is_symlink() and completion_path.stat().st_size<=32*1024**2,
@@ -196,11 +216,30 @@ def report(root):
                 and completion['spec_sha256']==payload_hash(case['spec']),
                 'public completion runtime/spec differs')
         require(result['summary']['frames']==verified['frames'],'public population differs')
+        if 'recovery_policy_sha256' in PLAN:
+            require(result['recovery_policy_sha256']==PLAN['recovery_policy_sha256'],'result recovery policy differs')
     except (ContractError, OSError, ValueError, KeyError, TypeError) as exc:
-        value=bins([dict(sequence=i) for i in range(archive['frames'])],consumer['epoch_ns'])
+        value=bins([dict(sequence=i) for i in range(archive['frames'])],consumer['epoch_ns'],study_plan=PLAN)
         value.update(case=PLAN['case'],archive_linkage=dict(error=short_error(exc)),
                      capture_result=result,origin_attestation_required=True)
-        return value
+        return decorate(value)
+    if 'recovery_policy_sha256' in PLAN:
+        from infra.stream.recorder_public_recovery import describe_archive
+        try:
+            value=describe_archive(result,completion,root/'archive',expected_domain=consumer['domain'])
+        except (ContractError,OSError,ValueError,KeyError,TypeError,IndexError) as exc:
+            # Keep verified raw occurrence counts while withholding lifecycle eligibility.
+            value=bins(completion['frames'],consumer['epoch_ns'],study_plan=PLAN)
+            value.update(recovery_linkage=dict(error=short_error(exc)),eligible_population=None,
+                connection_epochs=None,coverage_complete=False)
+            for row in value['rows']:
+                row.update(eligible_lower=None,eligible_upper_archived=None,
+                    acquisition='unresolved_lifecycle',book_eligibility='unresolved_lifecycle',silence='unknown')
+        value.update(case=PLAN['case'],study_plan_sha256=payload_hash(PLAN),
+            plan_sha256=payload_hash(PLAN),archive_linkage=verified,capture_result=result,
+            final_consumer_present=final_consumer,close_verified=final_consumer and result.get('close_completed') is True,
+            origin_attestation_required=True,original_application_budget_pass=False)
+        return decorate(value)
     # Full primary local coverage requires normal scheduled end plus observed
     # subscription before the original epoch and all receipts. This is not feed
     # completeness and is never used as an aggregate application badge.
@@ -216,12 +255,12 @@ def report(root):
         and archive['session_end_present'] and result['summary']['connections']==1)
     censor=None if complete else result['last_safe']
     value=bins(completion['frames'],consumer['epoch_ns'],censored_from=censor,
-               coverage_complete=complete)
+               coverage_complete=complete,study_plan=PLAN)
     value.update(case=PLAN['case'],archive_linkage=verified,
                  final_consumer_present=final_consumer,close_verified=final_consumer and result.get('close_completed') is True,
                  capture_result=result,origin_attestation_required=True,
                  original_application_budget_pass=False)
-    return value
+    return decorate(value)
 
 
 def main():
@@ -229,12 +268,15 @@ def main():
     parser.add_argument('action',choices=['consume','report'])
     parser.add_argument('--root',required=True,type=Path)
     parser.add_argument('--execute',action='store_true')
+    parser.add_argument('--study-version',choices=['v5','v6'],default='v5')
     args=parser.parse_args()
     if args.action=='consume':
-        consume(args.root,load(args.root.parent/'execution-freeze.json'),execute=args.execute)
+        frozen=load(args.root.parent/'execution-freeze.json')
+        require(frozen['study_plan']==version_plan(args.study_version),'worker CLI study version differs')
+        consume(args.root,frozen,execute=args.execute)
     else:
         require(not args.execute,'offline report does not acquire data')
-        publish(args.root/'description.json',report(args.root))
+        publish(args.root/'description.json',report(args.root,study_plan=version_plan(args.study_version)))
 
 
 if __name__=='__main__':main()

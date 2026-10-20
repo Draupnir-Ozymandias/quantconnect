@@ -5,6 +5,40 @@ Updated October 20, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 20 — V6 worker/operator wired; exact approval packet in preparation
+
+[Prospective v6 declaration](PUBLIC_FEED_COUNTS_SUCCESSOR_V6.md) fixes one BTC
+October 21 noon EDT target, count 12:01–12:02 PM, with up to three sequential
+in-unit connections under recovery v1. This preparation is authorized; **native
+staging/execution are not yet approved**. No automation or public subscription.
+Default v5, its literal plan hash, all retained evidence and historical FAIL stay
+unchanged. V6 requires explicit `--study-version v6` throughout controller,
+metadata adapter and worker, and rejects cross-plan cases/freezes before action.
+
+The actual consumer passes the recovery contract into the shared recorder;
+reporting verifies/replays archive lifecycle alongside raw completion witnesses,
+keeps raw counts when only lifecycle linkage fails and withholds eligibility.
+Missing/corrupt linkage never manufactures zero acquisition coverage. Review
+aligned a fatal foreign frame's epoch bookkeeping with replay while preserving
+its fatal verdict, and bound the actual metadata slug allowlist to the selected
+plan. Both paths have local regressions. No observer optimization or new framework.
+
+Fresh read-only pinned SSH at October20 19:54:31Z verified the existing v5
+source/runtime/TLS/CA/boot/public baseline, 6,123,982,848 free bytes and absent
+v6 namespace/unit. New-source Linux validation and post-approval staging readback
+are still outstanding. Credit mode/balance are historical/unavailable context,
+not a refreshed minimum or acceptance gate. No credentials imported, infrastructure
+or public collectors changed, controller/metadata/unit/feed started.
+
+Final local suite: **1,280 tests passed in 167.599s**, plus **79 focused tests
+in 17.548s** after the metadata transport correction; local Python3.9 grammar
+checks pass. Logs are in `.qcrl/reviews/public-feed-20261021T160000Z/`. Exact
+committed source/runtime transport anchors follow after sealing before approval. No native run, staging, schedule, retry of a
+previous target or rollover is authorized by the preparation itself. One-shot
+transport must require separate direct approval; later documentation HEAD must
+not replace the frozen execution commit. No forced disconnect; if reconnect is
+not observed, that component remains inconclusive without an automatic extra run.
+
 ## October 20 — Prospective bounded recovery implemented offline
 
 [Recovery contract v1](PUBLIC_FEED_RECOVERY_CONTRACT_V1.md) defines explicit

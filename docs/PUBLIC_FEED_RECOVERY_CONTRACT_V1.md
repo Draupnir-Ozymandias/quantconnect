@@ -172,3 +172,10 @@ needed for this work. Before a public proposal, a new source/runtime-bound packe
 must explicitly declare this retry/eligibility contract and its exact target;
 prior v5 approval cannot authorize it. Do not repeat a six-case cohort or add a
 standalone observer experiment on the strength of these local results.
+
+## Subsequent v6 integration — October 20
+
+The [new v6 packet](PUBLIC_FEED_COUNTS_SUCCESSOR_V6.md) wires this opt-in policy
+through an explicit controller/metadata/consumer/report version selection. The
+v5 default and historical recordings remain unchanged. This integration note
+does not grant staging or execution approval or change the recovery policy hash.

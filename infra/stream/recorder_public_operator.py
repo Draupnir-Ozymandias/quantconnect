@@ -21,7 +21,7 @@ from execution_truth.contracts import ContractError, payload_hash, verify_artifa
 from execution_truth.stream_segments import file_hash
 from infra.stream.recorder_application_worker import load
 from infra.stream.recorder_persistence_worker import publish, control
-from infra.stream.recorder_public_counts import PLAN, require, utc
+from infra.stream.recorder_public_counts import PLAN, require, utc, supported_plan, version_plan
 from infra.stream.recorder_public_study import validate_case, ROOT, PYTHON
 from infra.stream.recorder_public_capture import short_error
 from infra.stream.recorder_wait_production import command, digest, inspect_source, seconds
@@ -68,7 +68,14 @@ def pinned_tls(frozen):
     return context
 
 
-def properties():
+def layout(study_plan=PLAN):
+    plan=supported_plan(study_plan)
+    tag=utc(plan['event_start']).strftime('%Y%m%dT%H%M%SZ')
+    return '/var/lib/qcrl-stream/public-feed-'+tag,'qcrl-public-counts-'+tag
+
+
+def properties(study_plan=PLAN):
+    STAGE,_=layout(study_plan)
     value=dict(BASE_PROPERTIES,ReadWritePaths=STAGE+'/evidence',ReadOnlyPaths=STAGE+'/source',
         InaccessiblePaths='-/etc/qcrl-stream.env -/etc/qcrl-collector.env',
         RestrictAddressFamilies='AF_UNIX AF_INET AF_INET6',
@@ -76,8 +83,8 @@ def properties():
     return value
 
 
-def verify_properties(raw):
-    want=properties()
+def verify_properties(raw, *, study_plan=PLAN):
+    want=properties(study_plan)
     for key in ('User','Group','TasksMax','RemainAfterExit','NoNewPrivileges','PrivateTmp','ProtectSystem','ProtectHome'):
         require(raw.get(key)==want[key],'effective public unit property differs: '+key)
     require(raw.get('MemoryMax')=='536870912' and seconds(raw.get('CPUQuotaPerSecUSec',''))==.75
@@ -103,21 +110,23 @@ def public_state():
                             'rev-parse','HEAD'],execute=True).strip())
 
 
-def make_freeze(source, runtime, tls, public, approval_sha):
+def make_freeze(source, runtime, tls, public, approval_sha, *, study_plan=PLAN):
+    PLAN=supported_plan(study_plan)
     sources,commit=inspect_source(source)
     value=dict(schema_version='qcrl.public_feed_interval_counts.freeze.v1',study_plan=PLAN,
         study_plan_sha256=payload_hash(PLAN),source_commit=commit,sources=sources,
         runtime=runtime,tls=tls,public_state=public,operator_approval_sha256=approval_sha,
         boot_id=runtime['boot_id'],native_public_path_previously_validated=False,
         original_application_verdict='fail',historical_application_experiments=['Cohort02','RssCpu01'],
-        internal_socket_tls_retry_count=None,unit_properties=properties(),orders_authorized=False)
+        internal_socket_tls_retry_count=None,unit_properties=properties(PLAN),orders_authorized=False)
     return dict(value,freeze_sha256=payload_hash(value))
 
 
 def verify_freeze(root, frozen):
+    PLAN=supported_plan(frozen['study_plan'])
     verify_artifact_hash(frozen,'freeze_sha256','public study freeze')
     require(frozen['study_plan']==PLAN and frozen['study_plan_sha256']==payload_hash(PLAN)
-            and frozen['unit_properties']==properties(),'public study frozen plan differs')
+            and frozen['unit_properties']==properties(PLAN),'public study frozen plan differs')
     sources,commit=inspect_source(ROOT)
     require(sources==frozen['sources'] and commit==frozen['source_commit'],'public study source drift')
     from infra.stream.recorder_rss_thread_cpu_validation import runtime
@@ -136,7 +145,8 @@ class NoRedirect(HTTPRedirectHandler):
 
 
 class MetadataTransport:
-    def __init__(self,root,*,tls_context=None):
+    def __init__(self,root,*,tls_context=None,study_plan=PLAN):
+        self.plan=supported_plan(study_plan)
         self.root=Path(root);self.requests=0
         self.opener=build_opener(ProxyHandler({}),NoRedirect(),HTTPSHandler(context=tls_context))
 
@@ -148,7 +158,7 @@ class MetadataTransport:
                 and parsed.netloc==parsed.hostname and not parsed.query and not parsed.fragment,
                 'public GET endpoint differs')
         if parsed.hostname=='gamma-api.polymarket.com':
-            slug='btc-updown-5m-'+str(int(utc(PLAN['event_start']).timestamp()))
+            slug='btc-updown-5m-'+str(int(utc(self.plan['event_start']).timestamp()))
             require(not params and (parsed.path=='/markets/slug/'+slug
                     or re.fullmatch(r'/markets/[0-9]+',parsed.path)), 'public market metadata path differs')
         elif parsed.path=='/book':
@@ -183,7 +193,8 @@ class MetadataTransport:
         return value
 
 
-def discover(root, frozen, *, execute=False, clock=utc_now, acquirer_factory=PublicPolymarketAcquirer):
+def discover(root, frozen, *, execute=False, clock=utc_now, acquirer_factory=PublicPolymarketAcquirer, study_plan=PLAN):
+    PLAN=supported_plan(study_plan)
     require(execute is True,'explicit fixed metadata acquisition required')
     now=clock()
     require(utc(PLAN['discovery'])<=now<utc(PLAN['discovery'])+timedelta(seconds=30),
@@ -191,7 +202,7 @@ def discover(root, frozen, *, execute=False, clock=utc_now, acquirer_factory=Pub
     root=Path(root)
     publish(root/'metadata-attempt.json',dict(case=PLAN['case'],at_utc=utc_text(now),retry_authorized=False))
     directory=root/'metadata';directory.mkdir(exist_ok=False)
-    transport=MetadataTransport(directory,tls_context=pinned_tls(frozen))
+    transport=MetadataTransport(directory,tls_context=pinned_tls(frozen),study_plan=PLAN)
     acquirer=acquirer_factory(transport=transport,clock=clock)
     slug='btc-updown-5m-'+str(int(utc(PLAN['event_start']).timestamp()))
     resolution=acquirer.resolve_market_slug(slug,'market')
@@ -200,9 +211,9 @@ def discover(root, frozen, *, execute=False, clock=utc_now, acquirer_factory=Pub
     from execution_truth.market_stream import stream_plan
     value=dict(case=PLAN['case'],study_plan_sha256=payload_hash(PLAN),
         freeze_sha256=frozen['freeze_sha256'],discovered_at_utc=utc_text(clock()),
-        raw_bundle=raw,spec=stream_plan(raw,segmented=True,max_seconds=90,max_frames=60000))
+        raw_bundle=raw,spec=stream_plan(raw,segmented=True,max_seconds=90,max_frames=60000,resilient="recovery_policy_sha256" in PLAN))
     require(len(json.dumps(value).encode())<=2*1024**2,'case control cap reached')
-    case=dict(value,artifact_sha256=payload_hash(value));validate_case(case)
+    case=dict(value,artifact_sha256=payload_hash(value));validate_case(case,study_plan=PLAN)
     publish(root/'case.json',value)
     return case
 
@@ -230,28 +241,31 @@ def run_controller(ops):
 
 
 class Production:
-    def __init__(self,root,freeze_sha,*,execute=False):
+    def __init__(self,root,freeze_sha,*,execute=False,study_plan=PLAN):
+        self.plan=supported_plan(study_plan)
+        self.stage,self.unit=layout(self.plan)
         self.root=Path(root)
         require(execute is True and platform.system()=='Linux' and os.geteuid()==0
-            and str(self.root)==STAGE and self.root.resolve(strict=True)==self.root
+            and str(self.root)==self.stage and self.root.resolve(strict=True)==self.root
             and ROOT==self.root/'source' and os.path.abspath(sys.executable)==PYTHON,
             'explicit canonical root Linux public-study operator required')
-        require(utc(PLAN['discovery'])-timedelta(minutes=10)<=utc_now()<utc(PLAN['discovery']),
+        require(utc(self.plan['discovery'])-timedelta(minutes=10)<=utc_now()<utc(self.plan['discovery']),
                 'fixed operator preparation window missed; no early or late adoption')
         self.frozen=load(self.root/'execution-freeze.json')
-        require(self.frozen['freeze_sha256']==freeze_sha,'operator freeze byte anchor differs')
+        require(self.frozen['freeze_sha256']==freeze_sha and self.frozen['study_plan']==self.plan
+                and self.frozen['study_plan_sha256']==payload_hash(self.plan),'operator freeze/selected plan differs')
         self.evidence=self.root/'evidence'
         self.submission_attempted=False
         publish(self.root/'controller-claim.json',dict(freeze_sha256=freeze_sha,pid=os.getpid(),
-            case=PLAN['case'],one_case_only=True))
+            case=self.plan['case'],one_case_only=True))
 
     def preflight(self):
         verify_freeze(self.root,self.frozen)
-        require(shutil.disk_usage(self.root).free>=PLAN['disk_start_bytes'],'study disk readiness failed')
+        require(shutil.disk_usage(self.root).free>=self.plan['disk_start_bytes'],'study disk readiness failed')
         require(not (self.root/'cancel').exists(),'public study cancelled')
 
     def wait_until(self,key):
-        target=utc(PLAN[key])
+        target=utc(self.plan[key])
         while utc_now()<target:
             require(not (self.root/'cancel').exists(),'public study cancelled')
             time.sleep(min(1,max(0,(target-utc_now()).total_seconds())))
@@ -260,33 +274,33 @@ class Production:
         self.preflight()
         require(not self.evidence.exists(),'fresh public evidence namespace required')
         command(['install','-d','-o','qcrl','-g','qcrl','-m','750',str(self.evidence)],execute=True)
-        remaining=(utc(PLAN['discovery'])+timedelta(seconds=30)-utc_now()).total_seconds()
+        remaining=(utc(self.plan['discovery'])+timedelta(seconds=30)-utc_now()).total_seconds()
         require(0<remaining<=30,'metadata deadline missed')
         try:
             command(['sudo','-u','qcrl',PYTHON,'-m','infra.stream.recorder_public_operator',
-                'metadata','--root',str(self.root),'--freeze-sha256',self.frozen['freeze_sha256'],'--execute'],
+                'metadata','--root',str(self.root),'--freeze-sha256',self.frozen['freeze_sha256'],'--study-version','v6' if 'recovery_policy_sha256' in self.plan else 'v5','--execute'],
                 timeout=remaining,execute=True)
         except Exception as exc:
             if hasattr(exc,'output'):
                 with (self.root/'metadata-worker-output.partial').open('xb') as handle:handle.write(exc.output)
             raise
-        return validate_case(control(self.evidence/'case.json'))
+        return validate_case(control(self.evidence/'case.json'),study_plan=self.plan)
 
     def lock(self,case):
-        require(utc_now()<utc(PLAN['freeze_cutoff']),'case lock cutoff missed')
+        require(utc_now()<utc(self.plan['freeze_cutoff']),'case lock cutoff missed')
         publish(self.root/'case-lock.json',dict(case_sha256=case['artifact_sha256'],
             freeze_sha256=self.frozen['freeze_sha256'],locked_at_utc=utc_text(utc_now()),
             target_authorization_sha256=self.frozen['operator_approval_sha256']))
 
     def start(self):
-        require(utc(PLAN['arm'])<=utc_now()<utc(PLAN['nominal_epoch']),'arm window missed')
-        require(not command(['systemctl','list-units','--all','--no-legend',UNIT+'*'],execute=True).strip(),
+        require(utc(self.plan['arm'])<=utc_now()<utc(self.plan['nominal_epoch']),'arm window missed')
+        require(not command(['systemctl','list-units','--all','--no-legend',self.unit+'*'],execute=True).strip(),
                 'public study unit namespace already used')
         self.submission_attempted=True
-        command(['systemd-run','--unit='+UNIT,'--working-directory='+str(ROOT),
+        command(['systemd-run','--unit='+self.unit,'--working-directory='+str(ROOT),
             '--setenv=PYTHONDONTWRITEBYTECODE=1',
-            *['--property='+k+'='+v for k,v in properties().items()],PYTHON,
-            '-m','infra.stream.recorder_public_study','consume','--root',str(self.evidence),'--execute'],execute=True)
+            *['--property='+k+'='+v for k,v in properties(self.plan).items()],PYTHON,
+            '-m','infra.stream.recorder_public_study','consume','--root',str(self.evidence),'--study-version','v6' if 'recovery_policy_sha256' in self.plan else 'v5','--execute'],execute=True)
 
     def release(self,case):
         ready=self.evidence/'worker-ready.json'
@@ -294,9 +308,9 @@ class Production:
         while not ready.exists() and time.monotonic()<stop:time.sleep(.05)
         value=control(ready);identity=value['identity']
         require(value['case_sha256']==case['artifact_sha256'],'study worker binding differs')
-        text=command(['systemctl','show',UNIT+'.service'],execute=True)
+        text=command(['systemctl','show',self.unit+'.service'],execute=True)
         props=dict(line.split('=',1) for line in text.splitlines() if '=' in line)
-        verify_properties(props)
+        verify_properties(props,study_plan=self.plan)
         require(props.get('MainPID')==str(identity['pid']) and props.get('ControlGroup')==identity['cgroup']
             and props.get('WorkingDirectory')==str(ROOT) and 'infra.stream.recorder_public_study' in props.get('ExecStart',''),
             'actual study unit identity/command differs')
@@ -311,10 +325,10 @@ class Production:
         end=time.monotonic()+240
         while time.monotonic()<end:
             require(not (self.root/'cancel').exists(),'public study cancelled')
-            state=command(['systemctl','show',UNIT+'.service','--property=SubState','--value'],execute=True).strip()
+            state=command(['systemctl','show',self.unit+'.service','--property=SubState','--value'],execute=True).strip()
             if state in ('exited','dead','failed'):
                 require((self.evidence/'consumer.json').exists(),'worker exited without consumer receipt')
-                publish(self.root/'controller-outcome.json',dict(case=PLAN['case'],
+                publish(self.root/'controller-outcome.json',dict(case=self.plan['case'],
                     capture_unit_submission_attempted=True,disposition='collected_pending_independent_audit',
                     unit_substate=state,original_application_verdict='fail',orders_authorized=False))
                 return
@@ -322,7 +336,7 @@ class Production:
         raise ContractError('public unit completion deadline reached')
 
     def failure(self,error,started):
-        publish(self.root/'controller-outcome.json',dict(case=PLAN['case'],capture_unit_submission_attempted=started,
+        publish(self.root/'controller-outcome.json',dict(case=self.plan['case'],capture_unit_submission_attempted=started,
             disposition='partial_or_unresolved' if started else 'not_run',error=error,
             original_application_verdict='fail',orders_authorized=False))
 
@@ -330,14 +344,14 @@ class Production:
         # Never touch other unit names, public collectors or historical stages.
         errors=[]
         try:
-            text=command(['systemctl','show',UNIT+'.service'],execute=True)
+            text=command(['systemctl','show',self.unit+'.service'],execute=True)
             props=dict(line.split('=',1) for line in text.splitlines() if '=' in line)
             require(props.get('WorkingDirectory')==str(ROOT)
                 and 'infra.stream.recorder_public_study' in props.get('ExecStart',''),
                 'cannot adopt or stop a foreign unit')
             with (self.root/'unit-after.txt').open('x') as handle:handle.write(text)
             try:
-                journal=command(['journalctl','-u',UNIT+'.service','--no-pager','-o','short-monotonic'],cap=262144,execute=True)
+                journal=command(['journalctl','-u',self.unit+'.service','--no-pager','-o','short-monotonic'],cap=262144,execute=True)
                 with (self.root/'unit-journal.txt').open('x') as handle:handle.write(journal)
             except Exception as exc:
                 errors.append(short_error(exc))
@@ -351,7 +365,7 @@ class Production:
             if 'props' in locals() and props.get('WorkingDirectory')==str(ROOT) and \
                     'infra.stream.recorder_public_study' in props.get('ExecStart',''):
                 try:
-                    command(['systemctl','stop',UNIT+'.service'],execute=True)
+                    command(['systemctl','stop',self.unit+'.service'],execute=True)
                 except Exception as exc:
                     errors.append(short_error(exc))
         try:
@@ -362,10 +376,10 @@ class Production:
         for path in sorted(self.evidence.rglob('*')):
             require(not path.is_symlink(),'study evidence symlink')
             if path.is_file():files[str(path.relative_to(self.evidence))]=dict(bytes=path.stat().st_size,sha256=file_hash(path))
-        require(len(files)<=1024 and sum(v['bytes'] for v in files.values())<=PLAN['spool_cap_bytes'],
+        require(len(files)<=1024 and sum(v['bytes'] for v in files.values())<=self.plan['spool_cap_bytes'],
                 'study evidence inventory cap exceeded')
         publish(self.root/'origin-inventory.json',dict(files=files,freeze_sha256=self.frozen['freeze_sha256'],
-            case=PLAN['case'],native_origin_verified=False,requires_observed_origin_attestation=True))
+            case=self.plan['case'],native_origin_verified=False,requires_observed_origin_attestation=True))
         publish(self.root/'post-run-checks.json',dict(errors=errors,
             observed_utc=utc_text(utc_now()),public_after=public_state()))
 
@@ -376,16 +390,19 @@ def main():
     parser.add_argument('--root',type=Path,required=True)
     parser.add_argument('--freeze-sha256',required=True)
     parser.add_argument('--execute',action='store_true')
+    parser.add_argument('--study-version',choices=['v5','v6'],default='v5')
     args=parser.parse_args()
-    if args.action=='controller':run_controller(Production(args.root,args.freeze_sha256,execute=args.execute))
+    plan=version_plan(args.study_version);stage,_=layout(plan)
+    if args.action=='controller':run_controller(Production(args.root,args.freeze_sha256,execute=args.execute,study_plan=plan))
     else:
-        require(args.execute and platform.system()=='Linux' and str(args.root)==STAGE
+        require(args.execute and platform.system()=='Linux' and str(args.root)==stage
                 and args.root.resolve(strict=True)==args.root and ROOT==args.root/'source'
                 and os.path.abspath(sys.executable)==PYTHON,'explicit installed fixed metadata worker required')
         frozen=load(args.root/'execution-freeze.json')
         verify_artifact_hash(frozen,'freeze_sha256','metadata source freeze')
-        require(frozen['freeze_sha256']==args.freeze_sha256,'metadata freeze anchor differs')
-        discover(args.root/'evidence',frozen,execute=True)
+        require(frozen['freeze_sha256']==args.freeze_sha256 and frozen['study_plan']==plan
+                and frozen['study_plan_sha256']==payload_hash(plan),'metadata freeze/selected plan differs')
+        discover(args.root/'evidence',frozen,execute=True,study_plan=plan)
 
 
 if __name__=='__main__':main()
