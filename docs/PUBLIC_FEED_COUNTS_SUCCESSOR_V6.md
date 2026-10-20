@@ -213,3 +213,58 @@ launcher/controller, metadata GET, unit, subscription or automation was started.
 The committed execution source, sealed transport and runtime-envelope anchors
 will be appended in the final approval record; they must not be inferred from a
 later documentation HEAD. Active operator approval/direct confirmation are absent.
+
+## Exact sealed approval packet — pending human approval
+
+Execution source **`fc89c11c8c9186c866385b373db12ba04c721e33`**, **561 selected files**.
+Freeze SHA-256:
+`763f855f0b604c27928f341b39d820822fbfe6adc5d7c5ab1797b0cfa9c67a0b`.
+
+Nine-member private transport: **113,576 bytes**, SHA-256
+`e0e46e15005fa68e97c8dbb2b0cdde9ca76cfc05e2731da063de23cc4029e8c6`.
+Local path: `.qcrl/reviews/public-feed-20261021T160000Z/stage-packet.tar.gz`.
+Candidate bundle prerequisite is retained v5 commit
+`f89ada8cb43036464cd77c08fe4ca7829fbc634a`. Every member hash/population, all committed selected
+source hashes and Git bundle verification passed. Members: candidate bundle,
+execution freeze, proposed operator receipt, runtime review, select review source,
+preserved host context, fresh-verification context, read-only readiness receipt
+and one-shot launcher. Historical host/credit fields are not relabeled fresh.
+
+Launcher SHA-256:
+`e4e2f5c4ee2362acadbebc53385aba07c99e7a34108b5b3c7a1700e5b792d8f5`.
+Local mocked tests checked four scenarios: valid one-start ordering with claim
+before Popen, missing approval, expired window and existing claim. Second launch
+was refused; Popen was mocked and no native command or public socket ran. The
+staging generator separately refuses activation without direct confirmation.
+Existing independent binding/copy/inventory/audit helpers have been adapted to v6,
+including independent raw/eligible interval recomputation, and accept Python3.9
+grammar locally. This is preparation, not execution of the native audit paths.
+Transport review file SHA-256:
+`69d91cad064f78e912fb8f9c9fb418f673716e18c2be4e36f69869b6ba62faba`.
+
+After separate approval and successful staging/readback, the sole launch command,
+only in the declared October21 15:44–15:55 UTC opportunity, is:
+
+```sh
+sudo -n /opt/qcrl-stream/venv/bin/python \
+  /var/lib/qcrl-stream/public-feed-20261021T160000Z/launch-once.py \
+  --execute 763f855f0b604c27928f341b39d820822fbfe6adc5d7c5ab1797b0cfa9c67a0b
+```
+
+The controller and all subprocesses explicitly select v6. The offline report uses
+this exact source with `python -m infra.stream.recorder_public_study report
+--study-version v6 --root RETAINED_EVIDENCE`; it acquires nothing. Independent
+origin/copy/source linkage remains required before interpreting that output.
+
+**Approval requested:** stage this exact packet once, then run one conditional
+October21 BTC v6 capture under these gates, with at most three sequential in-unit
+connections/two declared retries, and independently audit/stop afterward. This
+permits no induced disconnect, extra capture, standalone smoke, cohort, replay,
+substitution, rollover, resource/infrastructure/public-collector change or
+credential import. If reconnect never occurs, report that component inconclusive.
+
+No active `operator-approval.json`, direct `execution-confirmation.json`, native
+stage, scheduler, controller, metadata GET, capture unit, subscription or follow-up
+automation was created. Source/runtime readiness after staging and at execution is
+still conditional. The exact frozen source is the execution authority's byte
+anchor; subsequent documentation-only HEAD is **not** a substitute.

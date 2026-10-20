@@ -5,7 +5,7 @@ Updated October 20, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
-## October 20 — V6 worker/operator wired; exact approval packet in preparation
+## October 20 — V6 exact packet sealed; staging/execution approval pending
 
 [Prospective v6 declaration](PUBLIC_FEED_COUNTS_SUCCESSOR_V6.md) fixes one BTC
 October 21 noon EDT target, count 12:01–12:02 PM, with up to three sequential
@@ -33,11 +33,34 @@ or public collectors changed, controller/metadata/unit/feed started.
 Final local suite: **1,280 tests passed in 167.599s**, plus **79 focused tests
 in 17.548s** after the metadata transport correction; local Python3.9 grammar
 checks pass. Logs are in `.qcrl/reviews/public-feed-20261021T160000Z/`. Exact
-committed source/runtime transport anchors follow after sealing before approval. No native run, staging, schedule, retry of a
+sealed source/runtime transport anchors follow below. No native run, staging, schedule, retry of a
 previous target or rollover is authorized by the preparation itself. One-shot
 transport must require separate direct approval; later documentation HEAD must
 not replace the frozen execution commit. No forced disconnect; if reconnect is
 not observed, that component remains inconclusive without an automatic extra run.
+
+### V6 sealed execution anchors and approval boundary
+
+Execution source `fc89c11c8c9186c866385b373db12ba04c721e33`, 561 selected files;
+freeze `763f855f0b604c27928f341b39d820822fbfe6adc5d7c5ab1797b0cfa9c67a0b`.
+Nine-member packet 113,576 bytes, SHA
+`e0e46e15005fa68e97c8dbb2b0cdde9ca76cfc05e2731da063de23cc4029e8c6`.
+Launcher SHA `e4e2f5c4ee2362acadbebc53385aba07c99e7a34108b5b3c7a1700e5b792d8f5`.
+Member population/hashes, committed source bytes and bundle prerequisite verify.
+Four mocked launcher scenarios and staging-without-approval refusal pass; no
+native execution was involved. Existing independent binding/copy/audit templates
+are adapted and parse locally, including separate eligible-count recomputation.
+Private packet/controls: `.qcrl/reviews/public-feed-20261021T160000Z/`.
+
+Present [the exact approval packet](PUBLIC_FEED_COUNTS_SUCCESSOR_V6.md) for one
+conditional October21 capture. No active receipt/confirmation, native stage,
+scheduler/controller/metadata/unit/feed or follow-up automation exists. Require
+separate direct approval before staging or scheduling execution, then exact-source
+readback and all fresh gates. One-shot launch opportunity October21 11:44–11:55AM
+EDT; controller11:45–11:55; metadata11:55; arm12:00:40PM; count12:01–12:02PM.
+No forced disconnect; no reconnect means inconclusive for that component, not an
+extra run. No historical result or threshold is changed. Later documentation
+HEAD must never replace frozen execution commit `fc89c11c8c9186c866385b373db12ba04c721e33`.
 
 ## October 20 — Prospective bounded recovery implemented offline
 
