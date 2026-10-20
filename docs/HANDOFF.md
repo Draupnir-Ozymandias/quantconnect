@@ -5,6 +5,51 @@ Updated October 20, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 20 — Exact v6 approved and staged; October 21 follow-up scheduled
+
+User directly approved the exact packet: “i approve. please proceed.” Separate
+confirmation artifact `e27f98a444440add259db324f28757a0476141938926a43897911c808425617d`
+binds one conditional v6 capture to freeze
+`763f855f0b604c27928f341b39d820822fbfe6adc5d7c5ab1797b0cfa9c67a0b`.
+Execution source stays `fc89c11c8c9186c866385b373db12ba04c721e33`, 561 selected
+files; later documentation HEAD is not a source substitute. No further routine
+approval is needed within this exact scope.
+
+Fresh pre-stage read-only SSH at 22:06:25Z matched installed runtime/TLS/CA/public/
+boot, 6,122,958,848 free bytes and unused target namespace/unit. Staged once at
+22:06:47Z on existing Ohio host at
+`/var/lib/qcrl-stream/public-feed-20261021T160000Z`; source/runtime/TLS/public and
+approval checks passed, free disk 6,095,101,952 bytes. Exact predeclared
+operator-receipt bytes were activated only after separate direct approval; their
+template flags are not independent execution authority. Preserved host/credit
+context was not rewritten or relabeled fresh; no minimum is inferred.
+
+Independent 22:07:27Z readback matched packet/freeze/confirmation/receipt/launcher
+hashes, root permissions, all 561 source bytes and native runtime/TLS/public gates.
+Evidence/controller absent, metadata GETs zero, native units zero, unit not found.
+These are native staging/import/readiness checks, **not v6 functional/public-feed
+validation or resource/coverage acceptance**. Capture has not started.
+
+Prepared root `launch-once.py` SHA
+`e4e2f5c4ee2362acadbebc53385aba07c99e7a34108b5b3c7a1700e5b792d8f5`
+remains unexecuted; no remote scheduler. One local thread follow-up
+`run-and-audit-the-approved-btc-v6-capture` is active for **October 21, 11:44 AM
+EDT / 15:44 UTC**. It refreshes gates, invokes the helper once if eligible,
+independently binds controller and worker promptly at arm, observes only that
+attempt, audits retained evidence with exact source, commits/pushes, then deletes
+itself. Quiet on unchanged polling; notify meaningful outcome/failure/blocker or
+necessary action. Keep the local Mac awake with the app available for this wake.
+
+Launcher opportunity11:44–11:55AM; controller11:45–11:55; metadata11:55; lockbefore
+11:59; arm12:00:40PM; count12:01–12:02PM EDT. Max three declared sequential
+**in-unit** connection attempts/two retries share original bounds; no manual
+controller/unit retry, induced disconnect, extra capture, replay, substitution,
+rollover, smoke or cohort. Existing claim means inspect only. No reconnect means
+that component is inconclusive, not an extra run. All historical FAIL, v1/v2
+not-run, v3/v4/v5 faults/partial/censored evidence and original thresholds/limits
+remain unchanged. Partial evidence and every unknown must survive. Private controls:
+`.qcrl/reviews/public-feed-20261021T160000Z/`.
+
 ## October 20 — V6 exact packet sealed; staging/execution approval pending
 
 [Prospective v6 declaration](PUBLIC_FEED_COUNTS_SUCCESSOR_V6.md) fixes one BTC

@@ -268,3 +268,39 @@ stage, scheduler, controller, metadata GET, capture unit, subscription or follow
 automation was created. Source/runtime readiness after staging and at execution is
 still conditional. The exact frozen source is the execution authority's byte
 anchor; subsequent documentation-only HEAD is **not** a substitute.
+
+## Subsequent direct approval and staging — October 20
+
+The user directly approved this exact packet: “i approve. please proceed.”
+Separate confirmation payload SHA
+`e27f98a444440add259db324f28757a0476141938926a43897911c808425617d` binds the approved case,
+freeze and recovery policy. The original declaration, proposed receipt, sealed
+packet and source/runtime envelope remain unchanged. Exact receipt bytes were
+activated after this separate approval; template flags alone grant no authority.
+
+Fresh read-only SSH gates passed at 22:06:25Z. Staging completed once at
+22:06:47Z in the declared unused namespace, with all 561 source/runtime/TLS/public/
+approval gates passing and 6,095,101,952 free bytes. Independent readback at
+22:07:27Z matched packet/freeze/confirmation/receipt/launcher hashes and root
+permissions; source/runtime/TLS/public checks passed. Evidence/controller absent,
+metadata GETs=0, native units=0, unit not found; launcher remains unexecuted.
+No remote scheduler exists. These are native staging/readiness checks, not new
+Linux functional/public-feed validation or measured acceptance. Credit records
+remain historical/unavailable context; no new credit gate.
+
+One local thread follow-up, `run-and-audit-the-approved-btc-v6-capture`, is active
+for **October 21 at 11:44 AM EDT / 15:44 UTC**. It is authorized to refresh gates
+and start the prepared helper once in its existing opportunity, then independently
+bind/observe/audit only that attempt, update HANDOFF/outcome, commit/push and delete
+itself after final audit or definitive not-run. The exact helper enforces its
+window and durable claim; late wake or failed readiness means no rollover. No
+remote scheduler, detached early controller or capture was started today. The
+Mac/app must remain available for this local follow-up. No further routine
+approval is needed within the exact one-case scope.
+
+Only declared in-unit recovery is allowed: up to three sequential connection
+attempts/two retries under one common runtime/storage/frame envelope. No manual
+controller/unit retry, forced disconnect, extra capture, replay, substitution,
+smoke, cohort or infrastructure/public-collector/resource change. No reconnect
+means inconclusive for that component. Preserve all faults, original thresholds,
+historical failed outcomes and unknowns; no combined acceptance badge.
