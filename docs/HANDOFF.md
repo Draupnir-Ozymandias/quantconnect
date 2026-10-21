@@ -5,6 +5,56 @@ Updated October 21, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 21 — PreClosePub01 executed once; resource retained, frozen postcheck failed
+
+[Retained outcome/integrity audit](PRE_CLOSE_RESOURCE_PUBLICATION_NATIVE_OUTCOME_20261021.md).
+**Historical application FAIL unchanged; this packet remains partial/unresolved.**
+Positive component:87 synthetic texts and one exact returned resource row survived
+worker SIGTERM during blocked close; final consumer absent and close unverified.
+The original frozen post-inspector rejected `TasksCurrent=[not set]` after exit;
+frozen auditor also failed on the preserved post-error. Neither was changed,
+replayed or promoted to a pass. No combined acceptance badge.
+
+User directly approved exact freeze
+`0e359464dec8952c7f8f68047a2dbfe16eff9dbeefbe7a3aa47cc05330b96d55`;
+confirmation `a483b7130cc6feae9db31565b081df8ee00ff67cf2cc4f30da2bb4629f6c07de`.
+Execution/report source3054bc50cb0bb32fa5803853112ffda83f2d60f5/566 files,
+not later documentation HEAD. Fresh19:11:37Z gates and19:12:29Z independent staged
+readback passed. One private unit started19:12:57Z; independent binding verified
+parent2189331/start154569427 and child2189334/start154569479, real boot/cgroup/argv,
+null stdin, default HUP/TERM, original limits and network isolation. Child−15,
+parent error null; no timeout/retry/replay/extra case/public subscription.
+
+Archive/footer/manifest,87 ordered completion witnesses and100 barriers link.
+Exact resource payload matches frozen
+`695811c9421331ba318953d9d2af17e093cc7e334a67cb6d7c0b8dd11743db70`.
+All60 raw rows independently recompute (synthetic primary60/outside27/no ambiguity
+or unplaced). Fake clock/reader/boot/start/CPU/RSS data are not native measurements;
+real worker PID links separately. Resource qualification null, no peer-handshake
+or high-rate/full-window/public-path acceptance inferred. Signal exit matches
+planned guard/source ordering; no independent kernel sender trace.
+
+Failed frozen TasksCurrent assertion remains authoritative as failed. Authorized
+independent cleanup instead checked exact exited-unit identity, both bound
+processes absent and original cgroup removed, then stopped only that exited unit.
+At19:14:51Z unit inactive/dead and source/runtime/TLS/public unchanged. This is
+safe cleanup evidence, not a replacement pass for the unavailable counter.
+Independent seal verified38 files/343,753 content bytes/all17 producer entries
+plus self-inventory/all566 source inputs;225,586-byte archive SHA
+`d898897351d3b607ab088df91b4bb2283ba90105190bc951bcee80177109d9f4`.
+Component-audit payload SHA
+`e81f64fcea22cdc93d2e7c6c37302359e2d319364fec7f79d7a59b29e431d692`.
+Private evidence `.qcrl/reviews/preclose-pub-01/` includes both failed tool outputs.
+
+Whole-unit elapsed6.224606s/CPU0.776438s are inclusive context only; live cgroup
+memory snapshot20,168,704 bytes is not RSS peak. MemoryPeak absent; post-exit task
+counter/native RSS qualification/continuous peak/incremental overhead/independent
+UTC accuracy unknown. Credits historical, no minimum invented. Prior FAIL/v6
+partial, original thresholds, five UTC violations and all old unknowns/evidence
+remain unchanged. Attempt over; no active unit/child, scheduler or new capture.
+Recommend only a prospective offline inspector correction with lifecycle/PID/
+missing-counter tests; the positive resource-retention finding needs no replay.
+
 ## October 21 — Exact PreClosePub01 native packet ready; approval pending
 
 [Executable approval packet](PRE_CLOSE_RESOURCE_PUBLICATION_NATIVE_PACKET_V1.md).

@@ -159,3 +159,13 @@ Four mocked launch scenarios cover one submission, missing approval, failed
 readiness and used namespace. Two mocked binding scenarios cover wrong memory
 cap and fork/exec transition. Reused case claims refuse a second child. Staging
 without approval is refused. These are offline checks, not native validation.
+
+
+## Dated execution update — October 21, 2026
+
+User subsequently approved this exact freeze. It was staged and executed once;
+[the retained outcome](PRE_CLOSE_RESOURCE_PUBLICATION_NATIVE_OUTCOME_20261021.md)
+records a linked returned resource row after worker SIGTERM, plus the failed
+frozen TasksCurrent post-inspection/auditor checks. Overall partial/unresolved;
+no combined acceptance. Exact unit stopped, no replay or next case scheduled.
+The original prospective declaration above is preserved as prepared.
