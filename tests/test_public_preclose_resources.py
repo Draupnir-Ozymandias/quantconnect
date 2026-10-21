@@ -73,6 +73,35 @@ def worker(root, *, opted=True, observer=None, on_close=None, guards=None, publi
                               run=lambda:study.consume(root.resolve(),frozen,execute=True))
 
 
+def run_retained_blocked_close(root, *, executable=None):
+    """Exactly one synthetic worker child; caller owns root, lifetime and retention.
+
+    Reuses the production-path regression without TemporaryDirectory cleanup.
+    Not a public-study entry point or a substitute for independent native audit.
+    """
+    root=Path(root)
+    if not root.is_dir() or root.is_symlink() or root.resolve()!=root:
+        raise ContractError('existing canonical retained root required')
+    if any(root.iterdir()):raise ContractError('fresh retained case root required')
+    program='''import time
+from pathlib import Path
+from tests.test_public_preclose_resources import worker
+from infra.stream.recorder_public_capture import ConnectDeadline
+with worker(Path(ROOT)/'evidence',guards=ConnectDeadline,on_close=lambda *a:time.sleep(30)) as w:
+    w.run()
+'''.replace('ROOT',repr(str(root)))
+    executable=sys.executable if executable is None else executable
+    result=subprocess.run([executable,'-c',program],capture_output=True,timeout=10)
+    # Frozen child emits no normal output. Bound what is retained on a fault;
+    # its pipe allocations remain inside the declared native unit memory limit.
+    cap=262144
+    (root/'child.stdout').write_bytes(result.stdout[:cap])
+    (root/'child.stderr').write_bytes(result.stderr[:cap])
+    outputs_within_cap=len(result.stdout)<=cap and len(result.stderr)<=cap
+    if not outputs_within_cap:raise ContractError('blocked-close child output cap reached')
+    return result
+
+
 class PrecloseResourceTests(unittest.TestCase):
     def test_literal_policy_identity_and_freeze_opt_in(self):
         self.assertEqual(payload_hash(study.RESOURCE_PUBLICATION_POLICY),
@@ -319,17 +348,20 @@ class PrecloseResourceTests(unittest.TestCase):
                     if path.exists() or path.is_symlink():path.unlink()
                     path.write_bytes(original)
 
+    def test_retained_case_rejects_reuse_symlink_and_missing_root_before_spawn(self):
+        with TemporaryDirectory() as d,patch.object(subprocess,'run') as spawn:
+            root=Path(d).resolve()
+            (root/'existing').write_text('do not overwrite')
+            for path in (root,root/'missing'):
+                with self.subTest(path=path),self.assertRaises(ContractError):
+                    run_retained_blocked_close(path)
+            alias=root/'alias';alias.symlink_to(root,target_is_directory=True)
+            with self.assertRaises(ContractError):run_retained_blocked_close(alias)
+            spawn.assert_not_called()
+
     def test_real_process_guard_kill_during_close_keeps_component_and_no_final_consumer(self):
         with TemporaryDirectory() as d:
-            program='''
-import time
-from pathlib import Path
-from tests.test_public_preclose_resources import worker
-from infra.stream.recorder_public_capture import ConnectDeadline
-with worker(Path(ROOT)/'evidence',guards=ConnectDeadline,on_close=lambda *a:time.sleep(30)) as w:
-    w.run()
-'''.replace('ROOT',repr(d))
-            result=subprocess.run([sys.executable,'-c',program],capture_output=True,timeout=10)
+            result=run_retained_blocked_close(Path(d).resolve())
             self.assertEqual(result.returncode,-signal.SIGTERM,result.stderr)
             root=Path(d)/'evidence'
             self.assertTrue((root/'preclose-resources.json').is_file())

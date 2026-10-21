@@ -5,6 +5,28 @@ Updated October 21, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 21 — Retained blocked-close fixture prepared offline
+
+Native packet preparation reuses the production-path blocked-close regression.
+`run_retained_blocked_close` now accepts a fresh canonical caller-owned directory
+and leaves all files in place after its one worker child exits. Existing local
+regressions still use temporary roots; the native caller will own retention.
+Reuse, missing roots and symlinks are rejected before child creation. Parent wait
+is bounded10s; retained stdout/stderr are capped at256KiB each; native memory/unit
+bounds also apply. No new observer, recorder shutdown or timing contract changes.
+Local focused module: **15 tests passed in10.416s**. Initial Mac temporary-path
+alias check exposed the need for an explicitly resolved caller root; fixed/tested
+without weakening the canonical-path requirement.
+
+Read-only pinned SSH at18:25:08.826601Z verified the existing installed source/
+runtime/TLS/CA/public baseline, boot and6,059,708,416 free bytes. Proposed
+`/var/lib/qcrl-stream/preclose-pub-01` absent; unit
+`qcrl-preclose-pub-01.service` not found. No staging/unit/test/capture occurred.
+Nested historical host-credit fields are not fresh mode/balance evidence or a
+minimum gate. Exact retained native packet is being prepared; execution still
+requires separate approval. Source/runtime preparation is not Linux functional
+validation. Prior FAIL, thresholds, evidence and unknowns remain unchanged.
+
 ## October 21 — Pre-close resource publication v1 implemented offline
 
 [Prospective contract and bounded validation proposal](PUBLIC_PRE_CLOSE_RESOURCES_V1.md).
