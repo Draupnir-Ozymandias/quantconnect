@@ -5,6 +5,53 @@ Updated October 21, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 21 — Exact PreClosePub01 native packet ready; approval pending
+
+[Executable approval packet](PRE_CLOSE_RESOURCE_PUBLICATION_NATIVE_PACKET_V1.md).
+One controlled blocked-close publication validation, no public connection.
+Execution/report source **3054bc50cb0bb32fa5803853112ffda83f2d60f5**, **566 selected
+files**; later documentation HEAD must not replace it. Freeze
+`0e359464dec8952c7f8f68047a2dbfe16eff9dbeefbe7a3aa47cc05330b96d55`.
+11-member packet91,061 bytes, SHA
+`76df696dc556928de12aff3ca53db610a1786bec2715e3872301edf70da72edf`.
+Private local controls `.qcrl/reviews/preclose-pub-01/`.
+
+Proposed new namespace `/var/lib/qcrl-stream/preclose-pub-01`, unit
+`qcrl-preclose-pub-01.service`, existing Ohio host/strict pinned SSH. Exactly one
+unit/worker attempt; fixture87 texts and one returned synthetic resource row,
+then blocked final close and expected SIGTERM/−15 under the unchanged5s guard.
+Component must link/persist; final consumer absent/close unverified and resource
+qualification null. Native fixture clock/reader/boot/start fields do not establish
+Linux resource measurement, bracket compliance, overhead or full feed coverage.
+Real process identity/signals/limits require separate independent observation.
+
+Fresh read-only baseline/provenance at18:36:33.870636Z matched installed
+Python3.9.25/aarch64, runtime/TLS/CA/public/boot, additional subprocess/threading/
+unittest and systemd binaries;6,059,909,120 bytes free, target namespace absent,
+unit not found. Nested credit records remain historical; no fresh balance/mode
+or minimum gate. New candidate-source Linux import/function validation is still
+outstanding; it is not inferred from baseline inspection or local tests.
+
+The packet reuses existing exclusive publication, effective-unit verification,
+source inventory/bundle, persistence/report and bounded copy/audit machinery.
+Default HUP/TERM/null stdin, AF_UNIX/network deny-all, existing512MiB/75%/32tasks/
+240s limits;10s child parent-timeout and27s release wait; no replay or extra case.
+Independent binding tolerates observing fork before exec without launching again;
+wrong limits prevent release. Every fatal/missing gate stops; retain partial
+bytes/unknowns. Exact exited-unit ownership is required before stopping it.
+
+All566 source inputs/11 packet members and Python3.9 grammar verify offline.
+Four mocked launcher scenarios, two mocked binding scenarios, exclusive case
+claim reuse refusal and staging-without-approval refusal pass. Latest focused
+retained-helper result16 tests/10.542s; earlier production full1,298-test milestone
+is separate. These are Intel Mac tests, not Linux/public/resource acceptance.
+
+**No native stage, receipt activation, unit, child, subscription or scheduler has
+started.** Separate direct approval of this exact packet is required for staging
+and its single conditional native execution, then fresh gates/readback/live
+binding/copy/audit and stop. No public capture or cohort follows. Historical FAIL,
+v6 partial, all original thresholds/evidence and unknowns remain unchanged.
+
 ## October 21 — Nonempty retained fixture for PreClosePub01 packet
 
 The caller-owned regression now retains **one synthetic resource row**, produced
