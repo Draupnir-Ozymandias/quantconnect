@@ -87,11 +87,22 @@ def run_retained_blocked_close(root, *, executable=None):
 from pathlib import Path
 from tests.test_public_preclose_resources import worker
 from infra.stream.recorder_public_capture import ConnectDeadline
-with worker(Path(ROOT)/'evidence',guards=ConnectDeadline,on_close=lambda *a:time.sleep(30)) as w:
+from infra.stream.recorder_absolute_observer import observe_absolute
+from tests.test_recorder_absolute_observer import Clock,Reader
+def synthetic_row(reader,epoch,stop,**kwargs):
+    clock=Clock()
+    return observe_absolute(Reader(clock),epoch,stop,execute=True,
+        wait=clock.wait(),clock_ns=clock.now,capacity=1)
+with worker(Path(ROOT)/'evidence',guards=ConnectDeadline,observer=synthetic_row,on_close=lambda *a:time.sleep(30)) as w:
     w.run()
 '''.replace('ROOT',repr(str(root)))
     executable=sys.executable if executable is None else executable
-    result=subprocess.run([executable,'-c',program],capture_output=True,timeout=10)
+    try:
+        result=subprocess.run([executable,'-c',program],capture_output=True,timeout=10)
+    except subprocess.TimeoutExpired as exc:
+        (root/'child.stdout').write_bytes((exc.stdout or b'')[:262144])
+        (root/'child.stderr').write_bytes((exc.stderr or b'')[:262144])
+        raise
     # Frozen child emits no normal output. Bound what is retained on a fault;
     # its pipe allocations remain inside the declared native unit memory limit.
     cap=262144
@@ -348,6 +359,16 @@ class PrecloseResourceTests(unittest.TestCase):
                     if path.exists() or path.is_symlink():path.unlink()
                     path.write_bytes(original)
 
+    def test_retained_case_keeps_available_output_prefix_on_parent_timeout(self):
+        with TemporaryDirectory() as d:
+            root=Path(d).resolve()
+            fault=subprocess.TimeoutExpired(['fixture'],10,output=b'partial stdout',stderr=b'partial stderr')
+            with patch.object(subprocess,'run',side_effect=fault) as spawn:
+                with self.assertRaises(subprocess.TimeoutExpired):run_retained_blocked_close(root)
+            spawn.assert_called_once()
+            self.assertEqual((root/'child.stdout').read_bytes(),b'partial stdout')
+            self.assertEqual((root/'child.stderr').read_bytes(),b'partial stderr')
+
     def test_retained_case_rejects_reuse_symlink_and_missing_root_before_spawn(self):
         with TemporaryDirectory() as d,patch.object(subprocess,'run') as spawn:
             root=Path(d).resolve()
@@ -368,6 +389,10 @@ class PrecloseResourceTests(unittest.TestCase):
             self.assertFalse((root/'consumer.json').exists())
             report=study.report(root,study_plan=PLAN)
             self.assertIn('resources',report['preclose_resource_component'])
+            resources=report['preclose_resource_component']['resources']
+            self.assertEqual(len(resources['rows']),1)
+            self.assertIsNotNone(resources['rows'][0]['sample'])
+            self.assertIsNone(report['preclose_resource_component']['resource_qualification'])
             self.assertFalse(report['close_verified'])
             self.assertFalse(report['coverage_complete'])
             self.assertIsNotNone(report['population'])

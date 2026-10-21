@@ -5,6 +5,22 @@ Updated October 21, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 21 — Nonempty retained fixture for PreClosePub01 packet
+
+The caller-owned regression now retains **one synthetic resource row**, produced
+by the unchanged absolute observer with existing fake clock/reader adapters,
+so the prospective Linux publication test covers nested returned data rather
+than an empty result. The worker transport, market controls, boot/start fields
+and CPU/RSS values are synthetic fixtures; this is not native Linux measurement
+or a new public recording. The fixture produces87 linked texts; the native
+question is component retention across blocked close, not counting performance.
+The real close guard remains5s, child parent-timeout10s; available stdout/stderr
+prefixes are retained on timeout (256KiB caps), without a retry. Namespace reuse,
+symlink and missing-root checks still precede spawn. **16 local tests passed
+in10.542s**. No production recorder code/policy/threshold changed in this step.
+The exact-source packet will refer to this committed helper revision, never a
+later documentation HEAD. No native stage, helper or unit started.
+
 ## October 21 — Retained blocked-close fixture prepared offline
 
 Native packet preparation reuses the production-path blocked-close regression.
