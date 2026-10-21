@@ -1,9 +1,57 @@
 # Development handoff
 
-Updated October 20, 2026. Continue in
+Updated October 21, 2026. Continue in
 `/Users/eric/Projects/quantconnect/polymarket-martingale` on
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
+
+## October 21 — V6 recovered once; frame cap and close-unverified partial outcome
+
+**Historical application FAIL remains unchanged. V6 is partial/unresolved, not a
+combined pass.** One approved attempt from exact source
+`fc89c11c8c9186c866385b373db12ba04c721e33` (561 files), freeze
+`763f855f0b604c27928f341b39d820822fbfe6adc5d7c5ab1797b0cfa9c67a0b`.
+[Outcome/integrity audit](PUBLIC_FEED_COUNTS_V6_OUTCOME_20261021.md);
+[all60 raw/eligible rows](PUBLIC_FEED_COUNTS_V6_20261021.csv).
+
+Fresh gates passed; one controller, five metadata GETs and one private unit ran.
+Independent controller binding and16:00:40.636Z worker binding verified identity,
+source/version, original signals, limits and ready/release. **One public reconnect
+was observed** after the retained exception reported1013 and “slow consumer: send
+buffer full”. One1.836239s jitter wait and fresh books for both assets in epoch2
+verify; cause of the reported backpressure is not isolated. The first fault stays
+retained. No third attempt, induced disconnect, manual retry or extra capture.
+
+60,000 texts hit the unchanged shared frame cap atM0+53.085595s:19,680 prewindow,
+40,320 primary, zero tail. Eligible subset59,996 total/40,317 primary. All60 raw
+and eligible rows independently match; three ambiguities all prewindow, zero
+unplaced. Raw reconnect gap2.704756s; book-ineligible gap2.904021s.49 bins are wholly
+inside local acquisition/book-eligible windows; bins24–27 and53–59 are unavailable/
+boundary. Eight zero-text bins25,26,54–59 have unknown activity, not observed
+silence. All feed-activity upper/full-minute feed bounds null; original coverage
+labels unverified.22 foreign creation notices count once; no inferred recovery
+of missing messages or venue completeness.
+
+Archive/footer/manifest,60,000 completion witnesses,960 barriers and pre-close
+checkpoint survived and link. **Final consumer/observer result absent; final close
+unverified.** Unit exited SIGTERM (ExecMainCode2/status15) about five seconds after
+checkpoint publication, consistent with the close guard; sender and exact close
+progress remain unknown. Socket-interrupt receipts unfired at checkpoint do not
+prove later process-guard state. Controller retained partial/unresolved and stopped
+its own unit. OS Result=success is not recorder/scientific success.
+
+Five UTC brackets exceed1ms (four primary; maximum30.037893ms); unchanged thresholds
+stand. Final RSS/slot/CPU-window evidence is unavailable, not passed or zero
+violations. Whole-unit CPU52.553558s is inclusive, not primary-window acceptance or
+incremental overhead; continuous RSS/independent UTC accuracy/internal retries
+remain unknown. Credits historical/unavailable; no new minimum. Independent copy
+verified67 files/28,459,950 content bytes, all43 producer evidence files and all561
+source hashes; sealed SHA
+`30ff87a242af69579600eee08781d6fc7c4eea491bcfb7c3601e61bf762139cd`.
+Public collectors/source/runtime/TLS unchanged; exact worker/controller gone and
+unit inactive/dead. Private evidence `.qcrl/reviews/public-feed-20261021T160000Z/`.
+Original historical FAIL and every earlier verdict/evidence/limit remain intact.
+The one-time follow-up is deleted; attempt over, no pending capture or rollover.
 
 ## October 20 — Exact v6 approved and staged; October 21 follow-up scheduled
 

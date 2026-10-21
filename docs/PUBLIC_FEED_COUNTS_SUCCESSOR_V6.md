@@ -304,3 +304,14 @@ controller/unit retry, forced disconnect, extra capture, replay, substitution,
 smoke, cohort or infrastructure/public-collector/resource change. No reconnect
 means inconclusive for that component. Preserve all faults, original thresholds,
 historical failed outcomes and unknowns; no combined acceptance badge.
+
+## Subsequent retained outcome — October 21
+
+The one authorized attempt is over. [Independent outcome audit](PUBLIC_FEED_COUNTS_V6_OUTCOME_20261021.md)
+and [all60 interval rows](PUBLIC_FEED_COUNTS_V6_20261021.csv) record one observed
+public reconnect/resubscription/fresh-book bootstrap, preserved1013 fault, shared
+60,000-text cap, explicit unavailable intervals and a close-unverified checkpoint.
+The worker exited SIGTERM without a final consumer; final resources/close remain
+unknown. This is a partial/unresolved outcome, not full-minute or combined
+acceptance. Original precision violations and every historical failed verdict
+remain unchanged. No extra run occurred; the one-time follow-up was deleted.
