@@ -5,6 +5,40 @@ Updated October 21, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 21 — Offline termination review; no new native run
+
+[Termination/publication review](PUBLIC_FEED_V6_TERMINATION_REVIEW.md) separates
+code-established limits from the unknown v6 SIGTERM sender/blocked operation.
+The library's five-second close timeout competes with the five-second process
+guard; no cleanup margin is reserved. Library close can return after forced
+transport shutdown without a peer close frame. Normal acquisition ownership,
+cleanup return and graceful peer handshake are distinct. Frozen labels/results
+and historical application FAIL/v6 partial verdict remain unchanged.
+
+Four new deterministic regressions exercise installed-library timeout return,
+guard/close race, actual 60,000-frame cap with sealed completion before failed
+close, and a real process guard killing library close blocked on its protocol
+lock. The 60,000-frame regression runs in a bounded child process to release its
+large witness population before subsequent tests. Focused fault-publication,
+recovery/v6 integration and new checks passed **44 tests in 23.450s** before
+that process-isolation refinement; the final isolated file passed **4 tests in 12.920s**.
+These are Intel macOS offline checks, not Linux/public/resource acceptance.
+
+Production currently publishes observer resources only after final close returns;
+a close-time kill loses that result even if samples had completed. Recommended
+next implementation is one prospectively identified pre-close resource component
+publication, using the existing observer and a bounded stop/join. Missing results
+remain unknown; no race-copy, catch-up, new observer, threshold/cap increase or
+weakened guard. Its earlier observer-stop envelope must be explicit. No production
+contract or runtime code changed in this review. Before another native proposal,
+verify production-worker publication, linkage/faults and stop races locally.
+If justified afterward, one bounded Linux loopback blocked-close validation would
+answer that specific requirement; no further public capture is proposed now.
+
+Original retained seal rehashed unchanged. Five UTC violations, early frame cap,
+missing final resources/close and every prior unknown remain unresolved. No SSH,
+feed subscription, native run, scheduler or infrastructure change occurred.
+
 ## October 21 — V6 recovered once; frame cap and close-unverified partial outcome
 
 **Historical application FAIL remains unchanged. V6 is partial/unresolved, not a
