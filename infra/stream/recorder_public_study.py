@@ -4,6 +4,7 @@ There is no discovery or launcher fallback in this module. A separately frozen
 operator packet must supply the one discovered case and independent release.
 """
 import argparse
+from copy import deepcopy
 from datetime import timedelta
 import json
 import os
@@ -30,6 +31,102 @@ ROOT = Path(__file__).resolve().parents[2]
 PYTHON = '/opt/qcrl-stream/venv/bin/python'
 
 
+RESOURCE_PUBLICATION_POLICY = dict(
+    schema_version='qcrl.public_preclose_resources.policy.v1',
+    stop='after_acquisition_checkpoint_before_final_close', join_seconds=3,
+    population='completed_existing_observer_result_only_no_mutable_prefix_copy',
+    alive='unavailable_no_retry_no_catch_up', max_bytes=4*1024**2,
+    timing='existing_grid_reads_brackets_thresholds_unchanged_earlier_terminal_stop',
+    bounds='within_existing_acquisition_publication_guard_and_spool_budget',
+    close='separate_cleanup_return_not_peer_handshake',
+    publication='exclusive_final_with_no_pending_file_not_visibility_alone',
+    acceptance_demonstrated=False)
+
+
+def resource_publication_enabled(frozen):
+    """Absent on every historical freeze; presence must bind the exact new policy."""
+    key='resource_publication_policy_sha256'
+    if key not in frozen:return False
+    require(frozen[key]==payload_hash(RESOURCE_PUBLICATION_POLICY),
+            'pre-close resource publication policy differs')
+    return True
+
+
+def publish_preclose_resources(root,checkpoint,resources,alive):
+    """One bounded component; caller owns stop/join and never reads live state."""
+    from infra.stream.recorder_absolute_budget import PLAN as resource_plan
+    root=Path(root)
+    require(type(alive) is bool and (resources is None if alive else isinstance(resources,dict)),
+            'live observer cannot publish mutable resources')
+    value=dict(schema_version='qcrl.public_preclose_resources.v1',
+        policy_sha256=payload_hash(RESOURCE_PUBLICATION_POLICY),
+        checkpoint_sha256=checkpoint['artifact_sha256'],
+        completion_sha256=file_hash(root/'completion.json'),
+        case_sha256=checkpoint['case_sha256'],identity=checkpoint['identity'],
+        epoch_ns=checkpoint['epoch_ns'],domain=checkpoint['domain'],
+        resource_plan_sha256=payload_hash(resource_plan),
+        observer_thread_alive=alive,resources=None if alive else deepcopy(resources),
+        close_verified=False,resource_qualification=None,
+        original_application_verdict='fail',orders_authorized=False)
+    # Include final hash/newline and reject NaN/Infinity before any publication.
+    encoded=json.dumps(dict(value,artifact_sha256=payload_hash(value)),sort_keys=True,allow_nan=False)+'\n'
+    require(len(encoded.encode())<=RESOURCE_PUBLICATION_POLICY['max_bytes'],
+            'pre-close resource component cap reached')
+    return publish(root/'preclose-resources.json',value)
+
+
+def verify_preclose_resources(root,case,consumer):
+    """Verify component linkage, not resource qualification or peer handshake."""
+    from infra.stream.recorder_absolute_budget import PLAN as resource_plan
+    root=Path(root)
+    path=root/'preclose-resources.json'
+    pending=path.with_name(path.name+'.pending')
+    require(path.is_file() and not path.is_symlink()
+            and not pending.exists() and not pending.is_symlink()
+            and path.stat().st_size<=RESOURCE_PUBLICATION_POLICY['max_bytes'],
+            'bounded regular pre-close resource component required')
+    value=control(path)
+    checkpoint=control(root/'acquisition-checkpoint.json')
+    policy=payload_hash(RESOURCE_PUBLICATION_POLICY)
+    require(value['schema_version']=='qcrl.public_preclose_resources.v1'
+            and value['policy_sha256']==checkpoint['resource_publication_policy_sha256']
+                ==consumer['resource_publication_policy_sha256']==policy
+            and value['checkpoint_sha256']==checkpoint['artifact_sha256']
+            and value['completion_sha256']==file_hash(root/'completion.json')
+            and checkpoint['schema_version']=='qcrl.public_acquisition_checkpoint.v1'
+            and checkpoint['close_verified'] is False
+            and checkpoint['result']['closed'] is None
+            and checkpoint['result']['close_completed'] is False
+            and checkpoint['result']['publication_policy_sha256']==payload_hash(PUBLICATION_POLICY)
+            and checkpoint['result']['epoch_ns']==checkpoint['epoch_ns'],
+            'pre-close resource publication linkage differs')
+    for key,want in dict(case_sha256=case['artifact_sha256'],identity=consumer['identity'],
+                         epoch_ns=consumer['epoch_ns'],domain=consumer['domain']).items():
+        require(value[key]==checkpoint[key]==want,'pre-close resource '+key+' differs')
+    require(value['resource_plan_sha256']==payload_hash(resource_plan)
+            and value['close_verified'] is False and value['resource_qualification'] is None
+            and value['original_application_verdict']=='fail' and value['orders_authorized'] is False,
+            'pre-close resource contract differs')
+    alive=value['observer_thread_alive']
+    require(type(alive) is bool and (value['resources'] is None if alive else isinstance(value['resources'],dict)),
+            'pre-close resource availability differs')
+    if not alive and 'schema_version' in value['resources']:
+        result=value['resources']
+        require(result['schema_version']=='qcrl.recorder_absolute_resources.v1'
+                and result['plan_sha256']==value['resource_plan_sha256']
+                and result['epoch_ns']==value['epoch_ns'], 'resource result epoch/plan differs')
+    if consumer.get('schema_version')!='qcrl.public_acquisition_checkpoint.v1':
+        require('preclose_resources_sha256' in consumer,'final resource component reference missing')
+    if 'preclose_resources_sha256' in consumer:
+        require(consumer['result']['summary']==checkpoint['result']['summary']
+                and consumer['result']['acquisition_ended']==checkpoint['result']['acquisition_ended']
+                and consumer['result']['acquisition_deadline']==checkpoint['result']['acquisition_deadline'],
+                'final consumer/acquisition checkpoint differs')
+        require(consumer['preclose_resources_sha256']==value['artifact_sha256'],
+                'final consumer/resource component differs')
+    return value
+
+
 def validate_case(case, *, study_plan=PLAN):
     PLAN=supported_plan(study_plan)
     verify_artifact_hash(case,'artifact_sha256','public study case')
@@ -49,19 +146,22 @@ def validate_case(case, *, study_plan=PLAN):
     return case
 
 
-def publish_acquisition_checkpoint(root,case,result,witness,identity,domain):
+def publish_acquisition_checkpoint(root,case,result,witness,identity,domain, *, resource_policy=None):
     """Existing completion sideband plus a durable acquisition result, not a close receipt."""
     root=Path(root)
     require(result['closed'] is None and result['close_completed'] is False
             and result['publication_policy_sha256']==payload_hash(PUBLICATION_POLICY),
             'pre-close publication contract differs')
+    extension={} if resource_policy is None else dict(resource_publication_policy_sha256=resource_policy)
+    require(not extension or resource_policy==payload_hash(RESOURCE_PUBLICATION_POLICY),
+            'checkpoint resource publication policy differs')
     exclusive_json(root/'completion.json',witness.snapshot(root/'archive'))
     return publish(root/'acquisition-checkpoint.json',dict(
         schema_version='qcrl.public_acquisition_checkpoint.v1',
         case_sha256=case['artifact_sha256'],result=result,error=None,
         identity=identity,epoch_ns=result['epoch_ns'],domain=domain,
         close_verified=False,observer_thread_alive=True,
-        original_application_verdict='fail',orders_authorized=False))
+        original_application_verdict='fail',orders_authorized=False,**extension))
 
 
 def consume(root, frozen, *, execute=False):
@@ -70,6 +170,7 @@ def consume(root, frozen, *, execute=False):
             and os.path.abspath(__import__('sys').executable)==PYTHON,
             'explicit installed Linux study worker required')
     PLAN=supported_plan(frozen['study_plan'])
+    preclose_resources=resource_publication_enabled(frozen)
     root=Path(root)
     require(root.is_absolute() and root.resolve(strict=True)==root and not root.is_symlink(),
             'canonical private study root required')
@@ -123,8 +224,19 @@ def consume(root, frozen, *, execute=False):
     thread=threading.Thread(target=monitor,daemon=True)
     thread.start()
     result,error=None,None
+    resource_component=None
+    observer_stop_requested=False
     def checkpoint(value):
-        publish_acquisition_checkpoint(root,case,value,witness,reader.expected,domain)
+        nonlocal resource_component,observer_stop_requested
+        checkpoint=publish_acquisition_checkpoint(root,case,value,witness,reader.expected,domain,
+            resource_policy=payload_hash(RESOURCE_PUBLICATION_POLICY) if preclose_resources else None)
+        if preclose_resources:
+            stop.set();observer_stop_requested=True
+            thread.join(timeout=RESOURCE_PUBLICATION_POLICY['join_seconds'])
+            alive=thread.is_alive()
+            guard.check()
+            resource_component=publish_preclose_resources(root,checkpoint,None if alive else resources,alive)
+            guard.check()
     try:
         result=collect(case['raw_bundle'],case['spec'],root/'archive',epoch_ns=epoch,
             observer=witness,execute=True,guard=guard,tls_context=tls,before_close=checkpoint,
@@ -132,7 +244,8 @@ def consume(root, frozen, *, execute=False):
     except BaseException as exc:
         error=short_error(exc)
     finally:
-        stop.set();thread.join(timeout=3)
+        if not observer_stop_requested:
+            stop.set();thread.join(timeout=3)
         try:
             if not witness.closed:
                 exclusive_json(root/'completion.json',witness.snapshot(root/'archive'))
@@ -144,16 +257,31 @@ def consume(root, frozen, *, execute=False):
             final_resource=reader.read(rss=True)
         except BaseException as exc:
             final_resource=dict(error=short_error(exc))
+        extension={}
+        if preclose_resources:
+            extension=dict(resource_publication_policy_sha256=payload_hash(RESOURCE_PUBLICATION_POLICY),
+                preclose_resources_sha256=None if resource_component is None else resource_component['artifact_sha256'])
+        final_alive=thread.is_alive()
         publish(root/'consumer.json',dict(case_sha256=case['artifact_sha256'],result=result,error=error,
-            identity=reader.expected,epoch_ns=epoch,domain=domain,resources=resources,
-            final_resource=final_resource,observer_thread_alive=thread.is_alive(),
-            original_application_verdict='fail',orders_authorized=False))
+            identity=reader.expected,epoch_ns=epoch,domain=domain,
+            resources=({} if preclose_resources and final_alive else resources),
+            final_resource=final_resource,observer_thread_alive=final_alive,
+            original_application_verdict='fail',orders_authorized=False,**extension))
 
 
 def report(root, *, study_plan=PLAN):
     """Independent linkage prerequisite; no overall pass/acceptance output."""
     PLAN=supported_plan(study_plan)
+    consumer=None
     def decorate(value):
+        if (root/'preclose-resources.json').exists() or (consumer is not None and
+                'resource_publication_policy_sha256' in consumer):
+            try:
+                require(value.get('archive_linkage',{}).get('completion_linkage_verified') is True,
+                        'resource component requires independently linked acquisition')
+                value['preclose_resource_component']=verify_preclose_resources(root,case,consumer)
+            except (ContractError,OSError,ValueError,KeyError,TypeError) as exc:
+                value['preclose_resource_component']=dict(error=short_error(exc),resource_qualification=None)
         if 'recovery_policy_sha256' in PLAN:
             value.update(study_plan_sha256=payload_hash(PLAN))
             value.setdefault('eligible_population',None)

@@ -5,6 +5,53 @@ Updated October 21, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 21 — Pre-close resource publication v1 implemented offline
+
+[Prospective contract and bounded validation proposal](PUBLIC_PRE_CLOSE_RESOURCES_V1.md).
+Policy `qcrl.public_preclose_resources.policy.v1`, literal SHA
+`97182fefdef0ebd4e5007a8aed416fc13e189abb52c6218f3de252fddb4daa73`.
+Explicit source/runtime-freeze extension selects the new behavior; absent extension
+preserves legacy v5/v6 ordering and their unchanged plan/policy hashes. Unknown
+extensions fail before capture. No historical freeze or evidence was rewritten.
+
+After the sealed acquisition checkpoint, the acquisition owner now optionally
+stops/joins the existing observer for at most3s and publishes one bounded linked
+`preclose-resources.json` before final close. Only an exited observer's returned
+result is copied; live state is unavailable/null. Earlier stopping is a declared
+execution-envelope change: an in-progress original-grid operation may finish,
+and cleanup-only terminal rows may be absent. No new timing calls/measurement
+reads occur inside UTC/RSS brackets, no catch-up or retry is added, and resource
+qualification stays null. Final cleanup return is separate from peer handshake.
+
+The acquisition/publication90s guard remains armed through stop/join/hash/fsync;
+close5s/defaultSIGTERM, unit240s/512MiB/75%/32tasks, frame60000, all storage budgets
+and original thresholds remain. New component cap4MiB is inside the existing
+auxiliary allowance; copy/hash/storage/publication work consumes existing budgets
+without a completion guarantee. Spool checks surround publication. The final
+consumer references the component; failed/missing/pending/corrupt linkage remains
+an explicit component fault without erasing independently linked raw counts.
+A visible final link after directory-fsync failure is not silently promoted.
+
+Final focused checks: **102 tests passed in 22.285s**, including14 new production-
+worker tests/subcases for actual observer clock/read faults, invalid readings,
+completed/still-live observer, publication/link/fsync faults, linkage mutations,
+stop/guard races and a real SIGTERM child exit retaining the pre-close component
+without final consumer. Final full suite: **1,298 tests passed in 173.834s**, using
+`PYTHONPATH=tests .venv/bin/python -m unittest discover -v`. The initial default-
+path run retained one pre-existing bare-import error (`test_stream_freshness`);
+no test code was changed to suppress it. Python3.9 grammar checks pass locally.
+All evidence is Intel macOS offline; no Linux/resource/public acceptance inferred.
+Private logs: `.qcrl/reviews/preclose-resources-v1-20261021/`.
+
+Smallest next native proposal is one controlled blocked-close worker validation
+with synthetic transport/resources, reusing the new regression—not a public
+recording or a six-case cohort. It needs a separately frozen committed-source,
+fresh-runtime/private-unit execution packet and approval, including retained
+root/independent audit. No such packet is staged/approved/launched here. Original
+FAIL/v6 partial, five UTC violations, early cap, missing v6 resource/close evidence
+and unknown SIGTERM sender remain unchanged. Retained v6 seal rehashed unchanged.
+No SSH, native experiment, scheduler, public collector or infrastructure change.
+
 ## October 21 — Offline termination review; no new native run
 
 [Termination/publication review](PUBLIC_FEED_V6_TERMINATION_REVIEW.md) separates

@@ -22,7 +22,8 @@ from execution_truth.stream_segments import file_hash
 from infra.stream.recorder_application_worker import load
 from infra.stream.recorder_persistence_worker import publish, control
 from infra.stream.recorder_public_counts import PLAN, require, utc, supported_plan, version_plan
-from infra.stream.recorder_public_study import validate_case, ROOT, PYTHON
+from infra.stream.recorder_public_study import (validate_case, ROOT, PYTHON,
+    RESOURCE_PUBLICATION_POLICY, resource_publication_enabled)
 from infra.stream.recorder_public_capture import short_error
 from infra.stream.recorder_wait_production import command, digest, inspect_source, seconds
 from infra.stream.recorder_wait_lifecycle import BASE_PROPERTIES
@@ -110,8 +111,9 @@ def public_state():
                             'rev-parse','HEAD'],execute=True).strip())
 
 
-def make_freeze(source, runtime, tls, public, approval_sha, *, study_plan=PLAN):
+def make_freeze(source, runtime, tls, public, approval_sha, *, study_plan=PLAN, preclose_resources=False):
     PLAN=supported_plan(study_plan)
+    require(type(preclose_resources) is bool,'explicit resource publication selection required')
     sources,commit=inspect_source(source)
     value=dict(schema_version='qcrl.public_feed_interval_counts.freeze.v1',study_plan=PLAN,
         study_plan_sha256=payload_hash(PLAN),source_commit=commit,sources=sources,
@@ -119,12 +121,15 @@ def make_freeze(source, runtime, tls, public, approval_sha, *, study_plan=PLAN):
         boot_id=runtime['boot_id'],native_public_path_previously_validated=False,
         original_application_verdict='fail',historical_application_experiments=['Cohort02','RssCpu01'],
         internal_socket_tls_retry_count=None,unit_properties=properties(PLAN),orders_authorized=False)
+    if preclose_resources:
+        value['resource_publication_policy_sha256']=payload_hash(RESOURCE_PUBLICATION_POLICY)
     return dict(value,freeze_sha256=payload_hash(value))
 
 
 def verify_freeze(root, frozen):
     PLAN=supported_plan(frozen['study_plan'])
     verify_artifact_hash(frozen,'freeze_sha256','public study freeze')
+    resource_publication_enabled(frozen)
     require(frozen['study_plan']==PLAN and frozen['study_plan_sha256']==payload_hash(PLAN)
             and frozen['unit_properties']==properties(PLAN),'public study frozen plan differs')
     sources,commit=inspect_source(ROOT)
