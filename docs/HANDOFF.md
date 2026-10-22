@@ -1,9 +1,39 @@
 # Development handoff
 
-Updated October 21, 2026. Continue in
+Updated October 22, 2026. Continue in
 `/Users/eric/Projects/quantconnect/polymarket-martingale` on
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
+
+## October 22 — Prospective exited-unit inspector corrected offline
+
+[Successor contract and limits](EXITED_UNIT_INSPECTION_V1.md).
+`infra/stream/recorder_exited_unit.py` replaces the numeric-only assumption for
+future packet preparation. Missing/empty/`[not set]` TasksCurrent stays unknown;
+independent exact invocation, boot, both PID/start identities and empty/removed
+original cgroup observations are required in two equal rounds. Nonzero/malformed
+counters, surviving processes, populated groups, read failures and observable
+races remain unresolved. New InvocationID/start/complete ExecStart bindings must
+be independently acquired prospectively, not inferred from historical receipts.
+
+The report retains partial observations and failed exit status; its lifecycle
+finding does not establish successful execution, resource acceptance or authority
+to stop anything. The adapter is read-only, uses existing bounded command/file
+machinery and adds no in-recorder observer. There is no atomicity guarantee or
+automatic cleanup/launch. Existing controllers and frozen scripts are unchanged.
+Policy `qcrl.exited_unit_inspection.policy.v1` SHA
+`24898288fd05207fbfda23597c20a8ba04c56ab4f626a30b262ead55b50c4a6b`
+is explicitly pinned in a test; any future packet must also freeze source bytes.
+
+All **36 focused offline tests passed in 10.482s**:20 successor lifecycle/adapter
+checks plus16 existing actual worker/publication checks. New source/tests parse
+with Python 3.9 grammar. This is Intel Mac local verification, not Linux/native
+validation. Logs `.qcrl/reviews/exited-unit-inspection-v1/`. Original packet and
+both PreClosePub01/v6 seals still match their recorded hashes. Historical FAIL,
+PreClosePub01 frozen post-inspector/auditor failure and partial verdict, v6 UTC/
+resource/close unknowns, every threshold and all evidence remain unchanged.
+No SSH, native run, replay, public capture or new approval packet was performed
+or scheduled. The retained resource finding needs no rerun.
 
 ## October 21 — PreClosePub01 executed once; resource retained, frozen postcheck failed
 
