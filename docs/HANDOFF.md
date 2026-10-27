@@ -1,9 +1,44 @@
 # Development handoff
 
-Updated October 22, 2026. Continue in
+Updated October 27, 2026. Continue in
 `/Users/eric/Projects/quantconnect/polymarket-martingale` on
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
+
+## October 27 — Retrospective v6 unevenness analysis, no new acquisition
+
+[Recording-specific report](PUBLIC_FEED_COUNTS_V6_UNEVENNESS_20261027.md) answers
+the user's question across the original 49 whole eligible bins (0–23, 28–52).
+Raw and eligible counts there coincide: **39,605 texts**, mean **808.27**, median
+**830**, range **471–951**, population SD **109.21**, CV **13.51%**, Gini **0.07324**.
+Largest five bins contain **11.92%**, largest ten **23.53%** of this population.
+Ranked concentration is not an adjacent burst or a venue-event-rate estimate.
+The second whole-bin block averages 724.60 versus 895.42 before the interruption
+(19.1% lower), with time/epoch/acquisition confounded; no causal claim.
+
+The full retained population remains 60,000 raw / 59,996 eligible; primary minute
+40,320 / 40,317. All 11 boundary/unavailable bins are reported individually:
+slots 24–27 and 53–59, together **715 raw / 712 eligible**. Slots 24, 27, 53 have known
+texts despite partial availability. The eight zeros (25, 26, 54–59) remain
+`silence=unknown`, never zero-filled observed silence. Feed-activity upper bounds
+and full-minute feed population remain null. No prorating or extrapolation.
+
+Every original CSV field matches the frozen report; all 60 raw/eligible counts
+were independently recomputed from the 60,000 completion witnesses with exact
+rational intervals. Extracted retained files match the original seal; original
+CSV/outcome/evidence are unchanged. `ops/analyze_v6_bin_counts.py` reproduces the
+retrospective arithmetic over a fixed hash-bound CSV, without network calls or
+recorder execution. Independent pairwise Gini/quantile/concentration checks and
+private results: `.qcrl/reviews/v6-bin-unevenness-20261027/`.
+
+Four primary wide UTC brackets in slots 0, 9, 12, 44 remain included and violated;
+the fifth is prewindow. No bracket crosses a primary boundary; that fact does not
+repair precision or independent UTC accuracy. Historical application FAIL, v6
+partial, unverified original coverage, missing resources/final close, all original
+thresholds and all unknowns remain unchanged. This is Intel Mac offline analysis
+of one Linux recording, not new Linux validation, a general performance result,
+venue completeness or trading/execution evidence. No new capture/native test,
+replay or optimization was performed or scheduled.
 
 ## October 22 — Prospective exited-unit inspector corrected offline
 
