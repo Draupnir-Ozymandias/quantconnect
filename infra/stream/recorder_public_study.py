@@ -171,6 +171,8 @@ def consume(root, frozen, *, execute=False):
             'explicit installed Linux study worker required')
     PLAN=supported_plan(frozen['study_plan'])
     preclose_resources=resource_publication_enabled(frozen)
+    require('phase_quota_policy_sha256' not in PLAN or preclose_resources,
+            'BTC20 requires prospectively frozen preclose publication')
     root=Path(root)
     require(root.is_absolute() and root.resolve(strict=True)==root and not root.is_symlink(),
             'canonical private study root required')
@@ -201,7 +203,7 @@ def consume(root, frozen, *, execute=False):
     require(reader.expected['boot_id']==frozen['boot_id'],'study boot changed')
     from infra.stream.recorder_public_operator import pinned_tls
     tls=pinned_tls(frozen)
-    guard=StorageGuard(root)
+    guard=StorageGuard(root,study_plan=PLAN)
     initial=reader.read(rss=True)
     before=time.monotonic();now=utc_text(utc_now());after=time.monotonic()
     epoch=epoch_ns(before,now,after,study_plan=PLAN)
@@ -240,7 +242,8 @@ def consume(root, frozen, *, execute=False):
     try:
         result=collect(case['raw_bundle'],case['spec'],root/'archive',epoch_ns=epoch,
             observer=witness,execute=True,guard=guard,tls_context=tls,before_close=checkpoint,
-            **({'recovery_policy':recovery_policy()} if 'recovery_policy_sha256' in PLAN else {}))
+            **({'recovery_policy':recovery_policy()} if 'recovery_policy_sha256' in PLAN else {}),
+            **({'study_plan':PLAN} if 'phase_quota_policy_sha256' in PLAN else {}))
     except BaseException as exc:
         error=short_error(exc)
     finally:
@@ -292,6 +295,20 @@ def report(root, *, study_plan=PLAN):
                 for key in ('eligible_lower','eligible_upper_archived'):row.setdefault(key,None)
                 for key in ('acquisition','book_eligibility'):row.setdefault(key,'unresolved_linkage')
                 row.setdefault('silence','unknown')
+        if 'phase_quota_policy_sha256' in PLAN:
+            value.update(original_60_second_cpu_window=None,original_60_second_cpu_window_status='unavailable_short_primary_no_prorating')
+            if consumer is not None:
+                value['received_occurrence_disclosure']=consumer.get('result',{}).get('phase_allocations')
+                if value.get('archive_linkage',{}).get('completion_linkage_verified'):
+                    try:
+                        from infra.stream.recorder_phase_quotas import verify_archive_allocations
+                        value['verified_phase_allocations']=verify_archive_allocations(result,completion,root/'archive')
+                    except (ContractError,OSError,ValueError,KeyError,TypeError) as exc:
+                        value['allocation_linkage_error']=short_error(exc)
+                        value['eligible_population']=None
+                        for row in value['rows']:
+                            row.update(eligible_lower=None,eligible_upper_archived=None,
+                                book_eligibility='unresolved_allocation',silence='unknown')
         return value
     root=Path(root)
     case=validate_case(control(root/'case.json'),study_plan=PLAN)
@@ -319,7 +336,7 @@ def report(root, *, study_plan=PLAN):
             archive_linkage=dict(error=short_error(exc)),epoch_ns=None,
             origin_attestation_required=True,venue_completeness_proven=False,
             orders_authorized=False,rows=[dict(slot=k,coverage='unresolved_consumer',
-                lower=None,upper_archived=None,feed_activity_upper=None) for k in range(60)])
+                lower=None,upper_archived=None,feed_activity_upper=None) for k in range(PLAN['seconds'])])
         return decorate(value)
     try:
         archive=verify_stream_log(root/'archive')
@@ -354,7 +371,8 @@ def report(root, *, study_plan=PLAN):
     if 'recovery_policy_sha256' in PLAN:
         from infra.stream.recorder_public_recovery import describe_archive
         try:
-            value=describe_archive(result,completion,root/'archive',expected_domain=consumer['domain'])
+            value=describe_archive(result,completion,root/'archive',expected_domain=consumer['domain'],
+                **({'study_plan':PLAN} if 'phase_quota_policy_sha256' in PLAN else {}))
         except (ContractError,OSError,ValueError,KeyError,TypeError,IndexError) as exc:
             # Keep verified raw occurrence counts while withholding lifecycle eligibility.
             value=bins(completion['frames'],consumer['epoch_ns'],study_plan=PLAN)
@@ -396,7 +414,7 @@ def main():
     parser.add_argument('action',choices=['consume','report'])
     parser.add_argument('--root',required=True,type=Path)
     parser.add_argument('--execute',action='store_true')
-    parser.add_argument('--study-version',choices=['v5','v6'],default='v5')
+    parser.add_argument('--study-version',choices=['v5','v6','v7'],default='v5')
     args=parser.parse_args()
     if args.action=='consume':
         frozen=load(args.root.parent/'execution-freeze.json')

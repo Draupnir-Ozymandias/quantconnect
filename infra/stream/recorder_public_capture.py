@@ -3,6 +3,7 @@
 No CLI/default launch. Caller must supply a source/runtime-bound, approved case.
 """
 import json
+import hashlib
 import os
 import re
 from pathlib import Path
@@ -19,7 +20,8 @@ from execution_truth.contracts import ContractError, payload_hash
 from execution_truth.market_stream import ENDPOINT, classify_frame, stream_plan
 from infra.stream.recorder_completion import CompletionWitnesses
 from infra.stream.recorder_persistence_lane import DeadlineStreamLog
-from infra.stream.recorder_public_counts import PLAN, number, require
+from infra.stream.recorder_public_counts import PLAN, number, require, supported_plan
+from infra.stream.recorder_phase_quotas import Allocations, POLICY as PHASE_POLICY, QuotaStop
 
 
 def short_error(exc):
@@ -161,16 +163,17 @@ def normal_completion_proven(result):
 
 class StorageGuard:
     """Necessary storage-limit enforcement, outside unchanged timestamp brackets."""
-    def __init__(self, root):
+    def __init__(self, root, *, study_plan=PLAN):
+        self.plan=supported_plan(study_plan)
         self.root = Path(root)
         require(self.root.is_dir() and not self.root.is_symlink(), 'private storage root required')
-        require(shutil.disk_usage(self.root).free >= PLAN['disk_start_bytes'],
+        require(shutil.disk_usage(self.root).free >= self.plan['disk_start_bytes'],
                 'two GiB free disk required before acquisition')
 
     def check(self):
         # Reserve both terminal publication and the largest next bounded write.
-        reserve = PLAN['auxiliary_cap_bytes']+8*1024**2
-        require(shutil.disk_usage(self.root).free >= PLAN['disk_reserve_bytes']+reserve,
+        reserve = self.plan['auxiliary_cap_bytes']+8*1024**2
+        require(shutil.disk_usage(self.root).free >= self.plan['disk_reserve_bytes']+reserve,
                 'disk reserve reached')
         total, files = 0, 0
         for path in self.root.rglob('*'):
@@ -178,7 +181,7 @@ class StorageGuard:
             if path.is_file():
                 files += 1
                 total += path.stat().st_size
-                require(files <= 1024 and total+reserve <= PLAN['spool_cap_bytes'],
+                require(files <= 1024 and total+reserve <= self.plan['spool_cap_bytes'],
                         'private spool cap reached')
 
 
@@ -191,6 +194,43 @@ class StudyLog(DeadlineStreamLog):
         if kind != 'session_end':
             self.guard.check()
         return super().append(kind, payload)
+
+
+class AllocatedLog(StudyLog):
+    """Charge actual writer bytes; no re-encoding, bracket reads or mutable prefix."""
+    def __init__(self,*args,allocations,**kwargs):
+        self.allocations=allocations
+        self.terminal=False
+        self.active_phase='prewindow'
+        super().__init__(*args,**kwargs)
+
+    def _open(self):
+        super()._open()
+        owner=self;writer=self.writer
+        class Meter:
+            def write(self,content):
+                phase=owner.active_phase or owner.allocations.phase(json.loads(content)['local_monotonic_seconds'])
+                owner.allocations.admit(phase,len(content))
+                result=writer.write(content)
+                owner.allocations.written(phase,len(content))
+                return result
+            def __getattr__(self,name):return getattr(writer,name)
+        self.writer=Meter()
+
+    def begin_terminal(self):
+        if not self.terminal:self.allocations.terminal_first_ordinal=self.ordinal
+        self.terminal=True
+
+    def append(self,kind,payload):
+        if not self.terminal and self.allocations.stop is not None:
+            # The triggering receive has already been charged, but not written.
+            pending=getattr(self.completion_observer,'pending',None)
+            if kind!='frame' or pending is None:
+                raise QuotaStop(self.allocations.stop)
+        pending=getattr(self.completion_observer,'pending',None)
+        self.active_phase=('terminal' if self.terminal else self.allocations.phase(
+            pending['returned']['before']) if kind=='frame' and pending is not None else None)
+        return super().append(kind,payload)
 
 
 def creation_notice(obj, spec):
@@ -241,13 +281,17 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
             clock=utc_now, monotonic=time.monotonic, connect_factory=None,
             guard=None, interrupt_factory=DeadlineInterrupt, connect_guard_factory=ConnectDeadline,
             tls_context=None, before_close=None, recovery_policy=None,
-            pause=time.sleep, uniform=None):
+            pause=time.sleep, uniform=None, study_plan=None):
     """Actual public connection by default; tests explicitly inject local transport.
 
     Source/runtime/market approval is checked by the outer worker before this
     explicit acquisition gate. This function never starts a unit or schedules one.
     """
     require(execute is True, 'explicit public study acquisition required')
+    selected=supported_plan(study_plan or PLAN)
+    partitioned='phase_quota_policy_sha256' in selected
+    require(not partitioned or selected['phase_quota_policy_sha256']==payload_hash(PHASE_POLICY),
+            'phase quota policy drift')
     require(type(epoch_ns) is int and epoch_ns >= 0, 'fixed integer study epoch required')
     from infra.stream.recorder_public_recovery import Epochs, POLICY as RECOVERY_POLICY, retry_delay
     recovering = recovery_policy is not None
@@ -260,15 +304,18 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
     epoch = epoch_ns/1000000000
     require(number(monotonic()) < number(epoch)-1, 'subscription readiness already missed')
     root = Path(root)
-    guard = StorageGuard(root.parent) if guard is None else guard
+    guard = StorageGuard(root.parent,study_plan=selected) if guard is None else guard
     guard.check()
     if connect_factory is None:
         require(isinstance(tls_context,ssl.SSLContext) and tls_context.check_hostname
                 and tls_context.verify_mode==ssl.CERT_REQUIRED,'frozen verified TLS context required')
         from websockets.sync.client import connect
         connect_factory = connect
-    log = StudyLog(root, clock, monotonic, spec['storage'],
-                   completion_observer=observer, guard=guard)
+    allocations=Allocations(epoch_ns) if partitioned else None
+    log = (AllocatedLog(root,clock,monotonic,spec['storage'],completion_observer=observer,
+                       guard=guard,allocations=allocations) if partitioned else
+           StudyLog(root, clock, monotonic, spec['storage'],completion_observer=observer, guard=guard))
+    last_occurrence=None
     conn, interrupt, hard_stop = None, None, None
     normal_completion = None
     frames, ready, attempted, closed, acquisition_ended, deadline = 0, None, None, None, None, None
@@ -297,7 +344,7 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
             raise
 
     def run_connection():
-        nonlocal conn, interrupt, frames, ready, last_safe, status, snapshots
+        nonlocal conn, interrupt, frames, ready, last_safe, status, snapshots, last_occurrence
         connection_started = monotonic()
         readiness = min(epoch-1 if connections==1 else deadline, connection_started+10)
         require(readiness > connection_started, 'connection readiness missed')
@@ -329,6 +376,8 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
         while True:
             require(not interrupt.fired.is_set(),'emergency acquisition interruption')
             now = monotonic()
+            if allocations is not None and allocations.stop is not None:
+                status='phase_limit';break
             if now >= deadline:
                 break
             if frames >= 60000:
@@ -343,6 +392,8 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
                 transport(conn.send,'PING')
                 last_ping = monotonic()
                 log.append('ping_sent', dict(connection=connections))
+            if allocations is not None and allocations.stop is not None:
+                status='phase_limit';break
             try:
                 remaining = deadline-monotonic()
                 if remaining <= 0:
@@ -359,11 +410,31 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
             # existing monotonic/UTC/monotonic application-return operation.
             observer.application_return(frame, connections)
             timing_failure=observer.failure
-            require(isinstance(frame, str) and len(frame.encode('utf-8')) <= 262144,
-                    'binary_or_oversize_frame')
+            oversized=False
+            if allocations is not None:
+                allocations.received+=1
+                pending=observer.pending
+                last_occurrence=dict(sequence=allocations.received-1,connection=connections,
+                    payload_type=type(frame).__name__,
+                    returned=None if pending is None else pending['returned'],
+                    phase=None,archive_status='not_proven_fully_appended',reason=None)
+                require(pending is not None,'return timing unavailable for phase allocation')
+                phase=allocations.phase(pending['returned']['before'])
+                allocations.received-=1;allocations.receive(phase)
+                last_occurrence['phase']=phase
+                require(isinstance(frame,str),'binary_or_oversize_frame')
+                encoded=frame.encode('utf-8')
+                last_occurrence.update(utf8_bytes=len(encoded),raw_sha256=hashlib.sha256(encoded).hexdigest())
+                oversized=len(encoded)>262144
+                del encoded
+            else:
+                require(isinstance(frame, str) and len(frame.encode('utf-8')) <= 262144,
+                        'binary_or_oversize_frame')
             classes = classify_frame(frame, spec)
             log.append('frame', dict(connection=connections, raw_text=frame, classification=classes))
             frames += 1
+            if allocations is not None:
+                allocations.archived+=1;last_occurrence=None
             require(timing_failure is None and observer.failure is None and len(observer.frames) == frames,
                     'required occurrence linkage/clock fault: '+str(observer.failure))
             last_safe = observer.frames[-1]['returned']['before']
@@ -375,6 +446,9 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
             if recovering:
                 epochs.observe(frame, classes, observer.frames[-1]['returned'])
             require(not contamination(frame, spec), 'explicit foreign asset/condition binding')
+            require(not oversized,'binary_or_oversize_frame_retained_fatal')
+            if allocations is not None and allocations.stop is not None:
+                status='phase_limit';break
             if frames >= 60000:
                 status = 'frame_limit'
                 break
@@ -404,7 +478,7 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
         if recovering:header['recovery_policy_sha256']=payload_hash(RECOVERY_POLICY)
         log.append('session_start', header)
         attempted = monotonic()
-        deadline = min(epoch+65, attempted+90)
+        deadline = min(epoch+selected['seconds']+selected['tail_seconds'], attempted+90)
         hard_stop=connect_guard_factory(attempted+STOP_POLICY['acquisition_hard_seconds'],clock=monotonic)
         while connections < (RECOVERY_POLICY['max_connections'] if recovering else 1):
             connections += 1
@@ -412,11 +486,18 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
             if recovering:epochs.begin(monotonic())
             log.append('connect_attempt', dict(connection=connections))
             try:
+                if allocations is not None and allocations.stop is not None:
+                    status='phase_limit';break
                 ended=run_connection()
+                if allocations is not None and allocations.stop is not None:log.begin_terminal()
                 if recovering:
                     log.append('connection_epoch',epochs.end(ended,None,normal=status=='scheduled_stop'))
                 break
             except BaseException as exc:
+                if allocations is not None and allocations.stop is not None:log.begin_terminal()
+                if allocations is not None and last_occurrence is not None:
+                    last_occurrence['reason']=short_error(exc)
+                    allocations.unarchived=last_occurrence
                 if not recovering:raise
                 fault=short_error(exc)
                 terminal.append(dict(connection=connections,type=type(exc).__name__,error=fault))
@@ -430,6 +511,9 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
                     and not isinstance(exc,ssl.SSLCertVerificationError)
                     or type(exc) is ContractError and str(exc) in
                         ('initial_books_timeout','selected_book_data_silence','stale_timestamped_book_flow','pong_timeout'))
+                if partitioned and (isinstance(exc,QuotaStop)
+                        or any(getattr(getattr(exc,key,None),'code',None)==1009 for key in ('rcvd','sent'))):
+                    recoverable=False
                 receipt=finish_interrupt()
                 if receipt and (receipt['fired'] or receipt['error']):recoverable=False
                 if not recoverable:raise
@@ -457,6 +541,11 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
             close_errors.append(short_error(log_exc))
     finally:
         acquisition_ended = monotonic()
+        if allocations is not None:
+            log.begin_terminal()
+            if last_occurrence is not None:
+                last_occurrence['reason']=error or 'occurrence append not proven'
+                allocations.unarchived=last_occurrence
         if conn is not None and status=='scheduled_stop' and error is None and not recovering:
             try:
                 acquisition_ended=interrupt.claim_normal(conn,acquisition_ended)
@@ -480,6 +569,9 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
         summary = dict(status=status, frames=frames, connections=connections,
             event_counts={}, book_snapshot_assets_by_connection=snapshots_by_connection,
             continuous_coverage_proven=False, orders_authorized=False)
+        if allocations is not None:
+            summary.update(phase_quota_policy_sha256=payload_hash(PHASE_POLICY),
+                           allocation_terminal_first_ordinal=allocations.terminal_first_ordinal)
         if recovering:
             if epochs.current is not None and epochs.current['ended'] is None:
                 epochs.end(acquisition_ended,error or 'incomplete_epoch')
@@ -511,6 +603,7 @@ def collect(raw_bundle, spec, root, *, epoch_ns, observer, execute=False,
             if recovering:
                 from copy import deepcopy
                 value.update(recovery_policy_sha256=payload_hash(RECOVERY_POLICY),connection_epochs=deepcopy(epochs.rows))
+            if allocations is not None:value['phase_allocations']=allocations.snapshot()
             return value
 
         if before_close is not None:

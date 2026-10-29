@@ -79,16 +79,29 @@ SUCCESSOR_V6_PLAN.update(schema_version='qcrl.public_feed_interval_counts.study.
     reconnect_not_observed='inconclusive_no_automatic_extra_run',
     population='all_incoming_texts_plus_separate_bootstrap_eligible_subset')
 
+# Explicit new target/design; neither old plan nor default is changed.
+from infra.stream.recorder_phase_quotas import POLICY as PHASE_POLICY
+SUCCESSOR_V7_PLAN=deepcopy(SUCCESSOR_V6_PLAN)
+SUCCESSOR_V7_PLAN.update(schema_version='qcrl.public_feed_interval_counts.study.v7',
+    parent_plan_sha256=payload_hash(SUCCESSOR_V6_PLAN), research_question='BTC20-Uneven01',
+    case='btc5m-20261030T160000Z-uneven-01',
+    event_start='2026-10-30T16:00:00Z',event_end='2026-10-30T16:05:00Z',
+    discovery='2026-10-30T15:55:00Z',freeze_cutoff='2026-10-30T15:59:00Z',
+    arm='2026-10-30T16:00:55Z',nominal_epoch='2026-10-30T16:01:00Z',
+    seconds=20,tail_seconds=2,phase_quota_policy_sha256=payload_hash(PHASE_POLICY),
+    exited_unit_policy_sha256='43891e7ffabd8ec4b4955bf5cc8ef483fce2b2b68b5678669c10a90836aae99b',
+    original_60_second_cpu_window=None)
+
 
 def supported_plan(value):
     require(any(value==v and payload_hash(value)==payload_hash(v)
-                for v in (PLAN,SUCCESSOR_V6_PLAN)), 'unsupported fixed study plan')
+                for v in (PLAN,SUCCESSOR_V6_PLAN,SUCCESSOR_V7_PLAN)), 'unsupported fixed study plan')
     return deepcopy(value)
 
 
 def version_plan(version):
-    require(version in ('v5','v6'),'unsupported study version')
-    return deepcopy(SUCCESSOR_V6_PLAN if version=='v6' else PLAN)
+    require(version in ('v5','v6','v7'),'unsupported study version')
+    return deepcopy(SUCCESSOR_V7_PLAN if version=='v7' else SUCCESSOR_V6_PLAN if version=='v6' else PLAN)
 
 
 def require(ok, message):
@@ -152,7 +165,7 @@ def bins(frames, epoch, *, censored_from=None, coverage_complete=False, study_pl
             continue
         a, b = lo.numerator//lo.denominator, hi.numerator//hi.denominator
         # Bound work without truncating a multi-second candidate interval.
-        candidates = list(range(max(0, a), min(59, b)+1))
+        candidates = list(range(max(0, a), min(PLAN['seconds']-1, b)+1))
         is_wide = after-before > .001  # Same literal float rule as original gate.
         if is_wide:
             wide.append(sequence)
@@ -164,7 +177,7 @@ def bins(frames, epoch, *, censored_from=None, coverage_complete=False, study_pl
         if a != b:
             ambiguity.append(dict(sequence=sequence, first_bin=a, last_bin=b,
                                   possible_primary_bins=candidates))
-        if a < 0 or b >= 60:
+        if a < 0 or b >= PLAN['seconds']:
             # Store ranges, not an unbounded expansion outside the primary window.
             outside[str(sequence)] = dict(first_bin=a, last_bin=b)
     for row in rows:

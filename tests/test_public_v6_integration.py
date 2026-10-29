@@ -49,7 +49,7 @@ class V6Tests(unittest.TestCase):
         self.assertEqual((PLAN['connection_attempts'],PLAN['reconnects']),(3,2))
         bad=deepcopy(PLAN);bad['reconnects']=3
         with self.assertRaises(ContractError):counts.supported_plan(bad)
-        with self.assertRaises(ContractError):counts.version_plan('v7')
+        with self.assertRaises(ContractError):counts.version_plan('v8')
         self.assertEqual(counts.epoch_ns(1.,'2026-10-21T16:00:40Z',1.,study_plan=PLAN),21_000_000_000)
         self.assertEqual(operator.layout(PLAN),('/var/lib/qcrl-stream/public-feed-20261021T160000Z','qcrl-public-counts-20261021T160000Z'))
         props=operator.properties(PLAN)

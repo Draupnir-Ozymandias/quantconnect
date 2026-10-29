@@ -77,7 +77,7 @@ class Epochs:
         return deepcopy(row)
 
 
-def describe(result, completion):
+def describe(result, completion, *, study_plan=None):
     """Caller verifies archive witnesses and final lifecycle marker before use.
 
     Raw counts remain complete. Eligibility is a separate descriptive population;
@@ -107,11 +107,11 @@ def describe(result, completion):
         if (row['eligible_after'] is not None and a>number(row['eligible_after'])
                 and b<number(row['available_until'])):
             eligible_frames.append(dict(f,sequence=len(eligible_frames)))
-    value=bins(frames,result['epoch_ns'])
+    value=bins(frames,result['epoch_ns'],**({'study_plan':study_plan} if study_plan is not None else {}))
     # This is a method contract, not authorization to reuse the expired v5 target.
     value['counting_method_reference_plan_sha256']=value.pop('plan_sha256')
     value['study_plan_sha256']=None
-    sub=bins(eligible_frames,result['epoch_ns'])
+    sub=bins(eligible_frames,result['epoch_ns'],**({'study_plan':study_plan} if study_plan is not None else {}))
     origin=number(result['epoch_ns'])/10**9
     for raw,good in zip(value['rows'],sub['rows']):
         a,b=origin+raw['slot'],origin+raw['slot']+1
@@ -160,7 +160,7 @@ def describe(result, completion):
     return value
 
 
-def describe_archive(result, completion, root, *, expected_domain):
+def describe_archive(result, completion, root, *, expected_domain, study_plan=None):
     """Reuse completion/archive verification, then bind lifecycle and replay books.
 
     No public transport or consumer creation occurs. A caller must separately bind
@@ -200,6 +200,6 @@ def describe_archive(result, completion, root, *, expected_domain):
                 elif kind=='session_end':footer=value
     require(final==result['connection_epochs'] and ended==final,'result/archive lifecycle differs')
     require(footer==result['summary'] and sequence==verified['frames'],'recovery footer/population differs')
-    value=describe(result,completion)
+    value=describe(result,completion,study_plan=study_plan)
     value.update(archive_linkage=verified,origin_attestation_required=True)
     return value

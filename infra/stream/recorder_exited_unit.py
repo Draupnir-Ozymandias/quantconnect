@@ -14,6 +14,8 @@ POLICY = dict(schema_version='qcrl.exited_unit_inspection.policy.v1',
               rounds=2, missing_tasks='unknown_not_zero',
               required='exact_invocation_exited_bound_processes_gone_cgroup_empty_or_removed',
               authority='read_only_no_stop_no_scientific_acceptance')
+PUBLIC_POLICY = dict(POLICY,schema_version='qcrl.exited_unit_inspection.policy.v2',
+                     bound_processes='one_public_worker_or_parent_child')
 FIELDS = ('Id', 'InvocationID', 'WorkingDirectory', 'ExecStart',
           'ExecMainStartTimestampMonotonic', 'ActiveState', 'SubState',
           'MainPID', 'ControlGroup', 'TasksCurrent', 'Result', 'ExecMainCode',
@@ -30,7 +32,8 @@ def positive(value):
     return type(value) is str and re.fullmatch(r'[1-9][0-9]{0,19}', value) is not None
 
 
-def validate(expected):
+def validate(expected, policy=POLICY):
+    require(policy in (POLICY,PUBLIC_POLICY),'unsupported inspection policy')
     require(type(expected) is dict and set(expected) == {'properties', 'boot_id', 'cgroup', 'processes'},
             'explicit independent unit/process binding required')
     props = expected['properties']
@@ -46,24 +49,25 @@ def validate(expected):
     require(type(expected['boot_id']) is str and 0 < len(expected['boot_id']) <= 64,
             'boot binding required')
     processes = expected['processes']
-    require(type(processes) is list and len(processes) == 2, 'parent and child bindings required')
+    require(type(processes) is list and len(processes) in ((1,2) if policy==PUBLIC_POLICY else (2,)),
+            'explicit process bindings required')
     for row in processes:
         require(type(row) is dict and set(row) == {'pid', 'start_id'}
                 and type(row['pid']) is int and 0 < row['pid'] <= 2**31-1
                 and positive(row['start_id']), 'invalid process binding')
-    require(processes[0]['pid'] != processes[1]['pid'], 'distinct parent and child required')
+    require(len({p['pid'] for p in processes})==len(processes), 'distinct process bindings required')
 
 
-def inspect_exited_unit(expected, reader):
+def inspect_exited_unit(expected, reader, *, policy=POLICY):
     """Keep partial observations/errors. No retries, unit mutation or pass badge.
 
     Two equal rounds detect observable replacement/restart/boot/PID/cgroup races;
     they cannot promise atomicity or authorize a later stop across a TOCTOU gap.
     Reader failures are unresolved, including permission errors and partial reads.
     """
-    validate(expected)
+    validate(expected,policy)
     result = dict(schema_version='qcrl.exited_unit_inspection.v1',
-                  policy_sha256=payload_hash(POLICY), binding_sha256=payload_hash(expected),
+                  policy_sha256=payload_hash(policy), binding_sha256=payload_hash(expected),
                   observations=[], errors=[], exited_binding_observed=False,
                   tasks_current=None, resource_qualification=None, stop_authorized=False)
     try:

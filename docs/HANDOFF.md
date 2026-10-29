@@ -5,6 +5,50 @@ Updated October 28, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 28 — BTC20 offline implementation tested; approval packet preparation
+
+[Implementation/allocations](BTC20_UNEVEN01_IMPLEMENTATION_V1.md).
+User authorized offline work and frozen packet preparation, **no capture**.
+Explicit v7 names BTC20-Uneven01, candidate October30 16:00 UTC; arm16:00:55,
+primary16:01:00–16:01:20, tail to16:01:22. v5 default/v5-v6 literal plans stay
+unchanged. Collector, recovery/counting/report and null-control paths now honor
+the 20-second window; a duration field alone is no longer the implementation.
+
+Phase ceilings8,000/50,000/2,000 and actual encoded-byte thresholds32/128/8 MiB
+are cumulative across reconnects and include bootstrap/duplicates/metadata.
+Return-before assigns each text once, including boundary-straddling returns;
+interval analysis retains ambiguity. Controls use their actual archive timestamp.
+Retain the safely appendable quota-triggering text, then stop/censor the entire
+attempt; no borrow/reset/drop-and-resume. Terminal reserve is hard32 MiB;
+logical total <=212 MiB including one <=4-MiB crossing row per phase, under the
+original global spool/storage/resource ceilings. Oversize returned text is
+retained if safely appendable then fatal; failed/binary/unlinkable returns have
+explicit received-versus-archived disclosure. Missing data is not zero-filled.
+
+Archive/completion linkage precedes independent quota replay. Bad quota linkage
+withholds eligibility while preserving separately verified raw counts. Eligible
+never implies venue completeness; feed upper bounds stay null. **Original
+60-second CPU window stays null/unavailable_short_primary_no_prorating** on all
+v7 report paths, not a scaled pass. Original thresholds and all historical FAIL/
+partial verdicts/evidence/unknowns stand; no combined badge.
+
+Inspector v2 explicitly permits one public worker; v1 policy is preserved.
+Controller cleanup binds freeze/case/InvocationID/root/PID/start/boot/cgroup and
+only stops an observed exited private invocation; active/foreign/unresolved
+means no fallback stop. Inspector remains read-only; an external administrator
+restart is not atomically fenced. Five-second close race remains unresolved;
+pre-close resource policy is mandatory, qualified native resource claims absent.
+
+Final **1,342 offline tests passed in178.761s**, including separate bounded child
+cases at full prewindow/primary caps; **88 focused tests passed in23.784s**.
+Python3.9 grammar passed locally. New source
+has no Linux functional/public validation. Fresh read-only old-source inspection
+at2026-10-29T02:39:36Z (October28 22:39 EDT) verified installed runtime/TLS/public,
+5,943,533,568 free bytes and unused new namespace/unit. Metadata/subscriptions/
+units/staging remain zero. Historical credit context is not fresh/no minimum.
+Exact source/member/freeze identities will be recorded in the approval packet;
+only preparation is authorized, no scheduler or native run.
+
 ## October 28 — Milestone 3 prepared; capture decision deferred to integration
 
 [BTC20-Uneven01 design draft](MILESTONE_3_BTC20_UNEVEN01_DRAFT_V1.md) names the

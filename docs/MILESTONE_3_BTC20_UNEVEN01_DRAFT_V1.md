@@ -204,3 +204,14 @@ and packet gates remain. Historical FAIL, v6/PreClosePub01 partial verdicts,
 every original threshold/evidence item and all unknowns remain unchanged. No
 combined acceptance, staging, metadata request, scheduler or native run follows
 from this document.
+
+## Subsequent offline implementation — October 28
+
+The user subsequently authorized offline implementation/testing and preparation
+of a frozen approval packet, explicitly withholding capture. The original design
+above is preserved. [Implementation and allocation semantics](BTC20_UNEVEN01_IMPLEMENTATION_V1.md)
+record explicit v7 selection, 20-bin runtime/report paths, partitioned quota
+enforcement, trigger-text retention/unarchived disclosure, inspector-v2 cleanup
+wiring and mandatory unavailability of the original 60-second CPU-window result.
+The candidate approval target is October30,16:00 UTC; no staging or capture follows
+without separate exact-packet approval. This update grants no new execution right.

@@ -114,6 +114,8 @@ def public_state():
 def make_freeze(source, runtime, tls, public, approval_sha, *, study_plan=PLAN, preclose_resources=False):
     PLAN=supported_plan(study_plan)
     require(type(preclose_resources) is bool,'explicit resource publication selection required')
+    require('phase_quota_policy_sha256' not in PLAN or preclose_resources,
+            'BTC20 requires explicit preclose publication')
     sources,commit=inspect_source(source)
     value=dict(schema_version='qcrl.public_feed_interval_counts.freeze.v1',study_plan=PLAN,
         study_plan_sha256=payload_hash(PLAN),source_commit=commit,sources=sources,
@@ -283,7 +285,7 @@ class Production:
         require(0<remaining<=30,'metadata deadline missed')
         try:
             command(['sudo','-u','qcrl',PYTHON,'-m','infra.stream.recorder_public_operator',
-                'metadata','--root',str(self.root),'--freeze-sha256',self.frozen['freeze_sha256'],'--study-version','v6' if 'recovery_policy_sha256' in self.plan else 'v5','--execute'],
+                'metadata','--root',str(self.root),'--freeze-sha256',self.frozen['freeze_sha256'],'--study-version','v7' if 'phase_quota_policy_sha256' in self.plan else 'v6' if 'recovery_policy_sha256' in self.plan else 'v5','--execute'],
                 timeout=remaining,execute=True)
         except Exception as exc:
             if hasattr(exc,'output'):
@@ -305,7 +307,7 @@ class Production:
         command(['systemd-run','--unit='+self.unit,'--working-directory='+str(ROOT),
             '--setenv=PYTHONDONTWRITEBYTECODE=1',
             *['--property='+k+'='+v for k,v in properties(self.plan).items()],PYTHON,
-            '-m','infra.stream.recorder_public_study','consume','--root',str(self.evidence),'--study-version','v6' if 'recovery_policy_sha256' in self.plan else 'v5','--execute'],execute=True)
+            '-m','infra.stream.recorder_public_study','consume','--root',str(self.evidence),'--study-version','v7' if 'phase_quota_policy_sha256' in self.plan else 'v6' if 'recovery_policy_sha256' in self.plan else 'v5','--execute'],execute=True)
 
     def release(self,case):
         ready=self.evidence/'worker-ready.json'
@@ -322,6 +324,13 @@ class Production:
         from infra.stream.recorder_application_resources import LinuxReader
         require(LinuxReader(execute=True,pid=identity['pid']).expected==identity,'external study PID/start/boot differs')
         require(time.monotonic()<value['epoch_ns']/1e9-1,'unit release missed original epoch')
+        if 'phase_quota_policy_sha256' in self.plan:
+            from infra.stream.recorder_exited_unit import IDENTITY_FIELDS, validate, PUBLIC_POLICY
+            binding=dict(properties={k:props.get(k) for k in IDENTITY_FIELDS},boot_id=identity['boot_id'],
+                cgroup=identity['cgroup'],processes=[dict(pid=identity['pid'],start_id=identity['process_start_id'])])
+            validate(binding,PUBLIC_POLICY)
+            publish(self.root/'unit-invocation.json',dict(binding=binding,case_sha256=case['artifact_sha256'],
+                freeze_sha256=self.frozen['freeze_sha256']))
         with (self.root/'unit-before.txt').open('x') as handle:handle.write(text)
         publish(self.evidence/'release.json',dict(case_sha256=case['artifact_sha256'],identity=identity,
             epoch_ns=value['epoch_ns'],at=time.monotonic()))
@@ -346,6 +355,8 @@ class Production:
             original_application_verdict='fail',orders_authorized=False))
 
     def stop_and_seal(self):
+        if 'phase_quota_policy_sha256' in self.plan:
+            return self.stop_and_seal_partitioned()
         # Never touch other unit names, public collectors or historical stages.
         errors=[]
         try:
@@ -388,6 +399,41 @@ class Production:
         publish(self.root/'post-run-checks.json',dict(errors=errors,
             observed_utc=utc_text(utc_now()),public_after=public_state()))
 
+    def stop_and_seal_partitioned(self):
+        """Only an exact exited private invocation; no active-unit fallback stop."""
+        from infra.stream.recorder_exited_unit import inspect_exited_unit, LinuxReader, PUBLIC_POLICY
+        errors=[];inspection=None;stopped=False
+        try:
+            receipt=control(self.root/'unit-invocation.json')
+            require(receipt['freeze_sha256']==self.frozen['freeze_sha256']
+                and receipt['case_sha256']==control(self.evidence/'case.json')['artifact_sha256'],
+                'post-exit invocation freeze/case differs')
+            binding=receipt['binding']
+            require(binding['properties']['Id']==self.unit+'.service'
+                and binding['properties']['WorkingDirectory']==str(ROOT), 'foreign cleanup binding')
+            inspection=inspect_exited_unit(binding,LinuxReader(execute=True),policy=PUBLIC_POLICY)
+            require(inspection['exited_binding_observed'] and not inspection['errors'],
+                    'exited private invocation not established')
+            # Exclusive launch claims prevent another owner adopting this namespace.
+            # No journal/fsync work between the final identity read and this action.
+            command(['systemctl','stop',self.unit+'.service'],execute=True);stopped=True
+        except Exception as exc:errors.append(short_error(exc))
+        if inspection is not None:publish(self.root/'exited-unit-inspection.json',
+            {k:v for k,v in inspection.items() if k!='artifact_sha256'})
+        try:verify_freeze(self.root,self.frozen)
+        except Exception as exc:errors.append(short_error(exc))
+        files={}
+        for path in sorted(self.evidence.rglob('*')):
+            require(not path.is_symlink(),'study evidence symlink')
+            if path.is_file():files[str(path.relative_to(self.evidence))]=dict(bytes=path.stat().st_size,sha256=file_hash(path))
+        require(len(files)<=1024 and sum(v['bytes'] for v in files.values())<=self.plan['spool_cap_bytes'],
+                'study evidence inventory cap exceeded')
+        publish(self.root/'origin-inventory.json',dict(files=files,freeze_sha256=self.frozen['freeze_sha256'],
+            case=self.plan['case'],native_origin_verified=False,requires_observed_origin_attestation=True))
+        publish(self.root/'post-run-checks.json',dict(errors=errors,observed_utc=utc_text(utc_now()),
+            public_after=public_state(),exact_exited_unit_stopped=stopped,
+            cleanup_atomic_against_external_admin_restart=False,original_60_second_cpu_window=None))
+
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
@@ -395,7 +441,7 @@ def main():
     parser.add_argument('--root',type=Path,required=True)
     parser.add_argument('--freeze-sha256',required=True)
     parser.add_argument('--execute',action='store_true')
-    parser.add_argument('--study-version',choices=['v5','v6'],default='v5')
+    parser.add_argument('--study-version',choices=['v5','v6','v7'],default='v5')
     args=parser.parse_args()
     plan=version_plan(args.study_version);stage,_=layout(plan)
     if args.action=='controller':run_controller(Production(args.root,args.freeze_sha256,execute=args.execute,study_plan=plan))
