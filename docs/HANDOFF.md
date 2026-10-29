@@ -10,6 +10,23 @@ for subsequent development revisions. Keep this branch separate from main.
 
 ## October 29 — Offline takeover; quota replay stopping gap corrected
 
+**Subsequent packet rebuild complete offline:** strict, pinned dedicated-key SSH
+to Lupus succeeded. All37 copied private files match independent origin hashes;
+all16 original sealed members verify. No Lupus files or EC2 state changed.
+[Replacement conditional packet v2](BTC20_UNEVEN01_APPROVAL_PACKET_V2.md) binds
+corrected source3c443e6/580 files to freeze
+`86e2cefa7a003347900faa3ef56a5801257bf6124baea12e4a2a35c208b3bac2`.
+Transport186,898 bytes/16members SHA
+`0082208398cb2bed91d737c5720c8c458924258bd125ce81f47faac7289146e2`.
+Private controls: `.qcrl/reviews/btc20-rebuild-20261029/successor-packet/`.
+Member/source/bundle round-trip, four mocked launcher scenarios, approval-refusal/
+mock staging compilation and actual injected worker/report/auditor checks pass.
+No real confirmation or approved staging script exists; no scheduler/capture.
+Runtime/readiness controls stay historically dated, not fresh. Fresh matching
+EC2 gates and separate exact-freeze approval remain mandatory. October30 fixed
+opportunity stays conditional; no rollover. Earlier absence/blocker text below
+is the preserved pre-copy checkpoint, now resolved by verified transfer.
+
 The user explicitly requested takeover of the offline implementation task.
 Fetch found that Lupus had already implemented BTC20 in `86c69b2` and documented
 its sealed packet in `2962a24`. No duplicate acquisition implementation was added.
