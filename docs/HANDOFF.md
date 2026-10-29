@@ -1,9 +1,28 @@
 # Development handoff
 
-Updated October 27, 2026. Continue in
+Updated October 28, 2026. Continue in
 `/Users/eric/Projects/quantconnect/polymarket-martingale` on
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
+
+## October 28 — Milestone 2: consolidated engineering baseline
+
+[Current baseline](ENGINEERING_BASELINE_20261028.md) consolidates exact source/
+freeze/policy versions and separates observed native components from offline-only
+changes. V6 established public recovery and linked counts, not complete-minute
+coverage or final cleanup/resource acceptance. PreClosePub01 established retention
+of a returned synthetic resource row through blocked-close SIGTERM, while its
+frozen post-inspector/auditor remain failed and overall result partial/unresolved.
+Corrected inspector `be254c9` is offline-only (20 new / 36 combined focused tests),
+read-only, not wired into a new packet and not a source of stop authority.
+
+Five-second library/external close bounds have no reserved cleanup margin;
+public close progress/signal sender, high-cardinality publication cost and final
+native resource qualification remain open. Original precision thresholds and
+historical FAIL stand; no combined badge. Both original sealed archives still
+match their recorded SHA-256 values. No remote command, native validation,
+staging, scheduler or new capture occurred for this consolidation. Milestone 3
+must name a question and change the acquisition envelope before a capture decision.
 
 ## October 27 — Retrospective v6 unevenness analysis, no new acquisition
 
