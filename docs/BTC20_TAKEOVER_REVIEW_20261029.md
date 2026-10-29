@@ -73,3 +73,22 @@ an approval, or evidence that the old private transport was reverified here.
 No credentials, external-network test, public capture, staging or cloud sync is needed
 to finish this offline review. Localhost test fixtures are separate from a public
 feed connection.
+
+## Sealed offline source candidate
+
+Corrected implementation commit: `3c443e6fdba2224ae9965ce5dabc12f5e4c821a0`.
+The source-only receipt at
+`.qcrl/reviews/btc20-takeover-source-3c443e6/source-candidate.json` selects **580
+files**, all independently matched to exact committed Git blobs. Payload SHA:
+`91a93e4ff17da5f212d64fae85395dc073fddfe261f4ef19bd71d95870db986f`.
+Plan/policy hashes remain unchanged. All runtime/native/approval flags are false;
+this is not a replacement for a source/runtime execution freeze. Later handoff
+documentation commits do not replace this source candidate.
+
+The next operator should use the same candidate commit on the packet-owning
+machine, validate retained private controls there, and regenerate the full packet
+and independent source/member checks. Neither the old freeze nor this source-only
+receipt authorizes staging or the October 30 recording. If those prerequisites
+cannot be completed before the fixed opportunity, retain not-run rather than
+roll the window forward implicitly. No full-packet hash or native readiness is
+claimed by this takeover.

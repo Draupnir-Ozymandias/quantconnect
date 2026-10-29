@@ -33,6 +33,12 @@ The private October 30 packet/runtime controls were not migrated to this checkou
 their absence is not permission to reconstruct native evidence from assumptions.
 No SSH, metadata request, capture, deployment, resource change or QC sync occurred.
 Test results and source-candidate identity are recorded in the review document.
+All **1,343 offline tests passed in 94.550s** on the originating Mac; all23 BTC20
+tests pass. Source candidate `3c443e6fdba2224ae9965ce5dabc12f5e4c821a0` selects580
+Git-verified files. Source-only receipt SHA
+`91a93e4ff17da5f212d64fae85395dc073fddfe261f4ef19bd71d95870db986f`.
+Full corrected runtime/transport sealing remains pending the private controls on
+the packet-owning machine. Do not execute old `49614da6...` as this new candidate.
 
 ## October 28 — Frozen BTC20 approval packet ready; no capture authorized
 
