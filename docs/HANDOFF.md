@@ -5,6 +5,45 @@ Updated October 28, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 28 — Frozen BTC20 approval packet ready; no capture authorized
+
+[Exact approval packet](BTC20_UNEVEN01_APPROVAL_PACKET_V1.md) binds source
+`86c69b24a8c911d9c277be62b034d7beb20f11b8` / **578 selected files**, not later
+documentation HEAD. Freeze
+`49614da6dd74462091b2404ba222a318fc692d8609606a4a9510bf77378ece06`.
+Transport **180,831 bytes /16 members**, SHA
+`b28da82f99509d5ea5b1733baf06fe451d36fee68dddd7b0dde96f7c020a5041`.
+Launcher SHA
+`336bfb391038d7518a32fe06065e683cf77367fdff6d13b3828c433004c9566a`.
+Private local `.qcrl/reviews/public-feed-20261030T160000Z/`; proposed new Ohio
+stage `/var/lib/qcrl-stream/public-feed-20261030T160000Z`. Bundle prerequisite
+`fc89c11c8c9186c866385b373db12ba04c721e33` comes from existing v6 stage; never
+edit old evidence/source. Every source/member/hash and Git bundle verifies.
+
+One proposed October30 BTC five-minute event16:00–16:05 UTC; launcher15:44–15:55,
+controller15:45–15:55, sole metadata15:55/max30s/five GETs, lock before15:59,
+arm16:00:55, primary16:01:00–16:01:20, tail to16:01:22. IDs unknown until that
+sole opportunity. Require fresh matching gates and separate exact-freeze approval
+before staging; any missed window/fault/used claim means no rollover or relaunch.
+Only the declared max3 sequential in-unit attempts/2 retries are in proposed scope.
+
+Packet includes frozen independent controller/unit binding, readback, observed
+inventory/copy, source reconstruction/copy verifier and offline auditor. Four
+mocked launcher scenarios pass (claim before one Popen, repeat/missing approval/
+expired window refused). Stage preparation refuses missing confirmation; mock
+approved remote source compiles but was not executed. Actual local worker/report
+and packet auditor were exercised with explicitly mocked origins and independently
+recomputed20 raw/eligible rows. No Linux validation or native resource acceptance
+is inferred. Python3.9 grammar passes for all frozen Python packet members.
+
+Full1,342/178.761s and focused88/23.784s offline results stand. Source/runtime/TLS/
+public/namespace readiness is freshly observed through old source, not functional
+validation of v7. Refresh before approved staging/launch. No active approval,
+direct confirmation, staged namespace, controller, metadata GET, capture unit,
+subscription or automation was created. Historical FAIL/partial results, all
+thresholds, original seals and unknowns remain. **Original complete60-second CPU
+gate is null/unavailable; never prorated.** Eligibility never proves venue completeness.
+
 ## October 28 — BTC20 offline implementation tested; approval packet preparation
 
 [Implementation/allocations](BTC20_UNEVEN01_IMPLEMENTATION_V1.md).

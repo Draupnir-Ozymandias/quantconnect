@@ -125,7 +125,7 @@ foreign bindings. Full prewindow/primary saturation cases use separate bounded
 child processes rather than accumulating their large populations in readiness.
 
 Final full suite: **1,342 tests passed in 178.761 seconds** with
-`PYTHONPATH=tests .venv/bin/python -m unittest discover -q`. Changed Python files
+`PYTHONPATH=tests .venv/bin/python -m unittest discover -q`.
 Focused collector/recovery/publication/inspector integration: **88 tests passed
 in 23.784 seconds**. Changed Python files
 parse with Python3.9 grammar locally. These are Intel Mac/Python3.14.6
