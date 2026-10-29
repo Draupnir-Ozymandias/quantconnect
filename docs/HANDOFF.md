@@ -5,6 +5,34 @@ Updated October 28, 2026. Continue in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
+## October 28 — Milestone 3 prepared; capture decision deferred to integration
+
+[BTC20-Uneven01 design draft](MILESTONE_3_BTC20_UNEVEN01_DRAFT_V1.md) names the
+prospective question: unevenness of locally archived incoming-text counts over
+one fixed 20-second primary window, with all availability/eligibility exclusions
+reported. Proposed exposure is five seconds prewindow + 20 primary + two tail,
+not v6's 20+60+5 envelope. No date/market IDs/freeze or executable approval packet
+has been selected, and no deployment/acquisition is authorized by this draft.
+
+New prospective phase ceilings are 8,000/50,000/2,000 texts (60,000 total), no
+borrowing/reset across phases or reconnects. Encoded raw-byte stop thresholds are
+32/128/8 MiB, up to one existing 4-MiB crossing record per phase, with a separate
+hard 32-MiB terminal allowance: 212 MiB total accounting bound. Reaching a phase
+ceiling stops/censors the entire attempt; never drop prewindow data then resume.
+These are chosen finite budgets, not v6-rate extrapolation or a promise of all
+20 bins. Original 512-MiB/75%/32-task/240s limits, global storage limits and
+90-second publication guard remain; nominal 63-second publication headroom is
+not a persistence-time guarantee. No resource/precision threshold changes.
+
+Current collector/report code has hardcoded 60-bin/M0+65 paths and plan-global
+storage references; phase quotas are unimplemented. Required next work is narrow
+offline integration and actual-path boundary/fault tests, successor inspector/
+auditor/cleanup ownership wiring, then fresh read-only source/runtime/host gates
+and one exact dated executable packet for a separate capture decision. A shorter
+study cannot qualify the original 60-second CPU window. No standalone native
+smoke, capture, staging, scheduler or remote command was performed or scheduled.
+Historical FAIL, partial verdicts, original evidence and all unknowns remain.
+
 ## October 28 — Milestone 2: consolidated engineering baseline
 
 [Current baseline](ENGINEERING_BASELINE_20261028.md) consolidates exact source/
