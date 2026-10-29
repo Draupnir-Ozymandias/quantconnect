@@ -1,9 +1,38 @@
 # Development handoff
 
-Updated October 28, 2026. Continue in
+Updated October 29, 2026. Current takeover work is on `codex/btc20-takeover` in
+the originating Mac checkout. Lupus's `codex/lupus-development` remains the
+preserved implementation/packet branch; avoid concurrent changes to these paths.
+Historical continuation context follows: work in
 `/Users/eric/Projects/quantconnect/polymarket-martingale` on
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
+
+## October 29 — Offline takeover; quota replay stopping gap corrected
+
+The user explicitly requested takeover of the offline implementation task.
+Fetch found that Lupus had already implemented BTC20 in `86c69b2` and documented
+its sealed packet in `2962a24`. No duplicate acquisition implementation was added.
+Independent review reproduced an auditor gap: an archive with 8,000 prewindow
+texts followed by one primary text was accepted because final per-phase totals
+remained within bounds. That violates the existing stop-entire-attempt rule.
+The production collector's normal stop path was not demonstrated faulty.
+
+Quota replay now rejects any further nonterminal record after the retained quota
+trigger, including a control record or a frame in another phase. The trigger and
+subsequent terminal records remain admissible under the same limits. Regression
+fixtures exercise genuine archive/completion hashes from a deliberately faulty
+collector, preserving independent verification rather than relying on a final
+counter mismatch. No plan/policy/threshold or native evidence changed.
+
+[Takeover review and successor packet prerequisites](BTC20_TAKEOVER_REVIEW_20261029.md).
+The old packet and freeze remain historical, not a seal of this corrected source.
+A new execution/report source freeze, transport and separately approved exact
+packet are required before using the corrected verifier on a new native attempt.
+The private October 30 packet/runtime controls were not migrated to this checkout;
+their absence is not permission to reconstruct native evidence from assumptions.
+No SSH, metadata request, capture, deployment, resource change or QC sync occurred.
+Test results and source-candidate identity are recorded in the review document.
 
 ## October 28 — Frozen BTC20 approval packet ready; no capture authorized
 

@@ -238,6 +238,39 @@ class AllocationTests(unittest.TestCase):
             child=subprocess.run([sys.executable,'-c',code],capture_output=True,text=True,timeout=100)
             self.assertEqual(child.returncode,0,child.stderr[-2000:])
 
+    def test_archive_replay_rejects_cross_phase_continuation_after_exhaustion(self):
+        # Simulate a faulty collector that suppresses the stop until publication.
+        # Every row/hash/receipt is genuine and totals stay within each cap, so
+        # the independent verifier must detect ordering, not just final sums.
+        written=quota.Allocations.written
+        snapshot=quota.Allocations.snapshot
+        for mode in ('frame','control'):
+            with self.subTest(mode=mode),TemporaryDirectory() as d:
+                def incoming(c,t,h):
+                    if c.n<=2:return h.event(h.spec['asset_ids'][c.n-1])
+                    if c.n<=8000:return 'prewindow'
+                    if mode=='frame' and c.n==8001:
+                        h.clock.seconds=20
+                        return 'forbidden primary continuation'
+                    raise RuntimeError('bounded adversarial fixture end')
+                h=Harness(Path(d)/'archive',[dict(recv=incoming)])
+                h.clock.seconds=15
+                def suppress_stop(meter,phase,size):
+                    written(meter,phase,size)
+                    if meter.stop:
+                        meter.saved_stop=meter.stop
+                        meter.stop=None
+                        if mode=='control':h.clock.seconds=25
+                def publish_stop(meter):
+                    meter.stop=getattr(meter,'saved_stop',None)
+                    return snapshot(meter)
+                with patch.object(quota.Allocations,'written',suppress_stop),patch.object(quota.Allocations,'snapshot',publish_stop):
+                    result=run(h)
+                self.assertEqual(result['phase_allocations']['phase_frames']['prewindow'],8000)
+                verify_completion(h.completion,h.root,expected_domain='test.recovery')
+                with self.assertRaisesRegex(ContractError,'acquisition record follows phase quota exhaustion'):
+                    quota.verify_archive_allocations(result,h.completion,h.root)
+
 
 class WorkerIntegrationTests(unittest.TestCase):
     def exercise(self,root,mode='normal'):
