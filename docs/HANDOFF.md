@@ -8,7 +8,83 @@ Historical continuation context follows: work in
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
 
-## October 29 — Offline takeover; quota replay stopping gap corrected
+## October 29 — Execution-host migration to Lupus in progress
+
+**Completed:** Lupus created resident automation
+`run-and-audit-approved-btc20-october-30-on-lupus`, ACTIVE, targeting its existing
+thread `01a132ac-35b4-7151-aeb8-f6ecc9342c26` for one October30 11:44AM EDT run.
+Independent pinned SSH to lupus.local verified the actual automation file under
+`/Users/eric/.codex/automations/`, single-occurrence October30 date/time, ACTIVE
+status and target thread. The primary automation remains independently verified
+PAUSED. Lupus's checkout remains clean on codex/lupus-development; local private
+transfer controls supply exact corrected source without overwriting that branch.
+Lupus independently read back the staged EC2 packet: all580 sources/16 members
+match and no controller, metadata request or native unit has started. This Mac
+may sleep; Lupus must remain awake/connected with its app running. Earlier
+pending-transfer paragraphs below are historical checkpoints, not active blockers.
+
+The human requested moving the one-time job from the sleeping primary Mac to
+always-on Lupus. Primary automation `run-and-audit-approved-btc20-october-30` was
+PAUSED through the supported tool and independently read back paused before any
+replacement activation. Do not reactivate it. The private replacement packet and
+staging/readback receipts were copied into a fresh Lupus directory:
+`.qcrl/reviews/btc20-execution-transfer-20261029/`. No credentials were copied.
+Its `LUPUS_JOB_TRANSFER.md` binds exact source/freeze/confirmation and job scope.
+Lupus's existing “Prepare scheduling comparison” chat received the direct user-
+authorized migration request. Replacement creation and host-resident scheduling
+verification are pending; do not claim an active Lupus job until confirmed.
+EC2 stage/evidence/approval and one-opportunity scope are unchanged; no capture.
+
+The primary's two documentation edits remain uncommitted because automatic
+approval review twice timed out BEFORE the Git process started. Last successful
+push684fe71 remains evidence of working Git credentials, not a guarantee of a
+fresh authentication test. No Git credential error was observed. Do not bypass
+approval by running the blocked primary publication commands via Lupus.
+The original-host scheduling entry below is historical and superseded by this
+migration; currently the primary job is paused, not the intended execution host.
+
+## October 29 — Exact v2 approved and staged; original-host follow-up
+
+The user directly approved the rebuilt v2 packet with “approved”. Confirmation
+payload `92871a0848f02f45dc3856bd81028c5e0b73574eaa973985399857b09b947d58`
+binds one conditional staging and October30 BTC20 opportunity to freeze
+`86e2cefa7a003347900faa3ef56a5801257bf6124baea12e4a2a35c208b3bac2`.
+Exact execution/report source remains3c443e6/580 files, not later documentation
+HEAD. No additional routine approval is needed inside this exact finite scope;
+all declared readiness, time and evidence gates remain mandatory.
+
+Fresh pinned SSH read-only gates at **2026-10-29 16:38:23.620914Z** matched exact
+runtime/TLS/public/source/boot and verified unused namespace/unit and5,930,803,200
+free bytes. One approved, inspected staging script ran at16:40:27.698273Z:
+`/var/lib/qcrl-stream/public-feed-20261030T160000Z` now holds the new private clone,
+controls, inactive template plus separate direct confirmation and launcher.
+Staging verified exact sources/runtime/TLS/public state and5,899,702,272 free bytes.
+Independent readback at16:41:21.794127Z matched all16 member sizes/hashes, transport,
+source/580-file inventory, root permissions and approval bindings. Controller,
+metadata GETs, subscriptions and capture/native units remain **zero**.
+
+Local private receipts and helpers:
+`.qcrl/reviews/btc20-rebuild-20261029/`, `successor-packet/`. Source/runtime controls
+inside the sealed packet retain their old observation dates; fresh staging and
+readback are separate evidence, not rewrites. Staging/import/byte checks are not
+Linux functional or capture acceptance. No public collector/resource changes.
+
+One thread follow-up `run-and-audit-approved-btc20-october-30` is ACTIVE, single
+occurrence **October30 11:44AM EDT /15:44UTC**. It must refresh matching gates,
+invoke the frozen launcher once in15:44–15:55UTC, independently bind controller
+and worker, then copy/hash/audit only that attempt and stop. Sole metadata15:55;
+arm16:00:55; primary16:01:00–16:01:20 with2s tail. No remote scheduler has started.
+The originating Mac must stay awake, connected and the desktop app running for
+this local follow-up; Lupus is not the automation execution host. Missing access,
+review authority, readiness or window means not-run, never replay/rollover.
+
+Use only the exact staged launcher and frozen scripts described by
+[approval packet v2](BTC20_UNEVEN01_APPROVAL_PACKET_V2.md); no direct manual
+controller/consume launch. Delete the one-time follow-up after final audit or
+definitive not-run. Historical FAIL/partial/not-run evidence and thresholds stay
+unchanged; original60s CPU stays null. No trading, main merge or QC sync.
+
+## October 29 — Historical offline takeover and packet rebuild
 
 **Subsequent packet rebuild complete offline:** strict, pinned dedicated-key SSH
 to Lupus succeeded. All37 copied private files match independent origin hashes;

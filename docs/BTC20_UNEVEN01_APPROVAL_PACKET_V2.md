@@ -100,3 +100,16 @@ staging and this single opportunity. Approval of SSH/file access or packet rebui
 does not authorize execution. If the opportunity is missed, do not shift it.
 After any approved attempt, independently bind/copy/hash/audit available evidence,
 retain every unavailable population/fault and stop for review, as in packet v1.
+
+## Subsequent direct approval and staging — October 29
+
+The user subsequently approved this exact packet. Separate direct confirmation
+payload `92871a0848f02f45dc3856bd81028c5e0b73574eaa973985399857b09b947d58`
+and fresh staging/readback are retained privately; this appendix does not rewrite
+the original template or sealed packet. Matching fresh EC2 gates passed and the
+new private stage was created once at16:40:27Z, independently reverified16:41:21Z.
+All580 sources and16 sealed members match; no controller, metadata request or
+capture unit started. The one-time local follow-up is scheduled for October30
+11:44AM EDT to conditionally launch and audit only this opportunity. See HANDOFF
+for exact receipts and execution-host/awake requirements. Fresh launch gates still
+apply; prior staging is not permission to ignore drift or roll forward the window.
