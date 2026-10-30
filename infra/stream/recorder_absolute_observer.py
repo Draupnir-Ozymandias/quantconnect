@@ -11,11 +11,22 @@ def error(exc):
     return (type(exc).__name__+':'+str(exc))[:160]
 
 
+def observer_epoch(epoch, epoch_ns=None):
+    """Preserve an integer caller epoch; seconds alone retain legacy ceil semantics."""
+    represented = target_nanoseconds(epoch)  # Reject invalid seconds in either mode.
+    if epoch_ns is None:
+        return represented
+    timestamp(epoch_ns)
+    if epoch != epoch_ns/NS:
+        raise ContractError('observer integer/seconds epoch differs')
+    return epoch_ns
+
+
 def observe_absolute(reader, epoch, stop, *, execute=False, wait=None, clock_ns=None,
-                     capacity=184):
+                     capacity=184, epoch_ns=None):
     if execute is not True or type(capacity) is not int or not 1 <= capacity <= PLAN['max_slots']:
         raise ContractError('explicit bounded absolute recorder observer required')
-    epoch_ns = target_nanoseconds(epoch)
+    epoch_ns = observer_epoch(epoch, epoch_ns)
     if epoch_ns < PLAN['cpu_lead_ns']:
         raise ContractError('epoch must admit original pre-boundary target')
     timestamp(epoch_ns+(capacity-1)*NS)
@@ -123,12 +134,12 @@ def validate_wait(value, target):
     return value
 
 
-def audit_resources(resources, epoch, duration, closed, budgets, owner):
+def audit_resources(resources, epoch, duration, closed, budgets, owner, *, epoch_ns=None):
     """Validate integration binding before applying unchanged resource gates."""
     from infra.stream.recorder_application_evaluator import resource_gate
     if (resources.get('schema_version') != 'qcrl.recorder_absolute_resources.v1'
             or resources.get('plan_sha256') != payload_hash(PLAN)
-            or resources.get('epoch_ns') != target_nanoseconds(epoch)
+            or resources.get('epoch_ns') != observer_epoch(epoch, epoch_ns)
             or type(resources.get('capacity')) is not int
             or not 1 <= resources['capacity'] <= PLAN['max_slots']
             or any(resources.get(k) is not False for k in

@@ -88,3 +88,15 @@ successor. No remote command, native rerun, public capture or new packet is
 authorized by this document. The useful PreClosePub01 resource-retention finding
 requires no replay. A future independently justified packet can incorporate the
 successor and freeze its source, but no such run is proposed automatically here.
+
+## October 30 successor implementation note
+
+The October30 frozen v2 public inspector rejected lifecycle-only changes in the
+serialized ExecStart display. Its failed verdict and original source are retained.
+[Offline correction](BTC20_OFFLINE_REVIEW_20261030.md) introduces a pinned command
+comparison identity: path/complete argv display/ignore_errors stay exact, while
+start/stop/PID/code/status remain raw lifecycle observations, identical between
+the two post-exit rounds. Unsupported structured serializations fail closed;
+opaque legacy strings still compare exactly. Original v1/v2 policy hashes remain
+unchanged; revised source/comparison identity requires a future source freeze.
+No historical stop is retrospectively authorized, and no remote cleanup ran.

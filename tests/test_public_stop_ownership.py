@@ -31,6 +31,36 @@ VALIDATION_PLAN=dict(schema_version='qcrl.public_stop_ownership.validation.v1',
 
 
 class StopOwnershipTests(unittest.TestCase):
+    def test_equal_library_and_process_close_bounds_can_race_without_erasing_faults(self):
+        # Deterministic scheduling model through collect and the real guard;
+        # SIGTERM is intercepted. This establishes a possible race, not its
+        # occurrence or sender in a historical recording.
+        for fire,prior_fault in ((False,False),(True,False),(True,True)):
+            with self.subTest(fire=fire,prior_fault=prior_fault),TemporaryDirectory() as d:
+                clock,_,_,conn,invoke=self.case(Path(d)/'archive');guards=[];options={}
+                def guard(deadline,**kwargs):
+                    value=capture.ConnectDeadline(deadline,**kwargs);guards.append(value);return value
+                def connect(*args,**kwargs):options.update(kwargs);return conn
+                def close():
+                    self.assertEqual(options['close_timeout'],capture.STOP_POLICY['close_hard_seconds'])
+                    self.assertEqual(guards[-1].timer.delay,options['close_timeout'])
+                    clock.pause(options['close_timeout'] if fire else options['close_timeout']-.001)
+                    if fire:guards[-1].timer.callback()
+                conn.close=close
+                if prior_fault:conn.recv=lambda timeout:(_ for _ in ()).throw(OSError('prior receive fault'))
+                with patch.object(capture.threading,'Timer',ManualTimer),patch.object(capture.os,'kill') as kill:
+                    result=invoke(connect_factory=connect,connect_guard_factory=guard)
+                self.assertEqual(result['close_completed'],not fire)
+                self.assertEqual(guards[-1].fired.is_set(),fire)
+                if fire:
+                    kill.assert_called_once_with(os.getpid(),signal.SIGTERM)
+                    self.assertIn('ContractError:close process guard fired',result['close_errors'])
+                    # Normal acquisition is a separate component; failed close
+                    # must not erase it or be mistaken for final completion.
+                    self.assertEqual(capture.normal_completion_proven(result),not prior_fault)
+                else:kill.assert_not_called()
+                if prior_fault:self.assertIn('prior receive fault',result['error'])
+
     def case(self, root):
         return fixtures.PublicRuntimeTests().setup_case(root)
 

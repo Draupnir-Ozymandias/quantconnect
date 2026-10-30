@@ -21,6 +21,29 @@ FIELDS = ('Id', 'InvocationID', 'WorkingDirectory', 'ExecStart',
           'MainPID', 'ControlGroup', 'TasksCurrent', 'Result', 'ExecMainCode',
           'ExecMainStatus', 'ExecMainExitTimestampMonotonic')
 IDENTITY_FIELDS = FIELDS[:5]
+COMMAND_IDENTITY = dict(schema_version='qcrl.systemd_exec_identity.v1',
+                        stable='path_argv_ignore_errors',
+                        lifecycle='retain_start_stop_pid_code_status_not_command_identity',
+                        unsupported='reject_structured_unknown_or_multiple_commands')
+
+
+def command_identity(value):
+    """Parse only the bounded single-command display; never shell-split argv.
+
+    Lifecycle fields in systemd's ExecStart display change after exit. Keep the
+    complete raw display in observations and compare the stable prefix exactly.
+    Opaque legacy bindings still require byte equality, with no normalization.
+    """
+    require(type(value) is str and 0 < len(value) <= 8192, 'bounded ExecStart required')
+    if not value.startswith('{'):
+        return value
+    match = re.fullmatch(
+        r'\{ (path=/[^\s;{}]+ ; argv\[\]=[^;{}\r\n]+ ; ignore_errors=(?:yes|no))'
+        r' ; start_time=\[[^\[\]\r\n]*\] ; stop_time=\[[^\[\]\r\n]*\]'
+        r' ; pid=[0-9]+ ; code=(?:\(null\)|exited|killed|dumped)'
+        r' ; status=[0-9]+/[A-Za-z0-9]+ \}', value)
+    require(match is not None, 'unsupported systemd ExecStart display')
+    return match.group(1)
 
 
 def require(value, message):
@@ -43,6 +66,7 @@ def validate(expected, policy=POLICY):
     require(re.fullmatch(r'qcrl-[A-Za-z0-9_-]+\.service', props['Id']) is not None
             and re.fullmatch(r'[0-9a-f]{32}', props['InvocationID']) is not None
             and positive(props['ExecMainStartTimestampMonotonic']), 'invalid unit invocation')
+    command_identity(props['ExecStart'])
     group = expected['cgroup']
     require(type(group) is str and group.startswith('/system.slice/')
             and group == '/system.slice/' + props['Id'], 'exact private cgroup required')
@@ -68,6 +92,7 @@ def inspect_exited_unit(expected, reader, *, policy=POLICY):
     validate(expected,policy)
     result = dict(schema_version='qcrl.exited_unit_inspection.v1',
                   policy_sha256=payload_hash(policy), binding_sha256=payload_hash(expected),
+                  command_identity_sha256=payload_hash(COMMAND_IDENTITY),
                   observations=[], errors=[], exited_binding_observed=False,
                   tasks_current=None, resource_qualification=None, stop_authorized=False)
     try:
@@ -76,7 +101,9 @@ def inspect_exited_unit(expected, reader, *, policy=POLICY):
             result['observations'].append(row)
             props = row['properties']
             require(row['boot_id'] == expected['boot_id'], 'boot changed')
-            require(all(props.get(k) == v for k, v in expected['properties'].items()),
+            require(all((command_identity(props.get(k)) == command_identity(v)
+                         if k == 'ExecStart' else props.get(k) == v)
+                        for k, v in expected['properties'].items()),
                     'unit invocation identity differs')
             require((props.get('ActiveState'), props.get('SubState')) in
                     (('active', 'exited'), ('inactive', 'dead'), ('failed', 'failed'))

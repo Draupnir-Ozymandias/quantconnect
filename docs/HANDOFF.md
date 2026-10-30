@@ -1,9 +1,64 @@
 # Development handoff
 
-Updated October 28, 2026. Continue in
+Updated October 30, 2026. Continue in
 `/Users/eric/Projects/quantconnect/polymarket-martingale` on
 `codex/lupus-development`. The Intel migration base is `f05d5dd`; use Git history
 for subsequent development revisions. Keep this branch separate from main.
+
+## October 30 — Approved BTC20 capture audited; partial outcome, offline fixes
+
+[Retained outcome and exact identities](BTC20_UNEVEN01_OUTCOME_20261030.md);
+[offline diagnoses and successor changes](BTC20_OFFLINE_REVIEW_20261030.md).
+**Historical application FAIL stands; no combined acceptance.** October28 v1
+packet below is historical and was superseded for this attempt by independently
+approved v2 source `3c443e6fdba2224ae9965ce5dabc12f5e4c821a0` /580 selected files,
+freeze `86e2cefa7a003347900faa3ef56a5801257bf6124baea12e4a2a35c208b3bac2`.
+One existing Ohio-stage launcher/controller/capture ran October30 from Lupus.
+Independent live controller/worker bindings and effective limits verified.
+The sole opportunity is consumed; completed Lupus follow-up deleted, original
+transferred job left paused. No retry, replay, extra capture or rollover.
+
+13,271 occurrences archived:2,888 prewindow /9,585 primary /798 tail. One
+connection, no outer reconnect; recovery component inconclusive. All20 primary
+raw/eligible bin bounds independently agree, range205–762, mean479.25; all remain
+coverage=unverified. No quota exhausted, ambiguous/unplaced or disclosed unarchived
+occurrence. Eligibility is local book timing, never venue completeness; missing
+activity/feed upper/full-minute population remain null. Archive/completion/
+checkpoint linkage and217 barriers verify. Independent62-file population/all30
+producer evidence entries/all580 source hashes reconciled. Sealed archive SHA
+`5ebd2fe83c139c629365d8671ee96dddedaea72ba8eb897aeb12c64537199035`;
+frozen audit `adfc3d5a7b8fde62d79a74e2f8dd9e8bde5bf511acfd4da086a888b9a4035f9a`.
+Private evidence `.qcrl/reviews/btc20-execution-transfer-20261029/oct30-audit/`.
+
+Normal acquisition ownership proven, but SIGTERM16:01:28Z prevented final
+consumer/verified close; sender remains unknown. Controller partial_or_unresolved.
+Frozen inspector rejected changing lifecycle fields in complete ExecStart;
+no cleanup stop occurred. Last observed exact worker/controller gone, private
+unit active/exited (not inactive/dead); TasksCurrent unknown. Public/source/runtime/
+TLS unchanged then, not freshly rechecked during this offline continuation.
+Resource/checkpoint epochs differ1ns; frozen resource rejection stands. Raw24
+resource rows have10 RSS brackets wider than original5ms; no bracket subtraction.
+No original UTC-wide sequence identified in this recording. **Original complete
+60-second CPU gate stays null/unavailable, never prorated.** Continuous RSS peak,
+incremental overhead, independent UTC accuracy and internal retry counts unknown;
+credits historical/no invented minimum. All historical failures/evidence preserved.
+
+Offline successor fixes preserve the integer epoch through observer/publication
+and compare stable systemd command fields while retaining full lifecycle displays,
+failed statuses, unknown tasks and two-round race checks. New comparison identity
+is source-bound/pinned; original policy/plan dictionaries and thresholds unchanged.
+Executed-source quota stop-order correction is carried forward exactly into Lupus's
+older baseline. Deterministic close-boundary tests reproduce a possible guard race,
+not historical signal attribution; no shutdown bounds/handlers changed. No new
+packet, remote command/mutation, capture or replay during this continuation.
+
+Validation: **1,351 tests passed in210.741s** on Intel macOS/Python3.14.6;
+100 focused tests passed in29.877s. Changed Python accepts3.9 grammar locally,
+not installed Linux validation. All62 retained file hashes, original sealed
+archive and580 frozen source inputs rechecked unchanged. Diff reviewed for
+unintended changes/sensitive data; private evidence/credentials remain excluded.
+Logs/diagnosis receipt retained in the private transfer directory. These successor
+fixes have no new Linux/public validation or execution approval packet.
 
 ## October 28 — Frozen BTC20 approval packet ready; no capture authorized
 

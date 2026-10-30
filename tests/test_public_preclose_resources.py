@@ -28,7 +28,8 @@ from tests.test_recorder_public_study import DummyInterrupt
 
 
 @contextmanager
-def worker(root, *, opted=True, observer=None, on_close=None, guards=None, publish_component=None):
+def worker(root, *, opted=True, observer=None, on_close=None, guards=None, publish_component=None,
+           epoch_ns=20_000_000_000):
     """Actual consume/collect/archive/report, with deterministic external boundaries."""
     with ExitStack() as stack:
         root=Path(root);root.mkdir()
@@ -43,7 +44,9 @@ def worker(root, *, opted=True, observer=None, on_close=None, guards=None, publi
         identity=dict(pid=os.getpid(),boot_id='test.boot',start_ticks=123)
         publish(root.parent/'case-lock.json',dict(case_sha256=case['artifact_sha256'],
             freeze_sha256=frozen['freeze_sha256'],locked_at_utc=PLAN['discovery']))
-        publish(root/'release.json',dict(case_sha256=case['artifact_sha256'],identity=identity,epoch_ns=20_000_000_000,at=0))
+        publish(root/'release.json',dict(case_sha256=case['artifact_sha256'],identity=identity,epoch_ns=epoch_ns,at=0))
+        if epoch_ns!=20_000_000_000:
+            stack.enter_context(patch.object(study,'epoch_ns',return_value=epoch_ns))
         wall=lambda:study.utc(PLAN['arm'])+timedelta(seconds=h.clock.seconds)
         stack.enter_context(patch.object(study.platform,'system',return_value='Linux'))
         stack.enter_context(patch.object(sys,'executable',study.PYTHON))
@@ -55,7 +58,7 @@ def worker(root, *, opted=True, observer=None, on_close=None, guards=None, publi
         def default_observer(reader,epoch,stop,**kwargs):
             # Empty, explicitly unqualified prefix, not fabricated resource samples.
             return dict(schema_version='qcrl.recorder_absolute_resources.v1',
-                plan_sha256=payload_hash(RESOURCE_PLAN),epoch_ns=20_000_000_000,
+                plan_sha256=payload_hash(RESOURCE_PLAN),epoch_ns=epoch_ns,
                 capacity=184,rows=[],overflow=False,error='test_empty_prefix')
         stack.enter_context(patch.object(study,'observe_absolute',side_effect=observer or default_observer))
         if publish_component is not None:
@@ -114,6 +117,29 @@ with worker(Path(ROOT)/'evidence',guards=ConnectDeadline,observer=synthetic_row,
 
 
 class PrecloseResourceTests(unittest.TestCase):
+    def test_actual_worker_passes_integer_epoch_to_real_observer_and_links_publication(self):
+        from infra.stream.recorder_absolute_observer import observe_absolute
+        from tests.test_recorder_absolute_observer import Clock,Reader
+        exact=20_000_000_001
+        def observer(reader,epoch,stop,**kwargs):
+            self.assertEqual(kwargs['epoch_ns'],exact)
+            clock=Clock()
+            return observe_absolute(Reader(clock),epoch,stop,wait=clock.wait(),clock_ns=clock.now,
+                                    capacity=1,**kwargs)
+        with TemporaryDirectory() as d,worker(Path(d)/'evidence',epoch_ns=exact,observer=observer) as w:
+            w.run()
+            checkpoint=control(w.root/'acquisition-checkpoint.json')
+            consumer=control(w.root/'consumer.json')
+            component=study.verify_preclose_resources(w.root,w.case,consumer)
+            self.assertEqual(checkpoint['epoch_ns'],exact)
+            self.assertEqual(component['resources']['epoch_ns'],exact)
+            self.assertEqual(component['resources']['rows'][0]['target_ns'],exact)
+            # A rehashed off-by-one resource result is still rejected.
+            bad=deepcopy(component);bad.pop('artifact_sha256');bad['resources']['epoch_ns']+=1
+            (w.root/'preclose-resources.json').unlink();publish(w.root/'preclose-resources.json',bad)
+            with self.assertRaisesRegex(ContractError,'epoch/plan differs'):
+                study.verify_preclose_resources(w.root,w.case,consumer)
+
     def test_literal_policy_identity_and_freeze_opt_in(self):
         self.assertEqual(payload_hash(study.RESOURCE_PUBLICATION_POLICY),
             '97182fefdef0ebd4e5007a8aed416fc13e189abb52c6218f3de252fddb4daa73')

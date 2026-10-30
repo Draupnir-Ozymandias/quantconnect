@@ -238,6 +238,39 @@ class AllocationTests(unittest.TestCase):
             child=subprocess.run([sys.executable,'-c',code],capture_output=True,text=True,timeout=100)
             self.assertEqual(child.returncode,0,child.stderr[-2000:])
 
+    def test_archive_replay_rejects_cross_phase_continuation_after_exhaustion(self):
+        # Simulate a faulty collector that suppresses the stop until publication.
+        # Every row/hash/receipt is genuine and totals stay within each cap, so
+        # the independent verifier must detect ordering, not just final sums.
+        written=quota.Allocations.written
+        snapshot=quota.Allocations.snapshot
+        for mode in ('frame','control'):
+            with self.subTest(mode=mode),TemporaryDirectory() as d:
+                def incoming(c,t,h):
+                    if c.n<=2:return h.event(h.spec['asset_ids'][c.n-1])
+                    if c.n<=8000:return 'prewindow'
+                    if mode=='frame' and c.n==8001:
+                        h.clock.seconds=20
+                        return 'forbidden primary continuation'
+                    raise RuntimeError('bounded adversarial fixture end')
+                h=Harness(Path(d)/'archive',[dict(recv=incoming)])
+                h.clock.seconds=15
+                def suppress_stop(meter,phase,size):
+                    written(meter,phase,size)
+                    if meter.stop:
+                        meter.saved_stop=meter.stop
+                        meter.stop=None
+                        if mode=='control':h.clock.seconds=25
+                def publish_stop(meter):
+                    meter.stop=getattr(meter,'saved_stop',None)
+                    return snapshot(meter)
+                with patch.object(quota.Allocations,'written',suppress_stop),patch.object(quota.Allocations,'snapshot',publish_stop):
+                    result=run(h)
+                self.assertEqual(result['phase_allocations']['phase_frames']['prewindow'],8000)
+                verify_completion(h.completion,h.root,expected_domain='test.recovery')
+                with self.assertRaisesRegex(ContractError,'acquisition record follows phase quota exhaustion'):
+                    quota.verify_archive_allocations(result,h.completion,h.root)
+
 
 class WorkerIntegrationTests(unittest.TestCase):
     def exercise(self,root,mode='normal'):
@@ -316,7 +349,7 @@ class WorkerIntegrationTests(unittest.TestCase):
         self.assertIn('20261030T160000Z',ops.unit)
 
     def test_cleanup_owner_refuses_active_or_foreign_binding_and_retains_unknown_counter(self):
-        for mode in ('exited','active','foreign'):
+        for mode in ('exited','active','foreign','lifecycle'):
             with self.subTest(mode=mode),TemporaryDirectory() as d:
                 ops=object.__new__(operator.Production);ops.plan=PLAN;ops.stage,ops.unit=operator.layout(PLAN)
                 ops.root=Path(d);ops.evidence=ops.root/'evidence';ops.evidence.mkdir()
@@ -324,12 +357,16 @@ class WorkerIntegrationTests(unittest.TestCase):
                 case=publish(ops.evidence/'case.json',dict(case=PLAN['case']))
                 p=dict(Id=ops.unit+'.service',InvocationID='a'*32,WorkingDirectory=str(operator.ROOT),
                     ExecStart='complete frozen argv',ExecMainStartTimestampMonotonic='123')
+                from tests.test_recorder_exited_unit import LifecycleTests
+                if mode=='lifecycle':p['ExecStart']=LifecycleTests.exec_display()
                 binding=dict(properties=p,boot_id='fixture-boot',cgroup='/system.slice/'+ops.unit+'.service',
                     processes=[dict(pid=11,start_id='101')])
                 if mode=='foreign':p['WorkingDirectory']='/foreign'
                 publish(ops.root/'unit-invocation.json',dict(binding=binding,case_sha256=case['artifact_sha256'],freeze_sha256='fixture.freeze'))
                 props=dict(p,ActiveState='active',SubState='running' if mode=='active' else 'exited',
                     MainPID='11' if mode=='active' else '0',ControlGroup=binding['cgroup'],TasksCurrent='[not set]')
+                if mode=='lifecycle':
+                    props.update(ExecStart=LifecycleTests.exec_display(exited=True),ExecMainStatus='15')
                 from unittest.mock import Mock
                 reader=Mock(boot=Mock(return_value='fixture-boot'),unit=Mock(return_value=props),
                     process=Mock(return_value=None),group=Mock(return_value=dict(state='removed',members=[])))
@@ -337,9 +374,9 @@ class WorkerIntegrationTests(unittest.TestCase):
                 with patch.object(exited,'LinuxReader',return_value=reader),patch.object(operator,'verify_freeze'),patch.object(operator,'public_state',return_value={}),patch.object(operator,'command',side_effect=lambda args,**k:calls.append(args) or ''):
                     ops.stop_and_seal()
                 post=operator.control(ops.root/'post-run-checks.json')
-                self.assertEqual(post['exact_exited_unit_stopped'],mode=='exited')
-                self.assertEqual(calls,[['systemctl','stop',ops.unit+'.service']] if mode=='exited' else [])
-                if mode=='exited':
+                self.assertEqual(post['exact_exited_unit_stopped'],mode in ('exited','lifecycle'))
+                self.assertEqual(calls,[['systemctl','stop',ops.unit+'.service']] if mode in ('exited','lifecycle') else [])
+                if mode in ('exited','lifecycle'):
                     receipt=operator.control(ops.root/'exited-unit-inspection.json')
                     self.assertIsNone(receipt['tasks_current']);self.assertFalse(receipt['stop_authorized'])
 

@@ -88,6 +88,11 @@ def verify_archive_allocations(result, completion, root):
         with gzip.open(Path(root)/name,'rb') as handle:
             for line in handle:
                 row=json.loads(line)
+                # Verify temporal stopping, not just final totals: exhausting one
+                # phase forbids further acquisition in every other phase too.
+                # Only terminal records may follow the retained trigger record.
+                if meter.stop is not None and row['ordinal'] < first:
+                    raise ContractError('acquisition record follows phase quota exhaustion')
                 phase=('terminal' if row['ordinal']>=first else meter.phase(
                     by_ordinal[row['ordinal']]['returned']['before'] if row['kind']=='frame'
                     else row['local_monotonic_seconds']))

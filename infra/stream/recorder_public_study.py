@@ -220,7 +220,7 @@ def consume(root, frozen, *, execute=False):
     stop=threading.Event();resources={}
     def monitor():
         try:
-            resources.update(observe_absolute(reader,epoch/1e9,stop,execute=True))
+            resources.update(observe_absolute(reader,epoch/1e9,stop,execute=True,epoch_ns=epoch))
         except BaseException as exc:
             resources.update(error=short_error(exc))
     thread=threading.Thread(target=monitor,daemon=True)

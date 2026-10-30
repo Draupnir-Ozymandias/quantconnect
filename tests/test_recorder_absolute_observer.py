@@ -56,6 +56,31 @@ class Reader:
 
 
 class ObserverTests(unittest.TestCase):
+    def test_integer_epoch_survives_seconds_roundtrip_on_actual_observer_grid(self):
+        for exact in (20_000_000_001,2_311_776_625_614_725,2_311_776_625_614_726):
+            clock=Clock(exact-NS);reader=Reader(clock)
+            value=integration.observe_absolute(reader,exact/NS,SimpleNamespace(is_set=lambda:False),
+                execute=True,epoch_ns=exact,wait=clock.wait(),clock_ns=clock.now,capacity=2)
+            self.assertEqual(value['epoch_ns'],exact)
+            self.assertEqual([r['target_ns'] for r in value['rows']],[exact,exact+NS])
+            self.assertEqual(clock.calls,[exact-PLAN['cpu_lead_ns'],exact,exact+NS])
+            # Audit binding accepts the original integer, never a tolerance.
+            integration.audit_resources(value,exact/NS,1,(exact+NS)/NS,
+                                        parent()['budgets'],OWNER,epoch_ns=exact)
+            if target_nanoseconds(exact/NS)!=exact:
+                with self.assertRaisesRegex(ContractError,'binding differs'):
+                    integration.audit_resources(value,exact/NS,1,(exact+NS)/NS,
+                                                parent()['budgets'],OWNER)
+
+    def test_invalid_integer_epoch_or_disagreeing_seconds_never_calls_wait(self):
+        for exact in (True,-1,1.5,2**63):
+            with self.subTest(exact=exact),patch.object(integration,'native') as bind:
+                with self.assertRaises(ContractError):
+                    integration.observe_absolute(None,20.,None,execute=True,epoch_ns=exact)
+                bind.assert_not_called()
+        with self.assertRaisesRegex(ContractError,'integer/seconds epoch differs'):
+            integration.observe_absolute(None,20.,None,execute=True,epoch_ns=21*NS)
+
     def run_observer(self, clock=None, reader=None, capacity=62, stop_at=60):
         clock = Clock() if clock is None else clock
         reader = Reader(clock) if reader is None else reader

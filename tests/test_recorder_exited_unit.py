@@ -30,6 +30,53 @@ def reader():
 
 
 class LifecycleTests(unittest.TestCase):
+    @staticmethod
+    def exec_display(*, exited=False, argv='/opt/python -m worker', path='/opt/python', ignore='no'):
+        return ('{ path='+path+' ; argv[]='+argv+' ; ignore_errors='+ignore+
+                ' ; start_time=[Fri 2026-10-30 16:00:55 UTC] ; stop_time=['+
+                ('Fri 2026-10-30 16:01:28 UTC' if exited else 'n/a')+
+                '] ; pid=3208026 ; code='+('killed' if exited else '(null)')+
+                ' ; status='+('15/TERM' if exited else '0/0')+' }')
+
+    def test_command_identity_contract_is_pinned(self):
+        self.assertEqual(payload_hash(inspection.COMMAND_IDENTITY),
+                         '821675a9cb9f7897203e57d04da00213d5d39fb00274998dce8a837b7943d7ca')
+
+    def test_lifecycle_execstart_change_retains_failed_exit_and_raw_displays(self):
+        b=binding();b['properties']['ExecStart']=self.exec_display()
+        p=properties();p['ExecStart']=self.exec_display(exited=True)
+        p.update(ExecMainStatus='15',ExecMainCode='2')
+        r=reader();r.unit.side_effect=lambda _:deepcopy(p)
+        value=inspection.inspect_exited_unit(b,r)
+        self.assertTrue(value['exited_binding_observed'],value)
+        self.assertEqual(value['observations'][0]['properties']['ExecStart'],p['ExecStart'])
+        self.assertEqual(value['observations'][0]['properties']['ExecMainStatus'],'15')
+        self.assertIsNone(value['tasks_current'])
+        self.assertFalse(value['stop_authorized'])
+        for key,change in [('path','/foreign'),('argv','/opt/python -m other'),('ignore','yes')]:
+            r=reader();q=deepcopy(p);q['ExecStart']=self.exec_display(exited=True,**{key:change})
+            r.unit.side_effect=lambda _,q=q:deepcopy(q)
+            self.assertFalse(inspection.inspect_exited_unit(b,r)['exited_binding_observed'])
+
+    def test_execstart_malformed_multiple_and_unknown_fields_fail_closed(self):
+        original=self.exec_display()
+        for text in (original+' '+original,original.replace('argv[]','unknown'),
+                     original.replace(' ; pid=3208026',' ; extra=yes ; pid=3208026'),
+                     original[:-1],original.replace('/opt/python -m worker','/opt/python ; other'),
+                     '{ malformed }'):
+            b=binding();b['properties']['ExecStart']=text;r=reader()
+            with self.subTest(text=text),self.assertRaises(ContractError):
+                inspection.inspect_exited_unit(b,r)
+            r.boot.assert_not_called()
+
+    def test_lifecycle_change_between_exit_rounds_is_still_a_race(self):
+        b=binding();b['properties']['ExecStart']=self.exec_display()
+        a=properties();a['ExecStart']=self.exec_display(exited=True)
+        z=deepcopy(a);z['ExecStart']=z['ExecStart'].replace('15/TERM','9/KILL')
+        r=reader();r.unit.side_effect=[a,z]
+        self.assertIn('inspection changed between rounds',
+                      inspection.inspect_exited_unit(b,r)['errors'][0])
+
     def test_prospective_policy_identity_is_pinned(self):
         self.assertEqual(payload_hash(inspection.POLICY),
                          '24898288fd05207fbfda23597c20a8ba04c56ab4f626a30b262ead55b50c4a6b')
